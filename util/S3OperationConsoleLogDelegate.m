@@ -95,7 +95,7 @@
 	NSLog(@"operationDidFinish was called.");
 	if ([o isKindOfClass:[S3BucketListOperation class]]) {
 		NSMutableArray* buckets = [(S3BucketListOperation*)o bucketList];
-		for (int i = 0; i < [buckets count]; i++)
+		for (NSUInteger i = 0; i < [buckets count]; i++)
 			NSLog(@"  %@", [[buckets objectAtIndex:i] name]);
 		NSLog(@"%d bucket%s found.", [buckets count], [buckets count] == 1 ? "" : "s");
 	} else if ([o isKindOfClass:[S3ObjectListOperation class]]) {
@@ -103,7 +103,7 @@
 		
 		if (verifyDictionary == nil) {
 			// List objects
-			for (int i = 0; i < [objects count]; i++) {
+			for (NSUInteger i = 0; i < [objects count]; i++) {
 				NSLog(@"   Key: %@", [[objects objectAtIndex:i] operationKey]);
 				NSLog(@"   Size: %lld bytes", [(S3Object*)[objects objectAtIndex:i] size]);
 				NSDictionary* dict = [[objects objectAtIndex: i] metadata];
@@ -112,7 +112,7 @@
 			NSLog(@"Objects array has %d entries", [objects count]);
 		} else {
 			// Verify objects
-			for (int i = 0; i < [objects count]; i++) {
+			for (NSUInteger i = 0; i < [objects count]; i++) {
 				NSString* key = [[objects objectAtIndex:i] operationKey];
 				NSString* sum = [verifyDictionary valueForKey:key];
 				if (sum != nil) {

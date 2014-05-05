@@ -9,7 +9,7 @@
 #import <Cocoa/Cocoa.h>
 #import "S3Operation.h"
 
-@interface S3OperationController : NSWindowController <NSToolbarDelegate> {
+@interface S3OperationController : NSWindowController {
 	IBOutlet NSArrayController *_operationsArrayController;
 	IBOutlet NSWindow *_infoPanel;
 }

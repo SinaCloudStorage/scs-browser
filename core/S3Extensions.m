@@ -3,24 +3,24 @@
 //  S3-Objc
 //
 //  Created by Bruce Chen on 3/31/06.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2006 Bruce Chen. All rights reserved.
 //
 
 #import "S3Extensions.h"
-#import <openssl/ssl.h>
-#import <openssl/hmac.h>
+#import <CommonCrypto/CommonCrypto.h>
 
 @implementation NSArray (Comfort)
 
-- (NSArray *)expandPaths
+- (NSArray *) expandPaths
 {
 	NSMutableArray *a = [NSMutableArray array];
-	NSEnumerator *e = [self objectEnumerator];
-	NSString *path;
 	BOOL dir;
 	
-	while(path = [e nextObject])
+	for(id pathOrURL in self)
 	{
+        NSString* path = ([pathOrURL isKindOfClass:[NSURL class]]) ? [pathOrURL path] : pathOrURL;
+        
 		if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&dir])
 		{		
 			if (!dir)
@@ -47,17 +47,18 @@
 	return a;
 }
 
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 
 - (BOOL)hasObjectSatisfying:(SEL)aSelector withArgument:(id)argument;
 {
-    NSEnumerator *e = [self objectEnumerator];
-    id o;
-    while (o = [e nextObject])
+    for(id object in self)
     {
-        if ([o performSelector:aSelector withObject:argument])
-            return TRUE;
+        if ([object performSelector:aSelector withObject:argument]) {
+            return YES;
+        }
     }
-    return FALSE;
+    
+    return NO;
 }
 
 @end
@@ -72,7 +73,7 @@
     NSMutableString *s = [NSMutableString string];
     NSArray *keys = [self allKeys];
     NSString *k;
-    int i;
+    NSInteger i;
 
     k = [keys objectAtIndex:0];
     [s appendString:@"?"];
@@ -127,7 +128,7 @@
 
 - (NSNumber *)longLongNumber
 {
-	return [NSNumber numberWithLongLong:[[self stringValue] longLongValue]];
+	return @([[self stringValue] longLongValue]);
 }
 
 - (NSNumber *)boolNumber
@@ -139,55 +140,65 @@
 		return [NSNumber numberWithBool:FALSE];
 }
 
-- (NSCalendarDate *)dateValue
+- (NSDate *)dateValue
 {
+    return [[self stringValue] dateValue];
+    /*
 	id s = [[self stringValue] stringByAppendingString:@" +0000"];
 	id d = [NSCalendarDate dateWithString:s calendarFormat:@"%Y-%m-%dT%H:%M:%S.%FZ %z"];
 	return d;
+     */
 }
 
 @end
 
 
-@implementation NSData (OpenSSLWrapper)
+@implementation NSData (CommonCryptoWrapper)
 
 - (NSData *)md5Digest
 {
-	EVP_MD_CTX mdctx;
-	unsigned char md_value[EVP_MAX_MD_SIZE];
-	unsigned int md_len;
-	EVP_DigestInit(&mdctx, EVP_md5());
-	EVP_DigestUpdate(&mdctx, [self bytes], [self length]);
-	EVP_DigestFinal(&mdctx, md_value, &md_len);
-	return [NSData dataWithBytes:md_value length:md_len];
+    CFErrorRef error = NULL;
+    
+    SecTransformRef digestRef = SecDigestTransformCreate(kSecDigestMD5, 0, &error);
+    SecTransformSetAttribute(digestRef, kSecTransformInputAttributeName, (__bridge CFDataRef)self, &error);
+    CFDataRef resultData = SecTransformExecute(digestRef, &error);
+    
+    NSData* bridgedData = (__bridge_transfer NSData*)resultData;
+    CFRelease(digestRef);
+    
+    return bridgedData;
 }
 
 - (NSData *)sha1Digest
 {
-	EVP_MD_CTX mdctx;
-	unsigned char md_value[EVP_MAX_MD_SIZE];
-	unsigned int md_len;
-	EVP_DigestInit(&mdctx, EVP_sha1());
-	EVP_DigestUpdate(&mdctx, [self bytes], [self length]);
-	EVP_DigestFinal(&mdctx, md_value, &md_len);
-	return [NSData dataWithBytes:md_value length:md_len];
+    CFErrorRef error = NULL;
+    
+    SecTransformRef digestRef = SecDigestTransformCreate(kSecDigestSHA1, 0, &error);
+    SecTransformSetAttribute(digestRef, kSecTransformInputAttributeName, (__bridge CFDataRef)self, &error);
+    CFDataRef resultData = SecTransformExecute(digestRef, &error);
+    
+    NSData* bridgedData = (__bridge_transfer NSData*)resultData;
+    CFRelease(digestRef);
+    
+    return bridgedData;
 }
 
 - (NSData *)sha1HMacWithKey:(NSString *)key
 {
-	HMAC_CTX mdctx;
-	unsigned char md_value[EVP_MAX_MD_SIZE];
-	unsigned int md_len;
-	const char* k = [key cStringUsingEncoding:NSUTF8StringEncoding];
-	const unsigned char *data = [self bytes];
-	int len = [self length];
-	
-	HMAC_CTX_init(&mdctx);
-	HMAC_Init(&mdctx,k,strlen(k),EVP_sha1());
-	HMAC_Update(&mdctx,data, len);
-	HMAC_Final(&mdctx, md_value, &md_len);
-	HMAC_CTX_cleanup(&mdctx);
-	return [NSData dataWithBytes:md_value length:md_len];
+	CFErrorRef error = NULL;
+    
+    NSData* keyData = [key dataUsingEncoding:NSUTF8StringEncoding];
+    
+    SecTransformRef digestRef = SecDigestTransformCreate(kSecDigestHMACSHA1, 0, &error);
+    SecTransformSetAttribute(digestRef, kSecDigestHMACKeyAttribute, (__bridge CFDataRef)keyData, &error);
+    SecTransformSetAttribute(digestRef, kSecTransformInputAttributeName, (__bridge CFDataRef)self, &error);
+    
+    CFDataRef resultData = SecTransformExecute(digestRef, &error);
+    
+    NSData* bridgedData = (__bridge_transfer NSData*)resultData;
+    CFRelease(digestRef);
+    
+    return bridgedData;
 }
 	
 - (NSString *)encodeBase64
@@ -197,26 +208,22 @@
 
 - (NSString *) encodeBase64WithNewlines:(BOOL) encodeWithNewlines
 {
-    BIO *mem = BIO_new(BIO_s_mem());
-	BIO *b64 = BIO_new(BIO_f_base64());
-    if (!encodeWithNewlines)
-        BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
-    mem = BIO_push(b64, mem);
+    CFErrorRef error = NULL;
+    
+    SecTransformRef encodingRef = SecEncodeTransformCreate(kSecBase64Encoding, &error);
+    SecTransformSetAttribute(encodingRef, kSecTransformInputAttributeName, (__bridge CFDataRef)self, &error);
+    CFDataRef resultData = SecTransformExecute(encodingRef, &error);
+    
+    NSString *base64String = [[NSString alloc] initWithData:(__bridge NSData*)resultData encoding:NSASCIIStringEncoding];
+    
+    CFRelease(encodingRef);
+    CFRelease(resultData);
 
-	BIO_write(mem, [self bytes], [self length]);
-    BIO_flush(mem);
-		
-	char *base64Pointer;
-    long base64Length = BIO_get_mem_data(mem, &base64Pointer);
-		
-	NSString *base64String = [[[NSString alloc] initWithBytes:base64Pointer length:base64Length encoding:NSASCIIStringEncoding] autorelease];
-		
-	BIO_free_all(mem);
     return base64String;
 }
 @end
 
-@implementation NSString (OpenSSLWrapper)
+@implementation NSString (CommonCryptoWrapper)
 
 - (NSData *)decodeBase64;
 {
@@ -225,40 +232,39 @@
 
 - (NSData *)decodeBase64WithNewlines:(BOOL)encodedWithNewlines;
 {
-    BIO *mem = BIO_new_mem_buf((void *) [self UTF8String], strlen([self UTF8String]));
+    CFErrorRef error = NULL;
     
-    BIO *b64 = BIO_new(BIO_f_base64());
-    if (!encodedWithNewlines)
-        BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
-    mem = BIO_push(b64, mem);
+    NSData* inputData = [self dataUsingEncoding:NSUTF8StringEncoding];
     
-    NSMutableData *data = [NSMutableData data];
-    char inbuf[512];
-    int inlen;
-    while ((inlen = BIO_read(mem, inbuf, sizeof(inbuf))) > 0)
-        [data appendBytes:inbuf length:inlen];
+    SecTransformRef decodingRef = SecDecodeTransformCreate(kSecBase64Encoding, &error);
+    SecTransformSetAttribute(decodingRef, kSecTransformInputAttributeName, (__bridge CFDataRef)inputData, &error);
+    CFDataRef resultData = SecTransformExecute(decodingRef, &error);
     
-    BIO_free_all(mem);
-    return data;
+    NSData* bridgedData = (__bridge_transfer NSData*)resultData;
+    CFRelease(decodingRef);
+
+    return bridgedData;
 }
 
 - (NSNumber *)fileSizeForPath
 {
-	NSDictionary *fileAttributes = [[NSFileManager defaultManager] fileAttributesAtPath:self traverseLink:YES];
+	NSDictionary *fileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:self error:nil];;
 	if (fileAttributes==nil)
-		return [NSNumber numberWithLongLong:0];
+		return @0LL;
     else
         return [fileAttributes objectForKey:NSFileSize];
 }
 
 - (NSString *)readableSizeForPath
 {
-	NSDictionary *fileAttributes = [[NSFileManager defaultManager] fileAttributesAtPath:self traverseLink:YES];
+	NSDictionary *fileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:self error:nil];
 	if (fileAttributes==nil)
 		return @"Unknown";
 	
     return [[fileAttributes objectForKey:NSFileSize] readableFileSize];
 }
+
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
 - (NSString *)mimeTypeForPath
 {
@@ -279,7 +285,7 @@
 	if(err != noErr)
 		return nil;
 	CFStringRef mimeType = UTTypeCopyPreferredTagWithClass(utiType, kUTTagClassMIMEType);
-	return [(NSString*)mimeType autorelease];
+	return (NSString *)CFBridgingRelease(mimeType);
 }
 
 + (NSString *)readableSizeForPaths:(NSArray *)files
@@ -289,7 +295,7 @@
 	
 	for (path in files)
 	{
-		NSDictionary *fileAttributes = [[NSFileManager defaultManager] fileAttributesAtPath:path traverseLink:YES];
+		NSDictionary *fileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil];
 		if (fileAttributes!=nil)
 			total = total + [[fileAttributes objectForKey:NSFileSize] unsignedLongLongValue];				
 	}
@@ -329,7 +335,7 @@
 
 + (NSString *)commonPrefixWithStrings:(NSArray *)strings
 {
-	int sLength = [strings count];
+	NSUInteger sLength = [strings count];
 	int i,j;
 	
 	if (sLength == 1)
@@ -337,7 +343,7 @@
 	else 
 	{
 		NSString* prefix = [strings objectAtIndex:0];
-		int maxLength = [prefix length];
+		NSUInteger maxLength = [prefix length];
 		
 		for (i = 1; i < sLength; i++)
 			if ([[strings objectAtIndex:i] length] < maxLength)
@@ -349,11 +355,10 @@
 			for (j = 1; j < sLength; j++) {
 				NSString* compareString = [strings objectAtIndex:j];
 				
-				if ([compareString characterAtIndex:i] != c)
-                {
+				if ([compareString characterAtIndex:i] != c) {
 					if (i == 0) {
 						return @"";
-                    } else {
+					} else {
 						return [prefix substringToIndex:i];
                     }
                 }
@@ -383,9 +388,8 @@
 	// Escape all Reserved characters from rfc 2396 section 2.2
 	// except "/" since that's used explicitly in format strings.
 	CFStringRef escapeChars = (CFStringRef)@";?:@&=+$,";
-	return [(NSString*)CFURLCreateStringByAddingPercentEscapes(NULL,
-			(CFStringRef)self, NULL, escapeChars, kCFStringEncodingUTF8)
-			autorelease];
+	return (NSString*)CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(NULL,
+			(CFStringRef)self, NULL, escapeChars, kCFStringEncodingUTF8));
 }
 
 @end
@@ -397,17 +401,17 @@
 - (NSDate *)dateValue {
     
     NSMutableDictionary *dictionary = [[NSThread currentThread] threadDictionary];
-    static NSString *dateFormatterKey = @"SCSDateFormatter";
+    static NSString *dateFormatterKey = @"S3DateFormatter";
     
     NSDateFormatter *dateFormatter = [dictionary objectForKey:dateFormatterKey];
     
     if (dateFormatter == nil) {
         
-        dateFormatter = [[NSDateFormatter new] autorelease];
+        dateFormatter = [NSDateFormatter new];
         // Must set locale to ensure consistent parsing:
         // http://developer.apple.com/iphone/library/qa/qa2010/qa1480.html
         
-        dateFormatter.locale = [[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease];
+        dateFormatter.locale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"];
         dateFormatter.dateFormat = @"EEE, dd MMM yyyy HH:mm:ss Z";
         [dictionary setObject:dateFormatter forKey:dateFormatterKey];
     }

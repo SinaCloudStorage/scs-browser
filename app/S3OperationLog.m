@@ -21,7 +21,6 @@
     if (self != nil) {
         NSMutableArray *array = [[NSMutableArray alloc] init];
         [self setOperations:array];
-        [array release];
     }
     
     return self;

@@ -3,10 +3,11 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 11/19/08.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2008 Michael Ledford. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 
 #import "S3Operation.h"
 

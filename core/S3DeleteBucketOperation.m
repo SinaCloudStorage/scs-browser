@@ -3,16 +3,16 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 11/20/08.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2008 Michael Ledford. All rights reserved.
 //
 
 #import "S3DeleteBucketOperation.h"
+#import "S3Bucket.h"
 
 static NSString *S3OperationInfoDeleteBucketOperationBucketKey = @"S3OperationInfoDeleteBucketOperationBucketKey";
 
 @implementation S3DeleteBucketOperation
-
-@dynamic bucket;
 
 - (id)initWithConnectionInfo:(S3ConnectionInfo *)theConnectionInfo bucket:(S3Bucket *)b
 {
@@ -23,7 +23,6 @@ static NSString *S3OperationInfoDeleteBucketOperationBucketKey = @"S3OperationIn
     
     self = [super initWithConnectionInfo:theConnectionInfo operationInfo:theOperationInfo];
     
-    [theOperationInfo release];
     
     if (self != nil) {
         
@@ -48,9 +47,9 @@ static NSString *S3OperationInfoDeleteBucketOperationBucketKey = @"S3OperationIn
     return @"DELETE";
 }
 
-- (BOOL)virtuallyHostedCapable
+- (BOOL) isVirtuallyHostedCapable
 {
-	return [[self bucket] virtuallyHostedCapable];
+	return [[self bucket] isVirtuallyHostedCapable];
 }
 
 - (NSString *)bucketName

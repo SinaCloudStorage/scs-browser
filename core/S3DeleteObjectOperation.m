@@ -3,6 +3,7 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 11/26/08.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2008 Michael Ledford. All rights reserved.
 //
 
@@ -25,7 +26,6 @@ static NSString *S3OperationInfoDeleteObjectOperationObjectKey = @"S3OperationIn
     
     self = [super initWithConnectionInfo:c operationInfo:theOperationInfo];
     
-    [theOperationInfo release];
     
     if (self != nil) {
         
@@ -50,9 +50,9 @@ static NSString *S3OperationInfoDeleteObjectOperationObjectKey = @"S3OperationIn
     return @"DELETE";
 }
 
-- (BOOL)virtuallyHostedCapable
+- (BOOL)isVirtuallyHostedCapable
 {
-	return [[[self object] bucket] virtuallyHostedCapable];
+	return [[[self object] bucket] isVirtuallyHostedCapable];
 }
 
 - (NSString *)bucketName

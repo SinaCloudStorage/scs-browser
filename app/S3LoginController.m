@@ -16,11 +16,13 @@
 #define S3_BROWSER_KEYCHAIN_SERVICE "S3 Browser"
 
 
-@interface S3LoginController ()
+@interface S3LoginController () <NSWindowDelegate>
 
 - (NSString *)getS3SecretKeyFromKeychainForS3AccessKey:(NSString *)accesskey;
 - (BOOL)setS3SecretKeyToKeychainForS3AccessKey:(NSString *)accesskey password:(NSString *)secretkey;
 - (void)checkPasswordInKeychain;
+
+@property (nonatomic) S3BucketListController* bucketListController;
 
 @end
 
@@ -32,7 +34,6 @@
 - (void)dealloc
 {
     [[[NSApp delegate] queue] removeQueueListener:self];
-    [super dealloc];
 }
 
 #pragma mark -
@@ -82,24 +83,21 @@
 
     [super operationQueueOperationStateDidChange:notification];
 
-    if ([operation state] == S3OperationDone) {
+    if ([operation state] == S3OperationDone && [operation isKindOfClass:[S3ListBucketOperation class]]) {
 
         if ([_keychainCheckbox state] == NSOnState) {
             [self setS3SecretKeyToKeychainForS3AccessKey:accessKeyID password:secretAccessKeyID];
         }
         
-        S3BucketListController *c = [[[S3BucketListController alloc] initWithWindowNibName:@"Buckets"] autorelease];
+        self.bucketListController = [[S3BucketListController alloc] initWithWindowNibName:@"Buckets"];
         
-        [c setConnectionInfo:[self connectionInfo]];
+        [self.bucketListController setConnectionInfo:[self connectionInfo]];
         
-        [c showWindow:self];
-        [c retain];			
-        [c setBuckets:[(S3ListBucketOperation *)operation bucketList]];
-        [c setBucketsOwner:[(S3ListBucketOperation*)operation owner]];
-        
+        [self.bucketListController showWindow:self];
+        [self.bucketListController setBuckets:[(S3ListBucketOperation *)operation bucketList]];
+        [self.bucketListController setBucketsOwner:[(S3ListBucketOperation*)operation owner]];
+
         [self close];
-        
-        //[c autorelease];
     }
 }
 
@@ -111,14 +109,13 @@
     if (accessKeyID == nil && secretAccessKeyID == nil) {
         return;
     }
-    [accessKeyID release];
-    accessKeyID = [[[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_USER] retain];
+    accessKeyID = [[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_USER];
     
-    NSDictionary *authDict = [NSDictionary dictionaryWithObjectsAndKeys:accessKeyID, @"accessKey", secretAccessKeyID, @"secretAccessKey", nil]; 
+    NSDictionary *authDict = @{@"accessKey": accessKeyID, @"secretAccessKey": secretAccessKeyID}; 
     
     [[NSApp delegate] setAuthenticationCredentials:authDict forConnectionInfo:[self connectionInfo]];
     
-	S3ListBucketOperation *op = [[[S3ListBucketOperation alloc] initWithConnectionInfo:[self connectionInfo]] autorelease];
+	S3ListBucketOperation *op = [[S3ListBucketOperation alloc] initWithConnectionInfo:[self connectionInfo]];
 
     [self addToCurrentOperations:op];
 }
@@ -150,7 +147,7 @@
                                              &secretLength, &secretData,
                                              nil);
     if (status==noErr) {
-        secret = [[[NSString alloc] initWithBytes:secretData length:secretLength encoding:NSUTF8StringEncoding] autorelease];        
+        secret = [[NSString alloc] initWithBytes:secretData length:secretLength encoding:NSUTF8StringEncoding];        
     }
     
     if (secretData) {

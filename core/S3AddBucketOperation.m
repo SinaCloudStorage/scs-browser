@@ -3,6 +3,7 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 11/20/08.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2008 Michael Ledford. All rights reserved.
 //
 
@@ -17,9 +18,6 @@ static NSString *S3LocationFormatString = @"<CreateBucketConfiguration><Location
 
 @implementation S3AddBucketOperation
 
-@dynamic bucket;
-@dynamic region;
-
 - (id)initWithConnectionInfo:(S3ConnectionInfo *)ci bucket:(S3Bucket *)b region:(AWSRegion *)r;
 {    
     NSMutableDictionary *theOperationInfo = [[NSMutableDictionary alloc] init];
@@ -32,11 +30,9 @@ static NSString *S3LocationFormatString = @"<CreateBucketConfiguration><Location
 
     self = [super initWithConnectionInfo:ci operationInfo:theOperationInfo];
     
-    [theOperationInfo release];
 
     if (self != nil) {
         if (!([r availableServices] & AWSSimpleStorageService)) {
-            [self release];
             return nil;
         }        
     }
@@ -71,9 +67,9 @@ static NSString *S3LocationFormatString = @"<CreateBucketConfiguration><Location
     return @"PUT";
 }
 
-- (BOOL)virtuallyHostedCapable
+- (BOOL)isVirtuallyHostedCapable
 {
-	return [[self bucket] virtuallyHostedCapable];
+	return [[self bucket] isVirtuallyHostedCapable];
 }
 
 - (NSString *)bucketName

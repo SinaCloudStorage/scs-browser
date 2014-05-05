@@ -3,10 +3,11 @@
 //  S3-Objc
 //
 //  Created by Bruce Chen on 3/15/06.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2006 Bruce Chen. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 
 /* Amazon Doc:
 Objects are stored in buckets. The bucket provides a unique namespace for management of objects 
@@ -18,17 +19,13 @@ namespace for bucket names is global, each developer is limited to owning 100 bu
 
 @class S3ListBucketOperation;
 
-@interface S3Bucket : NSObject <NSCopying> {
-	NSString *_name;
-	NSDate *_creationDate;
-	BOOL _virtuallyHostedCapable;
-}
+@interface S3Bucket : NSObject <NSCopying>
 
 - (id)initWithName:(NSString *)name creationDate:(NSDate *)date;
 - (id)initWithName:(NSString *)name;
 
-- (NSDate *)creationDate;
-- (NSString *)name;
-- (BOOL)virtuallyHostedCapable;
+@property (nonatomic, readonly) NSDate* creationDate;
+@property (nonatomic, readonly) NSString* name;
+@property (nonatomic, readonly, getter=isVirtuallyHostedCapable) BOOL virtuallyHostedCapable;
 
 @end

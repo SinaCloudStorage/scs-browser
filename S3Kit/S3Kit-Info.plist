@@ -7,28 +7,22 @@
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIconFile</key>
-	<string>app</string>
+	<string></string>
 	<key>CFBundleIdentifier</key>
-	<string>com.sina.scs-browser</string>
+	<string>com.vemedio.osx.${PRODUCT_NAME:rfc1034identifier}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>${PRODUCT_NAME}</string>
 	<key>CFBundlePackageType</key>
-	<string>APPL</string>
+	<string>FMWK</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1</string>
+	<string>1.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>138</string>
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.productivity</string>
-	<key>NSMainNibFile</key>
-	<string>MainMenu</string>
+	<string>1</string>
 	<key>NSPrincipalClass</key>
-	<string>NSApplication</string>
-	<key>SUFeedURL</key>
-	<string>http://people.no-distance.net/ol/software/s3/appcast.xml</string>
+	<string></string>
 </dict>
 </plist>

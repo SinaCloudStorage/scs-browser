@@ -3,21 +3,18 @@
 //  S3-Objc
 //
 //  Created by Bruce Chen on 04/02/07.
-//  Copyright 2007 __MyCompanyName__. All rights reserved.
+//  Modernized by Martin Hering on 07/14/12
+//  Copyright 2007 Bruce Chen. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 
-#import "S3Operation.h"
+@class S3Operation;
+@protocol S3OperationQueueDelegate;
 
-@interface S3OperationQueue : NSObject <S3OperationDelegate> {
-    id _delegate;
-	NSMutableArray *_currentOperations;
-    NSMutableArray *_activeOperations;
-	NSTimer *_timer;
-}
+@interface S3OperationQueue : NSObject
 
-- (id)initWithDelegate:(id)delegate;
+- (id)initWithDelegate:(id<S3OperationQueueDelegate>)delegate;
 
 // Convenience methods to register object with NSNotificationCenter
 // if the object supports the S3OperationQueueNotifications.
@@ -30,11 +27,9 @@
 
 @end
 
-@interface NSObject (S3OperationQueueDelegate)
+@protocol S3OperationQueueDelegate <NSObject>
+@optional
 - (int)maximumNumberOfSimultaneousOperationsForOperationQueue:(S3OperationQueue *)operationQueue;
-@end
-
-@interface NSObject (S3OperationQueueNotifications)
 - (void)operationQueueOperationStateDidChange:(NSNotification *)notification;
 - (void)operationQueueOperationInformationalStatusDidChangeNotification:(NSNotification *)notification;
 - (void)operationQueueOperationInformationalSubStatusDidChangeNotification:(NSNotification *)notification;

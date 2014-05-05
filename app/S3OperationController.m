@@ -13,16 +13,21 @@
 #pragma mark -
 #pragma mark The operation console/inspector itself
 
+@interface S3OperationController () <NSToolbarDelegate>
+
+@end
+
+
 @implementation S3OperationController
 
 + (void)initialize
 {
-	[NSValueTransformer setValueTransformer:[[S3OperationSummarizer new] autorelease] forName:@"S3OperationSummarizer"];
+	[NSValueTransformer setValueTransformer:[S3OperationSummarizer new] forName:@"S3OperationSummarizer"];
 }
 
 -(void)awakeFromNib
 {
-	NSToolbar *toolbar = [[[NSToolbar alloc] initWithIdentifier:@"OperationConsoleToolbar"] autorelease];
+	NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"OperationConsoleToolbar"];
 	[toolbar setDelegate:self];
 	[toolbar setVisible:YES];
 	[toolbar setAllowsUserCustomization:YES];
@@ -34,15 +39,15 @@
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar
 {
-	return [NSArray arrayWithObjects: NSToolbarSeparatorItemIdentifier,
+	return @[NSToolbarSeparatorItemIdentifier,
 		NSToolbarSpaceItemIdentifier,
 		NSToolbarFlexibleSpaceItemIdentifier,
-		@"Stop", @"Remove", @"Info", nil];
+		@"Stop", @"Remove", @"Info"];
 }
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar
 {
-	return [NSArray arrayWithObjects: @"Info", @"Remove", NSToolbarFlexibleSpaceItemIdentifier, @"Stop", nil]; 
+	return @[@"Info", @"Remove", NSToolbarFlexibleSpaceItemIdentifier, @"Stop"]; 
 }
 
 - (BOOL)validateToolbarItem:(NSToolbarItem *)theItem
@@ -131,6 +136,6 @@
 		[item setAction:@selector(info:)];
     }
 	
-    return [item autorelease];
+    return item;
 }
 @end

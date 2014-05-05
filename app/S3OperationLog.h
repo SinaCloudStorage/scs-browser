@@ -14,7 +14,7 @@
     NSMutableArray *_operations;
 }
 
-@property(nonatomic, retain, readwrite) NSMutableArray *operations;
+@property(nonatomic, strong, readwrite) NSMutableArray *operations;
 
 - (void)logOperation:(S3Operation *)o;
 - (void)unlogOperation:(S3Operation *)o;

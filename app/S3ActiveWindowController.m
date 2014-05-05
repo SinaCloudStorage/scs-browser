@@ -15,6 +15,10 @@
 #import "S3OperationQueue.h"
 #import "S3OperationLog.h"
 
+@interface S3ActiveWindowController () <S3ConnectionInfoDelegate>
+
+@end
+
 @implementation S3ActiveWindowController
 
 - (void)awakeFromNib
@@ -39,10 +43,11 @@
         [[[NSApp delegate] operationLog] unlogOperation:operation];
     }
     
-    if ([operation state] == S3OperationRequiresRedirect) {        
+    if ([operation state] == S3OperationRequiresRedirect) {
+        /*
         NSData *operationResponseData = [operation responseData];
         NSError *error = nil;
-        NSXMLDocument *d = [[[NSXMLDocument alloc] initWithData:operationResponseData options:NSXMLDocumentTidyXML error:&error] autorelease];
+        NSXMLDocument *d = [[NSXMLDocument alloc] initWithData:operationResponseData options:NSXMLDocumentTidyXML error:&error];
         if (error) {
             return;
         }
@@ -63,6 +68,7 @@
             endpoint = [[endpoints objectAtIndex:0] stringValue];
         }
         
+        
         if (bucketName && endpoint) {
             NSRange bucketNameInEndpointRange = [endpoint rangeOfString:bucketName];
             if (NSEqualRanges(bucketNameInEndpointRange, NSMakeRange(NSNotFound, 0))) {
@@ -78,16 +84,14 @@
             [_redirectConnectionInfoMappings setObject:operationConnectionInfo forKey:redirectConnectionInfo];
             
             S3Operation *replacementOperation = [[[operation class] alloc] initWithConnectionInfo:redirectConnectionInfo operationInfo:operationInfo];
-            [redirectConnectionInfo release];
-            [operationInfo release];
             
             [self addToCurrentOperations:replacementOperation];
-            [replacementOperation release];
-        }        
+        } 
+         */
     }
     
     if ([_redirectConnectionInfoMappings objectForKey:[operation connectionInfo]]) {
-        int activeConnectionInfos = 0;
+        NSInteger activeConnectionInfos = 0;
         for (S3Operation *currentOperation in _operations) {
             if ([[currentOperation connectionInfo] isEqual:[operation connectionInfo]]) {
                 activeConnectionInfos++;
@@ -121,8 +125,6 @@
 
 - (void)setConnectionInfo:(S3ConnectionInfo *)aConnectionInfo
 {
-    [aConnectionInfo retain];
-    [_connectionInfo release];
     _connectionInfo = aConnectionInfo;
 }
 
@@ -149,15 +151,5 @@
     return nil;
 }
 
-#pragma mark -
-#pragma mark Dealloc
-
-- (void)dealloc
-{
-	[self setConnectionInfo:nil];
-    [_operations release];
-    [_redirectConnectionInfoMappings release];
-	[super dealloc];
-}
 
 @end

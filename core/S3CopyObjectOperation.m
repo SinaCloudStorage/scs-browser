@@ -3,6 +3,7 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 12/11/09.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2009 Michael Ledford. All rights reserved.
 //
 
@@ -21,22 +22,15 @@ static NSString *S3OperationInfoCopyObjectOperationDestinationObjectKey = @"S3Op
 - (id)initWithConnectionInfo:(S3ConnectionInfo *)c from:(S3Object *)source to:(S3Object *)destination
 {
     NSMutableDictionary *theOperationInfo = [[NSMutableDictionary alloc] init];
-    
     if (source) {
-        
         [theOperationInfo setObject:source forKey:S3OperationInfoCopyObjectOperationSourceObjectKey];
-        [theOperationInfo setObject:source forKey:@"sourceObject"];
     }
-    
     if (destination) {
-    
         [theOperationInfo setObject:destination forKey:S3OperationInfoCopyObjectOperationDestinationObjectKey];
-        [theOperationInfo setObject:destination forKey:@"destinationObject"];
     }
     
     self = [super initWithConnectionInfo:c operationInfo:theOperationInfo];
     
-    [theOperationInfo release];
     
     if (self != nil) {
         
@@ -81,15 +75,15 @@ static NSString *S3OperationInfoCopyObjectOperationDestinationObjectKey = @"S3Op
     }
     
     NSString *copySource = [NSString stringWithFormat:@"/%@/%@", [[sourceObject bucket] name], [sourceObject key]];
-    NSString *copySourceURLEncoded = [(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)copySource, NULL, (CFStringRef)@"[]#%?,$+=&@:;()'*!", kCFStringEncodingUTF8) autorelease];
+    NSString *copySourceURLEncoded = (NSString *)CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)copySource, NULL, (CFStringRef)@"[]#%?,$+=&@:;()'*!", kCFStringEncodingUTF8));
     [additionalMetadata setObject:copySourceURLEncoded forKey:@"x-amz-copy-source"];
     
     return additionalMetadata;
 }
 
-- (BOOL)virtuallyHostedCapable
+- (BOOL)isVirtuallyHostedCapable
 {
-	return [[[self destinationObject] bucket] virtuallyHostedCapable];
+	return [[[self destinationObject] bucket] isVirtuallyHostedCapable];
 }
 
 - (NSString *)bucketName
@@ -108,19 +102,13 @@ static NSString *S3OperationInfoCopyObjectOperationDestinationObjectKey = @"S3Op
 
 - (BOOL)didInterpretStateForStreamHavingEndEncountered:(S3OperationState *)theState
 {
-    if ([[self responseStatusCode] isEqual:[NSNumber numberWithInt:200]]) {
-        
-        if ([self responseData] != nil) {
-            
-            NSError *aError = nil;
-            NSXMLDocument *d = [[[NSXMLDocument alloc] initWithData:[self responseData] options:NSXMLDocumentTidyXML error:&aError] autorelease];
-            NSXMLElement *e = [d rootElement];
-            
-            if ([[e localName] isEqualToString:@"Error"]) {
-                
-                *theState = S3OperationError;
-                return YES;
-            }
+    if ([[self responseStatusCode] isEqual:@200] && [self responseData]) {
+        NSError *aError = nil;
+        NSXMLDocument *d = [[NSXMLDocument alloc] initWithData:[self responseData] options:NSXMLDocumentTidyXML error:&aError];
+        NSXMLElement *e = [d rootElement];
+        if ([[e localName] isEqualToString:@"Error"]) {
+            *theState = S3OperationError;
+            return YES;
         }
     }
     

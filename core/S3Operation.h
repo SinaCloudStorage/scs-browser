@@ -3,19 +3,18 @@
 //  S3-Objc
 //
 //  Created by Bruce Chen on 4/1/06.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2006 Bruce Chen. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-#import <CoreFoundation/CoreFoundation.h>
-#import <CoreServices/CoreServices.h>
+#import <Foundation/Foundation.h>
 
 #define S3_ERROR_RESOURCE_KEY @"ResourceKey"
 #define S3_ERROR_HTTP_STATUS_KEY @"HTTPStatusKey"
 #define S3_ERROR_DOMAIN @"S3"
 #define S3_ERROR_CODE_KEY @"S3ErrorCode"
 
-typedef enum _S3OperationState {
+typedef NS_ENUM (NSUInteger, S3OperationState) {
     S3OperationPending = 0,
     S3OperationPendingRetry = 1,
     S3OperationActive = 2,
@@ -24,7 +23,7 @@ typedef enum _S3OperationState {
     S3OperationRequiresRedirect = 5,
     S3OperationError = 6,
     S3OperationRequiresVirtualHostingEnabled = 7,
-} S3OperationState;
+};
 
 @class S3ConnectionInfo;
 @class S3Bucket;
@@ -32,50 +31,14 @@ typedef enum _S3OperationState {
 @class S3Operation;
 @class S3TransferRateCalculator;
 
-@protocol S3OperationDelegate
-- (void)operationInformationalStatusDidChange:(S3Operation *)o;
-- (void)operationInformationalSubStatusDidChange:(S3Operation *)o;
-- (void)operationStateDidChange:(S3Operation *)o;
-@end
+@protocol S3OperationDelegate;
 
-@interface NSObject (S3OperationDelegate)
-- (NSUInteger)operationQueuePosition:(S3Operation *)o;
-@end
-
-@interface S3Operation : NSObject {
-    NSObject <S3OperationDelegate> *delegate;
-
-    NSDictionary *operationInfo;
-    
-    S3ConnectionInfo *connectionInfo;
-    
-    NSCalendarDate *_date;
-    
-    CFReadStreamRef httpOperationReadStream;
-    
-    NSDictionary *requestHeaders;
-    NSDictionary *responseHeaders;
-    NSNumber *responseStatusCode;
-    NSData *responseData;
-    NSFileHandle *responseFileHandle;
-    
-    S3OperationState state;
-    NSString *informationalStatus;
-    NSString *informationalSubStatus;
-    
-    BOOL allowsRetry;
-    
-    S3TransferRateCalculator *rateCalculator;
-    
-    NSInteger queuePosition;
-    
-    NSError *error;
-}
+@interface S3Operation : NSObject
 
 - (id)initWithConnectionInfo:(S3ConnectionInfo *)aConnectionInfo operationInfo:(NSDictionary *)anOperationInfo;
 - (id)initWithConnectionInfo:(S3ConnectionInfo *)aConnectionInfo;
 
-@property(readwrite, nonatomic, assign) id delegate;
+@property(readwrite, nonatomic, weak) id<S3OperationDelegate> delegate;
 
 // Connection information used by the operation.
 @property(readonly, nonatomic, copy) S3ConnectionInfo *connectionInfo;
@@ -151,6 +114,17 @@ typedef enum _S3OperationState {
 // and set its value to what the new state value should be and YES should be returned.
 // Returns NO by default by the base class.
 - (BOOL)didInterpretStateForStreamHavingEndEncountered:(S3OperationState *)theState;
+@end
+
+
+
+@protocol S3OperationDelegate
+@required
+- (void)operationInformationalStatusDidChange:(S3Operation *)o;
+- (void)operationInformationalSubStatusDidChange:(S3Operation *)o;
+- (void)operationStateDidChange:(S3Operation *)o;
+@optional
+- (NSUInteger)operationQueuePosition:(S3Operation *)o;
 @end
 
 

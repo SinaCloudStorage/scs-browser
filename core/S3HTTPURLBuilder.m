@@ -3,7 +3,8 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 8/10/08.
-//  Copyright 2008 __MyCompanyName__. All rights reserved.
+//  Modernized by Martin Hering on 07/14/12
+//  Copyright 2008 Michael Ledford. All rights reserved.
 //
 
 #import "S3HTTPUrlBuilder.h"
@@ -11,15 +12,12 @@
 
 @implementation S3HTTPURLBuilder
 
-@synthesize delegate;
-
 - (id)initWithDelegate:(id)theDelegate
 {
     self = [super init];
 
     if (self != nil) {
         if (theDelegate == nil) {
-            [self release];
             return nil;
         }
         [self setDelegate:theDelegate];
@@ -34,8 +32,8 @@
 }
 
 - (NSString *)escapedQueryComponentStringWithString:(NSString *)query {
-    NSString *escaped = (NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)query, NULL, (CFStringRef)@"[]#%?/,$+=&@:;()'*!", kCFStringEncodingUTF8);
-    return [escaped autorelease];
+    NSString *escaped = (NSString *)CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)query, NULL, (CFStringRef)@"[]#%?/,$+=&@:;()'*!", kCFStringEncodingUTF8));
+    return escaped;
 }
 
 - (NSString *)encodeQueryStringFromQueryItems:(NSDictionary *)queryItems {
@@ -84,8 +82,7 @@
         
     NSString *encodedPath = @"";
     if ([key length] > 0) {
-        encodedPath = (NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)key, NULL, (CFStringRef)@"[]#%?,$+=&@:;()'*!", kCFStringEncodingUTF8);        
-        [encodedPath autorelease];
+        encodedPath = (NSString *)CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)key, NULL, (CFStringRef)@"[]#%?,$+=&@:;()'*!", kCFStringEncodingUTF8));
     }
 
     NSDictionary *queryItems = nil;
@@ -98,18 +95,18 @@
         encodedQueryString = [self encodeQueryStringFromQueryItems:queryItems];        
     }
     
-    int port = 0;
+    NSInteger port = 0;
     if ([[self delegate] respondsToSelector:@selector(httpUrlBuilderWantsPort:)]) {
         port = [[self delegate] httpUrlBuilderWantsPort:self];
     }
     
     NSString *portString = @"";
     if ([protocolScheme compare:@"http" options:NSCaseInsensitiveSearch] && (port != 0 && port != 80)) {
-        portString = [NSString stringWithFormat:@"%d", port];
+        portString = [NSString stringWithFormat:@"%ld", (long)port];
     } else if ([protocolScheme compare:@"https" options:NSCaseInsensitiveSearch] && (port != 0 && port != 443)) {
-        portString = [NSString stringWithFormat:@"%d", port];
+        portString = [NSString stringWithFormat:@"%ld", (long)port];
     } else {
-        portString = [NSString stringWithFormat:@"%d", port];
+        portString = [NSString stringWithFormat:@"%ld", (long)port];
     }
     
     NSMutableString *urlString = [NSMutableString string];

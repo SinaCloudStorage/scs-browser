@@ -3,10 +3,11 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 12/11/09.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2009 Michael Ledford. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 
 #import "S3Operation.h"
 
@@ -14,5 +15,8 @@
 }
 
 - (id)initWithConnectionInfo:(S3ConnectionInfo *)c from:(S3Object *)source to:(S3Object *)destination;
+
+- (S3Object *)sourceObject;
+- (S3Object *)destinationObject;
 
 @end

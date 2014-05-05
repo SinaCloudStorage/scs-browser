@@ -3,53 +3,27 @@
 //  S3-Objc
 //
 //  Created by Bruce Chen on 3/15/06.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2006 Bruce Chen. All rights reserved.
 //
 
 #import "S3Owner.h"
 
 @interface S3Owner ()
-
 @property(readwrite, copy) NSString *ID;
 @property(readwrite, copy) NSString *displayName;
-
 @end
 
 @implementation S3Owner
 
-@dynamic ID;
-@synthesize displayName = _displayName;
-
-
-- (id)initWithID:(NSString *)name displayName:(NSString *)date
+- (id)initWithID:(NSString *)ID displayName:(NSString *)name
 {
-	self = [super init];
-    
-    if (self != nil) {
-        [self setID:name];
-        [self setDisplayName:date];        
+    if ((self = [super init])) {
+        _ID = [ID copy];
+        _displayName = [name copy];     
     }
     
 	return self;
-}
-
-- (void)dealloc
-{
-	[_id release];
-	[_displayName release];
-	[super dealloc];
-}
-
-- (NSString *)ID
-{
-    return _id;
-}
-
-- (void)setID:(NSString *)anId
-{
-    NSString *newId = [anId copy];
-    [_id release];
-    _id = newId;
 }
 
 @end

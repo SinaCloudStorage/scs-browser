@@ -3,20 +3,15 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 7/29/08.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2008 Michael Ledford. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-#import <CoreFoundation/CoreFoundation.h>
-#import <CoreServices/CoreServices.h>
+#import <Foundation/Foundation.h>
 
 extern CFStringRef S3PersistentCFReadStreamPoolUniquePeropertyKey;
 
-@interface S3PersistentCFReadStreamPool : NSObject {
-    NSMutableDictionary *_activePersistentReadStreams;
-    NSMutableArray *_overflow;
-    NSTimer *_cleanPoolTimer;
-}
+@interface S3PersistentCFReadStreamPool : NSObject
 
 + (S3PersistentCFReadStreamPool *)sharedPersistentCFReadStreamPool;
 + (BOOL)sharedPersistentCFReadStreamPoolExists;

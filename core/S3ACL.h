@@ -3,25 +3,23 @@
 //  S3-Objc
 //
 //  Created by Bruce Chen on 4/23/06.
-//  Copyright 2006 __MyCompanyName__. All rights reserved.
+//  Modernized by Martin Hering on 07/14/12
+//  Copyright 2006 Bruce Chen. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 
-typedef enum _S3Permission
-{
+typedef NS_ENUM (NSUInteger, S3Permission) {
 	S3READ_Permission
-	
-} S3Permission;
+};
 
-
+/*
 @interface S3Grantee : NSObject
 @end
 
-@interface S3CanonicalUserGrantee : NSObject {
-	NSString* _id;
-	NSString* _displayName;
-}
+@interface S3CanonicalUserGrantee : NSObject
+@property (nonatomic) NSString* userId;
+@property (nonatomic) NSString* displayName;
 @end
 
 @interface S3EmailGrantee : NSObject {
@@ -50,13 +48,11 @@ typedef enum _S3Permission
 }
 
 @end
+*/
 
-
-@interface S3ACL : NSObject {
-	NSString* _owner;
-	NSMutableArray* _accessList;
-}
-
+@interface S3ACL : NSObject
+@property (nonatomic) NSString* owner;
+@property (nonatomic) NSMutableArray* accessList;
 @end
 
 /*

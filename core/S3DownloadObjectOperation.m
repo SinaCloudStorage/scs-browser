@@ -3,6 +3,7 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 11/30/08.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2008 Michael Ledford. All rights reserved.
 //
 
@@ -29,7 +30,6 @@ static NSString *S3OperationInfoDownloadObjectOperationFilePathKey = @"S3Operati
     
     self = [super initWithConnectionInfo:c operationInfo:theOperationInfo];
     
-    [theOperationInfo release];
     
     if (self != nil) {
         

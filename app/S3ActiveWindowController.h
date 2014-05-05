@@ -25,4 +25,5 @@
 - (void)addToCurrentOperations:(S3Operation *)op;
 - (BOOL)hasActiveOperations;
 
+- (void)operationQueueOperationStateDidChange:(NSNotification *)notification;
 @end

@@ -3,6 +3,7 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 11/19/08.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2008 Michael Ledford. All rights reserved.
 //
 
@@ -29,7 +30,6 @@ static NSString *S3OperationInfoListObjectOperationMarkerKey = @"S3OperationInfo
     
     self = [super initWithConnectionInfo:theConnectionInfo operationInfo:theOperationInfo];
     
-    [theOperationInfo release];
     
     if (self != nil) {
         
@@ -65,9 +65,9 @@ static NSString *S3OperationInfoListObjectOperationMarkerKey = @"S3OperationInfo
     return @"GET";
 }
 
-- (BOOL)virtuallyHostedCapable
+- (BOOL)isVirtuallyHostedCapable
 {
-	return [[self bucket] virtuallyHostedCapable];
+	return [[self bucket] isVirtuallyHostedCapable];
 }
 
 - (NSString *)bucketName
@@ -79,7 +79,7 @@ static NSString *S3OperationInfoListObjectOperationMarkerKey = @"S3OperationInfo
 {
     NSString *marker = [self marker];
     if (marker != nil) {
-        return [NSDictionary dictionaryWithObjectsAndKeys:marker, @"marker", nil];
+        return @{@"marker": marker};
     }
     return nil;
 }
@@ -88,7 +88,7 @@ static NSString *S3OperationInfoListObjectOperationMarkerKey = @"S3OperationInfo
 {
 	NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
     NSError *_error;
-	NSXMLDocument *d = [[[NSXMLDocument alloc] initWithData:[self responseData] options:NSXMLNodeOptionsNone error:&_error] autorelease];
+	NSXMLDocument *d = [[NSXMLDocument alloc] initWithData:[self responseData] options:NSXMLNodeOptionsNone error:&_error];
 	NSXMLElement *root = [d rootElement];
 	
 	[dictionary safeSetObject:[[root elementForName:@"Name"] stringValue] forKey:@"Name"];
@@ -104,7 +104,7 @@ static NSString *S3OperationInfoListObjectOperationMarkerKey = @"S3OperationInfo
 - (NSArray *)objects
 {
     NSError *_error;
-	NSXMLDocument *d = [[[NSXMLDocument alloc] initWithData:[self responseData] options:NSXMLNodeOptionsNone error:&_error] autorelease];
+	NSXMLDocument *d = [[NSXMLDocument alloc] initWithData:[self responseData] options:NSXMLNodeOptionsNone error:&_error];
 	NSXMLElement *root = [d rootElement];
 	NSXMLElement *n;
     
@@ -118,7 +118,7 @@ static NSString *S3OperationInfoListObjectOperationMarkerKey = @"S3OperationInfo
             [metadata setObject:resultEtag forKey:S3ObjectMetadataETagKey];
         }
         
-        NSCalendarDate *resultLastModified = [[n elementForName:@"LastModified"] dateValue];
+        NSDate *resultLastModified = [[n elementForName:@"LastModified"] dateValue];
         if (resultLastModified != nil) {
             [metadata setObject:resultLastModified forKey:S3ObjectMetadataLastModifiedKey];
         }
@@ -143,7 +143,7 @@ static NSString *S3OperationInfoListObjectOperationMarkerKey = @"S3OperationInfo
         
         S3Owner *resultOwner = nil;
         if (name != nil) {
-            resultOwner = [[[S3Owner alloc] initWithID:ownerID displayName:name] autorelease];            
+            resultOwner = [[S3Owner alloc] initWithID:ownerID displayName:name];            
         }
         
         if (resultOwner != nil) {
@@ -163,7 +163,6 @@ static NSString *S3OperationInfoListObjectOperationMarkerKey = @"S3OperationInfo
         if (newObject != nil) {
             [result addObject:newObject];
         }
-        [newObject release];
     }
     
     return result;    
@@ -186,7 +185,7 @@ static NSString *S3OperationInfoListObjectOperationMarkerKey = @"S3OperationInfo
         return nil;
     
     S3Bucket *bucket = [self bucket];
-    S3ListObjectOperation *op = [[[S3ListObjectOperation alloc] initWithConnectionInfo:[self connectionInfo] bucket:bucket marker:nm] autorelease];
+    S3ListObjectOperation *op = [[S3ListObjectOperation alloc] initWithConnectionInfo:[self connectionInfo] bucket:bucket marker:nm];
     
     return op;
 }

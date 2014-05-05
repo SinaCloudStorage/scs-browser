@@ -26,21 +26,23 @@ NSString *AWSRegionEUIrelandValue = @"EU";
 @end
 
 
-@implementation AWSRegion
+@implementation AWSRegion {
+    /*
+    NSString *regionKey;
+    AWSProductFlags availableServices;
+     */
+}
 
-@synthesize regionKey;
 @dynamic regionValue;
-@synthesize availableServices;
 
 // TODO: flyweight pattern the results
 
 + (NSDictionary *)availableAWSRegionKeysAndValues
 {
-    return [NSDictionary dictionaryWithObjectsAndKeys:AWSRegionUSStandardValue, AWSRegionUSStandardKey,
-                                                      AWSRegionUSWestValue, AWSRegionUSWestKey,
-                                                      AWSRegionUSEastValue, AWSRegionUSEastKey,
-                                                      AWSRegionEUIrelandValue, AWSRegionEUIrelandKey,
-                                                      nil];
+    return @{AWSRegionUSStandardKey: AWSRegionUSStandardValue,
+                                                      AWSRegionUSWestKey: AWSRegionUSWestValue,
+                                                      AWSRegionUSEastKey: AWSRegionUSEastValue,
+                                                      AWSRegionEUIrelandKey: AWSRegionEUIrelandValue};
 }
 
 + (NSArray *)availableAWSRegionKeys
@@ -60,7 +62,7 @@ NSString *AWSRegionEUIrelandValue = @"EU";
             if (![theRegionKey isEqualToString:AWSRegionUSEastKey]) {
                 [region setAvailableServices:AWSSimpleStorageService];                
             }
-            return [region autorelease];
+            return region;
         }
     }
     return nil;
@@ -72,7 +74,7 @@ NSString *AWSRegionEUIrelandValue = @"EU";
 }
 
 - (id)copyWithZone:(NSZone *)zone {
-    return [self retain];
+    return self;
 }
 
 @end

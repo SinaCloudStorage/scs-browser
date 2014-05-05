@@ -3,6 +3,7 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 8/24/08.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2008 Michael Ledford. All rights reserved.
 //
 
@@ -40,11 +41,11 @@
     return nil;
 }
 
-/*
 - (S3Owner *)owner
 {
+    /*
     NSError *_error;
-	NSXMLDocument *d = [[[NSXMLDocument alloc] initWithData:[self responseData] options:NSXMLNodeOptionsNone error:&_error] autorelease];
+	NSXMLDocument *d = [[NSXMLDocument alloc] initWithData:[self responseData] options:NSXMLNodeOptionsNone error:&_error];
 	NSArray *owners = [[d rootElement] nodesForXPath:@"//Owner" error:&_error];
     if ([owners count] == 1) {
         NSXMLElement *element = [owners objectAtIndex:0];
@@ -65,44 +66,15 @@
         
         S3Owner *owner = nil;
         if (name != nil) {
-            owner = [[[S3Owner alloc] initWithID:ownerID displayName:name] autorelease];
+            owner = [[S3Owner alloc] initWithID:ownerID displayName:name];
         }
         
         return owner;        
     }
     
     return nil;
-}
-
-- (NSArray *)bucketList
-{
-    NSError *_error;
-	NSXMLElement *element;
-	NSXMLDocument *d = [[[NSXMLDocument alloc] initWithData:[self responseData] options:NSXMLNodeOptionsNone error:&_error] autorelease];
+     */
     
-	NSEnumerator *e = [[[d rootElement] nodesForXPath:@"//Bucket" error:&_error] objectEnumerator];
-    NSMutableArray *result = [NSMutableArray array];
-    while (element = [e nextObject]) {
-        
-        NSString *name = [[element elementForName:@"Name"] stringValue];
-        NSCalendarDate *date = [[element elementForName:@"CreationDate"] dateValue];
-        S3Bucket *b = nil;
-        if (name != nil) {
-            b = [[[S3Bucket alloc] initWithName:name creationDate:date] autorelease];        
-        }
-        
-        if (b != nil) {
-            [result addObject:b];            
-        }
-    }
-    
-    return result;    
-}
- */
-
-
-- (S3Owner *)owner
-{
     NSError *_error = nil;
     NSDictionary* json = [NSJSONSerialization JSONObjectWithData:[self responseData] options:kNilOptions error:&_error];
     
@@ -113,8 +85,7 @@
         if (ownerDict != nil) {
             
             S3Owner *owner = nil;
-            owner = [[[S3Owner alloc] initWithID:[ownerDict objectForKey:@"ID"]
-                                      displayName:[ownerDict objectForKey:@"DisplayName"]] autorelease];
+            owner = [[S3Owner alloc] initWithID:[ownerDict objectForKey:@"ID"] displayName:[ownerDict objectForKey:@"DisplayName"]];
             
             return owner;
             
@@ -124,13 +95,36 @@
         }
         
     } else {
-      
+        
         return nil;
     }
 }
 
 - (NSArray *)bucketList
 {
+    /*
+    NSError *_error;
+	NSXMLElement *element;
+	NSXMLDocument *d = [[NSXMLDocument alloc] initWithData:[self responseData] options:NSXMLNodeOptionsNone error:&_error];
+    
+	NSEnumerator *e = [[[d rootElement] nodesForXPath:@"//Bucket" error:&_error] objectEnumerator];
+    NSMutableArray *result = [NSMutableArray array];
+    while (element = [e nextObject]) {
+        
+        NSString *name = [[element elementForName:@"Name"] stringValue];
+        NSCalendarDate *date = [[element elementForName:@"CreationDate"] dateValue];
+        S3Bucket *b = nil;
+        if (name != nil) {
+            b = [[S3Bucket alloc] initWithName:name creationDate:date];        
+        }
+        
+        if (b != nil) {
+            [result addObject:b];            
+        }
+    }
+    
+    return result;
+     */
     
     NSError *_error = nil;
     NSDictionary* json = [NSJSONSerialization JSONObjectWithData:[self responseData] options:kNilOptions error:&_error];
@@ -145,13 +139,8 @@
             
             for (NSDictionary *bucket in buckets) {
                 
-                /*
-                S3Bucket *b = [[[S3Bucket alloc] initWithName:[bucket objectForKey:@"Name"]
-                                                   creationDate:[bucket objectForKey:@"CreationDate"]
-                                                  consumedBytes:[[bucket objectForKey:@"ConsumedBytes"] integerValue]] autorelease];
-                */
                 
-                S3Bucket *b = [[[S3Bucket alloc] initWithName:[bucket objectForKey:@"Name"] creationDate:[[bucket objectForKey:@"CreationDate"] dateValue]] autorelease];
+                S3Bucket *b = [[S3Bucket alloc] initWithName:[bucket objectForKey:@"Name"] creationDate:[[bucket objectForKey:@"CreationDate"] dateValue]];
                 
                 if (b != nil) {
                     
@@ -161,11 +150,13 @@
             
             return result;
             
-        }else {
+        } else {
+            
             return nil;
         }
         
-    }else {
+    } else {
+      
         return nil;
     }
 }

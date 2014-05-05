@@ -14,7 +14,7 @@
 - (void)awakeFromNib
 {
 	[super awakeFromNib];
-    [tableView registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
+    [tableView registerForDraggedTypes:@[NSFilenamesPboardType]];
 }
 
 - (void)setFileOperationsDelegate:(id)d
@@ -52,8 +52,15 @@
 {
     if ([[[info draggingPasteboard] types] containsObject:NSFilenamesPboardType]) 
     {
-        NSArray *files = [[info draggingPasteboard] propertyListForType:NSFilenamesPboardType];
-		[delegate importFiles:files withDialog:TRUE];
+        NSArray* files = [[info draggingPasteboard] propertyListForType:NSFilenamesPboardType];
+        NSMutableArray* urls = [NSMutableArray array];
+        for(NSString* file in files) {
+            NSURL* url = [NSURL fileURLWithPath:file];
+            if (url) {
+                [urls addObject:url];
+            }
+        }
+		[delegate importURLs:urls withDialog:TRUE];
         return YES;
 	}
 	else

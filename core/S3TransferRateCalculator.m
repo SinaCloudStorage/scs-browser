@@ -3,6 +3,7 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 3/14/07.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2007 Michael Ledford. All rights reserved.
 //
 
@@ -50,14 +51,29 @@
 #define S3PerHourRateValue        3600000
 #define S3PerDayRateValue         86400000
 
-@interface S3TransferRateCalculator (PrivateAPI)
-- (void)resetTransferRateCalculator;
+@interface S3TransferRateCalculator ()
 - (void)updateRateVariables:(NSTimer *)timer;
 - (long long)valueForS3UnitType:(S3UnitType)unitType;
 - (long long)valueForS3RateType:(S3RateType)rateType;
 @end
 
-@implementation S3TransferRateCalculator
+
+@implementation S3TransferRateCalculator {
+    NSDate *_startTime;
+    
+    long long _totalTransfered; // In bytes
+    long long _pendingIncrease; // In bytes
+    
+    NSDate *_lastUpdateTime;
+    
+    NSTimer *_calculateTimer;
+    NSTimeInterval _calculationRate;
+    
+    NSString *_calculatedTransferRate;
+    NSString *_timeRemaining;
+    
+    BOOL _displayAverageRate;
+}
 
 + (BOOL)accessInstanceVariablesDirectly
 {
@@ -66,56 +82,23 @@
 
 - (id)init
 {
-	if (self = [super init]) {
-        
+	if ((self = [super init])) {
         _displayAverageRate = YES;
-        _externalUnit = S3KibibyteUnit;
-        _externalRate = S3PerSecondRate;
+        _displayUnit = S3KibibyteUnit;
+        _displayRate = S3PerSecondRate;
         _calculationRate = 1.0;
         _calculatedTransferRate = nil;
         _timeRemaining = nil;
     }
-	
 	return self;
 }
 
 - (void)dealloc
 {
 	[self stopTransferRateCalculator];
-	[_startTime release];
-	[_lastUpdateTime release];
-	[super dealloc];
 }
 
-- (id)delegate
-{
-    return _delegate;
-}
 
-- (void)setDelegate:(id)object
-{
-    _delegate = object;
-}
-
-- (S3UnitType)displayUnit
-{
-	return _externalUnit;
-}
-
-- (void)setDisplayUnit:(S3UnitType)displayUnit
-{
-	_externalUnit = displayUnit;
-}
-
-- (S3RateType)displayRate
-{
-	return _externalRate;
-}
-
-- (void)setDisplayRate:(S3RateType)displayRate
-{
-	_externalRate = displayRate;
-}
 
 - (void)setCalculateUsingAverageRate:(BOOL)yn
 {
@@ -216,11 +199,6 @@
 	}
 }
 
-- (long long)objective
-{
-	return _objective;
-}
-
 - (BOOL)setObjective:(long long)bytes
 {
     if ([self isRunning] == YES) {
@@ -254,7 +232,6 @@
         _totalTransfered = 0;
     }
 	_calculateTimer = [NSTimer scheduledTimerWithTimeInterval:_calculationRate target:self selector:@selector(updateRateVariables:) userInfo:nil repeats:YES];
-	[_calculateTimer retain];
 	if (_startTime == nil) {
 		_startTime = [[NSDate alloc] init];		
 	}
@@ -263,9 +240,7 @@
 - (void)stopTransferRateCalculator
 {
 	[_calculateTimer invalidate];
-	[_calculateTimer release];
 	_calculateTimer = nil;
-	[_startTime release];
 	_startTime = nil;
 }
 
@@ -287,26 +262,24 @@
     if ([self delegate] != nil && [[self delegate] respondsToSelector:@selector(pingFromTransferRateCalculator:)]) {
         [[self delegate] pingFromTransferRateCalculator:self];
     }
-	[_calculatedTransferRate release];
 	_calculatedTransferRate = nil;
 	if (_displayAverageRate == NO && _pendingIncrease > 0) {
-		_calculatedTransferRate = [[NSString alloc] initWithFormat:@"%.2f", ((float)(_pendingIncrease) / [self valueForS3UnitType:_externalUnit]) / (([[NSDate date] timeIntervalSinceDate:_lastUpdateTime] * 1000.0) / [self valueForS3RateType:_externalRate])];
+		_calculatedTransferRate = [[NSString alloc] initWithFormat:@"%.2f", ((float)(_pendingIncrease) / [self valueForS3UnitType:_displayUnit]) / (([[NSDate date] timeIntervalSinceDate:_lastUpdateTime] * 1000.0) / [self valueForS3RateType:_displayRate])];
 	}
-	[_timeRemaining release];
 	_timeRemaining = nil;
 	if (_objective > 0 && _totalTransfered > 0) {
 		// 
 		NSTimeInterval estimatedSeconds = (_objective - _totalTransfered) / (_totalTransfered / [_lastUpdateTime timeIntervalSinceDate:_startTime]);
-		int days = estimatedSeconds / 86400;
+		NSInteger days = estimatedSeconds / 86400;
 		estimatedSeconds = estimatedSeconds - (days * 86400);
-		int hours = estimatedSeconds / 3600;
+		NSInteger hours = estimatedSeconds / 3600;
 		estimatedSeconds = estimatedSeconds - (hours * 3600);
-		int minutes = estimatedSeconds / 60;
+		NSInteger minutes = estimatedSeconds / 60;
 		estimatedSeconds = estimatedSeconds - (minutes * 60);
-		int seconds = estimatedSeconds - 0;
+		NSInteger seconds = estimatedSeconds - 0;
 		NSMutableString *timeRemaining = [NSMutableString string];
 		if (days > 0) {
-			[timeRemaining appendFormat:@"%d ", days];
+			[timeRemaining appendFormat:@"%ld ", (long)days];
 			if (days == 1) {
 				[timeRemaining appendFormat:@"day"];
 			} else {
@@ -318,23 +291,23 @@
 		}
         if (hours > 0) {
             if (hours < 10) {
-                [timeRemaining appendFormat:@"%dh:", hours];                
+                [timeRemaining appendFormat:@"%ldh:", (long)hours];                
             } else {
-                [timeRemaining appendFormat:@"%.2dh:", hours];                
+                [timeRemaining appendFormat:@"%.2ldh:", (long)hours];                
             }
         }
         if (hours > 0 || minutes > 0) {
             if (hours == 0 && minutes < 10) {
-                [timeRemaining appendFormat:@"%dm:", minutes];                
+                [timeRemaining appendFormat:@"%ldm:", (long)minutes];                
             } else {
-                [timeRemaining appendFormat:@"%.2dm:", minutes];                
+                [timeRemaining appendFormat:@"%.2ldm:", (long)minutes];                
             }
         }
         if (hours > 0 || minutes > 0 || seconds > 0) {
             if (hours == 0 && minutes == 0 && seconds < 10) {
-                [timeRemaining appendFormat:@"%ds", seconds];                
+                [timeRemaining appendFormat:@"%lds", (long)seconds];                
             } else {
-                [timeRemaining appendFormat:@"%.2ds", seconds];                
+                [timeRemaining appendFormat:@"%.2lds", (long)seconds];
             }
         }
 		_timeRemaining = [[NSString alloc] initWithString:timeRemaining];
@@ -344,11 +317,10 @@
 	
 	_totalTransfered += _pendingIncrease;
 	_pendingIncrease = 0;
-	[_lastUpdateTime autorelease];
 	_lastUpdateTime = [[NSDate alloc] init];
 
 	if (_displayAverageRate == YES && _totalTransfered > 0) {
-		_calculatedTransferRate = [[NSString alloc] initWithFormat:@"%.2f", ((float)(_totalTransfered) / [self valueForS3UnitType:_externalUnit]) / (([_lastUpdateTime timeIntervalSinceDate:_startTime] * 1000.0) / [self valueForS3RateType:_externalRate])];
+		_calculatedTransferRate = [[NSString alloc] initWithFormat:@"%.2f", ((float)(_totalTransfered) / [self valueForS3UnitType:_displayUnit]) / (([_lastUpdateTime timeIntervalSinceDate:_startTime] * 1000.0) / [self valueForS3RateType:_displayRate])];
 	}
 }
 
@@ -359,7 +331,7 @@
 
 - (NSString *)stringForShortDisplayUnit
 {
-    switch (_externalUnit) {
+    switch (_displayUnit) {
 		case S3OctetUnit:
 			return @"oct";
 			break;
@@ -430,7 +402,7 @@
 
 - (NSString *)stringForLongDisplayUnit
 {
-    switch (_externalUnit) {
+    switch (_displayUnit) {
 		case S3OctetUnit:
 			return @"octet";
 			break;
@@ -501,7 +473,7 @@
 
 - (NSString *)stringForShortRateUnit
 {
-    switch (_externalRate) {
+    switch (_displayRate) {
 		case S3PerMillisecondRate:
 			return @"ms";
 			break;
@@ -524,7 +496,7 @@
 
 - (NSString *)stringForLongRateUnit
 {
-    switch (_externalRate) {
+    switch (_displayRate) {
 		case S3PerMillisecondRate:
 			return @"millisecond";
 			break;

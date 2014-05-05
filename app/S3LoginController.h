@@ -14,7 +14,7 @@
 
 @class S3ConnectionInfo;
 
-@interface S3LoginController : S3ActiveWindowController <NSWindowDelegate> {
+@interface S3LoginController : S3ActiveWindowController {
 	IBOutlet NSButton *_defaultButton;
 	IBOutlet NSButton *_keychainCheckbox;
     

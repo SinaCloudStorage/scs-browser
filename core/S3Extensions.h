@@ -3,10 +3,11 @@
 //  S3-Objc
 //
 //  Created by Bruce Chen on 3/31/06.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2006 Bruce Chen. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 
 
 @interface NSString (Comfort)
@@ -41,7 +42,7 @@
 -(NSXMLElement *)elementForName:(NSString *)n;
 -(NSNumber *)longLongNumber;
 -(NSNumber *)boolNumber;
--(NSCalendarDate *)dateValue;
+-(NSDate *)dateValue;
 
 @end
 

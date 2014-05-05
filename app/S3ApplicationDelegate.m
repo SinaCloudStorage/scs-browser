@@ -21,6 +21,10 @@
 // C-string, as it is only used in Keychain Services
 #define S3_BROWSER_KEYCHAIN_SERVICE "S3 Browser"
 
+@interface S3ApplicationDelegate () <S3ConnectionInfoDelegate, S3OperationQueueDelegate>
+@property (nonatomic) S3LoginController* loginController;
+@end
+
 @implementation S3ApplicationDelegate
 
 + (void)initialize
@@ -31,12 +35,12 @@
 
     // Not setting a default value for this default, it should be nil if it doesn't exist.
     [userDefaultsValuesDict setObject:@"" forKey:@"defaultAccessKey"];
-    [userDefaultsValuesDict setObject:[NSNumber numberWithBool:NO] forKey:@"autoclean"];
-    [userDefaultsValuesDict setObject:[NSNumber numberWithBool:YES] forKey:@"consolevisible"];
+    [userDefaultsValuesDict setObject:@NO forKey:@"autoclean"];
+    [userDefaultsValuesDict setObject:@YES forKey:@"consolevisible"];
     [userDefaultsValuesDict setObject:@"private" forKey:@"defaultUploadPrivacy"];
-    [userDefaultsValuesDict setObject:[NSNumber numberWithBool:NO] forKey:@"useKeychain"];
-    [userDefaultsValuesDict setObject:[NSNumber numberWithBool:NO] forKey:@"useSSL"];
-    [userDefaultsValuesDict setObject:[NSNumber numberWithBool:NO] forKey:@"autologin"];
+    [userDefaultsValuesDict setObject:@NO forKey:@"useKeychain"];
+    [userDefaultsValuesDict setObject:@NO forKey:@"useSSL"];
+    [userDefaultsValuesDict setObject:@NO forKey:@"autologin"];
     [[NSUserDefaults standardUserDefaults] registerDefaults:userDefaultsValuesDict];
 
     // Conversion code for new default
@@ -53,7 +57,7 @@
         [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"default-upload-privacy"];            
     }
     
-    S3FileSizeTransformer *fileSizeTransformer = [[[S3FileSizeTransformer alloc] init] autorelease];
+    S3FileSizeTransformer *fileSizeTransformer = [[S3FileSizeTransformer alloc] init];
     [NSValueTransformer setValueTransformer:fileSizeTransformer forName:@"S3FileSizeTransformer"];
 }
 
@@ -75,28 +79,19 @@
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self name:NSApplicationDidFinishLaunchingNotification object:NSApp];
-
-    [_queue release];
-    [_operationLog release];
-    [_controllers release];
-
-    [super dealloc];
 }
 
 - (IBAction)openConnection:(id)sender
 {    
-	S3LoginController *c = [[[S3LoginController alloc] initWithWindowNibName:@"Authentication"] autorelease];
+	self.loginController = [[S3LoginController alloc] initWithWindowNibName:@"Authentication"];
 
     NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
     NSNumber *useSSL = [standardUserDefaults objectForKey:@"useSSL"];
     
     S3ConnectionInfo *connectionInfo = [[S3ConnectionInfo alloc] initWithDelegate:self userInfo:nil secureConnection:[useSSL boolValue]];
-    [c setConnectionInfo:connectionInfo];
-    [connectionInfo release];        
+    [self.loginController setConnectionInfo:connectionInfo];
 	
-    [c showWindow:self];
-	[c retain];
-    //[c autorelease];
+    [self.loginController showWindow:self];
 }
 
 - (IBAction)showOperationConsole:(id)sender
@@ -112,22 +107,19 @@
     
     S3ConnectionInfo *connectionInfo = [[S3ConnectionInfo alloc] initWithDelegate:self userInfo:nil secureConnection:[useSSL boolValue]];
     
-    S3LoginController *c = [[[S3LoginController alloc] initWithWindowNibName:@"Authentication"] autorelease];
-    [c setConnectionInfo:connectionInfo];
+    self.loginController = [[S3LoginController alloc] initWithWindowNibName:@"Authentication"];
+    [self.loginController setConnectionInfo:connectionInfo];
 	
-    [c showWindow:self];
-    [c retain];
+    [self.loginController showWindow:self];
         
-    [c connect:self];
+    [self.loginController connect:self];
 
-    [connectionInfo release];
-    //[c autorelease];
 }
 
 - (void)finishedLaunching
 {
    
-	S3OperationController *c = [[[S3OperationController alloc] initWithWindowNibName:@"Operations"] autorelease];
+	S3OperationController *c = [[S3OperationController alloc] initWithWindowNibName:@"Operations"];
 	[_controllers setObject:c forKey:@"Console"];
     
     NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];

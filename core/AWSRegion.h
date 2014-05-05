@@ -3,20 +3,20 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 12/28/09.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2009 Michael Ledford. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 
 extern NSString *AWSRegionUSStandardKey;
 extern NSString *AWSRegionUSWestKey;
 extern NSString *AWSRegionUSEastKey;
 extern NSString *AWSRegionEUIrelandKey;
 
-typedef UInt32 AWSProductFlags;
 
 // TODO: Support more of Amazon's Web Services
-enum {
+typedef NS_ENUM (NSUInteger, AWSProductFlags) {
     AWSSimpleStorageService = (1L << 1)
 //    AWSSimpleQueueService = (1L << 2),
 //    AWSElasticComputeCloudService = (1L << 3),
@@ -28,10 +28,7 @@ enum {
 //    AWSRelationalDatabaseService = (1L << 9),
 };
 
-@interface AWSRegion : NSObject <NSCopying> {
-    NSString *regionKey;
-    AWSProductFlags availableServices;
-}
+@interface AWSRegion : NSObject <NSCopying>
 
 + (NSArray *)availableAWSRegionKeys;
 + (id)regionWithKey:(NSString *)regionKey;

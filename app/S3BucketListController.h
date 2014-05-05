@@ -13,7 +13,7 @@
 @class S3Connection;
 @class S3Owner;
 
-@interface S3BucketListController : S3ActiveWindowController <NSToolbarDelegate> {
+@interface S3BucketListController : S3ActiveWindowController {
     
     NSArray *_buckets;
     S3Owner *_bucketsOwner;
@@ -22,7 +22,7 @@
 
     IBOutlet NSWindow *addSheet;
     NSString *_name;
-    int _location;
+    NSInteger _location;
     
     NSMutableDictionary *_bucketListControllerCache;
 }

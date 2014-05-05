@@ -3,10 +3,12 @@
 //  S3-Objc
 //
 //  Created by Bruce Chen on 04/02/07.
-//  Copyright 2007 __MyCompanyName__. All rights reserved.
+//  Modernized by Martin Hering on 07/14/12
+//  Copyright 2007 Bruce Chen. All rights reserved.
 //
 
 #import "S3OperationQueue.h"
+#import "S3Operation.h"
 #import "S3Extensions.h"
 
 #define MAX_ACTIVE_OPERATIONS 4
@@ -20,14 +22,19 @@ NSString *S3OperationQueueOperationInformationalSubStatusDidChangeNotification =
 NSString *S3OperationObjectKey = @"S3OperationObjectKey";
 NSString *S3OperationObjectForRetryKey = @"S3OperationObjectForRetryKey";
 
-@interface S3OperationQueue (PrivateAPI)
+@interface S3OperationQueue () <S3OperationDelegate>
 - (void)removeFromCurrentOperations:(S3Operation *)op;
 - (void)startQualifiedOperations:(NSTimer *)timer;
 - (void)rearmTimer;
 - (void)disarmTimer;
+@property (nonatomic, weak) id<S3OperationQueueDelegate> delegate;
 @end
 
-@implementation S3OperationQueue
+@implementation S3OperationQueue {
+	NSMutableArray *_currentOperations;
+    NSMutableArray *_activeOperations;
+	NSTimer *_timer;
+}
 
 - (id)initWithDelegate:(id)delegate
 {
@@ -49,10 +56,7 @@ NSString *S3OperationObjectForRetryKey = @"S3OperationObjectForRetryKey";
 
 - (void)dealloc
 {
-	[_currentOperations release];
-    [_activeOperations release];
 	[self disarmTimer];
-	[super dealloc];
 }
 
 #pragma mark -
@@ -85,16 +89,20 @@ NSString *S3OperationObjectForRetryKey = @"S3OperationObjectForRetryKey";
 #pragma mark S3OperationDelegate Protocol Methods
 
 - (void)operationStateDidChange:(S3Operation *)o;
-{
+{    
+    NSDictionary *dict = @{S3OperationObjectKey: o};
+    [[NSNotificationCenter defaultCenter] postNotificationName:S3OperationQueueOperationStateDidChangeNotification object:self userInfo:dict];
+    
     if ([o state] >= S3OperationCanceled) {
         // Retain object while it's in flux must be released at end!
-        [o retain];
-        [self removeFromCurrentOperations:o];
+        // make sure we remove the object in the next cycle to not prematurely release it
+        [self performSelector:@selector(removeFromCurrentOperations:) withObject:o afterDelay:0.1];
+        //[self removeFromCurrentOperations:o];
         
         if ([o state] == S3OperationError) {
             // TODO: Figure out if the operation needs to be retried and send a new
-            // retry operation object to be retried as S3OperationObjectForRetryKey.      
-            // It appears valid retry on error codes: OperationAborted, InternalError        
+            // retry operation object to be retried as S3OperationObjectForRetryKey.
+            // It appears valid retry on error codes: OperationAborted, InternalError
             //    if ([o state] == S3OperationError && [o allowsRetry] == YES) {
             //        NSDictionary *errorDict = [[o error] userInfo];
             //        NSString *errorCode = [errorDict objectForKey:S3_ERROR_CODE_KEY];
@@ -102,30 +110,22 @@ NSString *S3OperationObjectForRetryKey = @"S3OperationObjectForRetryKey";
             //            // TODO: Create a retry operation from failed operation and add it to the operations to be performed.
             //            //S3Operation *retryOperation = nil;
             //            //[dict setObject:retryOperation forKey:S3OperationObjectForRetryKey];
-            //            //[self addToCurrentOperations:retryOperation];            
+            //            //[self addToCurrentOperations:retryOperation];
             //        }
             //    }
         }
-    }
-    
-    NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:o, S3OperationObjectKey, nil];
-    [[NSNotificationCenter defaultCenter] postNotificationName:S3OperationQueueOperationStateDidChangeNotification object:self userInfo:dict];
-    
-    if ([o state] >= S3OperationCanceled) {
-        // Object is out of flux
-        [o release];
     }
 }
 
 - (void)operationInformationalStatusDidChange:(S3Operation *)o
 {
-    NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:o, S3OperationObjectKey, nil];
+    NSDictionary *dict = @{S3OperationObjectKey: o};
     [[NSNotificationCenter defaultCenter] postNotificationName:S3OperationQueueOperationInformationalStatusDidChangeNotification object:self userInfo:dict];
 }
 
 - (void)operationInformationalSubStatusDidChange:(S3Operation *)o
 {
-    NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:o, S3OperationObjectKey, nil];
+    NSDictionary *dict = @{S3OperationObjectKey: o};
     [[NSNotificationCenter defaultCenter] postNotificationName:S3OperationQueueOperationInformationalSubStatusDidChangeNotification object:self userInfo:dict];
 }
 
@@ -154,22 +154,21 @@ NSString *S3OperationObjectForRetryKey = @"S3OperationObjectForRetryKey";
 -(void)rearmTimer
 {
 	if (_timer==NULL) {
-		_timer = [[NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(startQualifiedOperations:) userInfo:nil repeats:YES] retain];
+		_timer = [NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(startQualifiedOperations:) userInfo:nil repeats:YES];
     }
 }
 
 -(void)disarmTimer
 {
 	[_timer invalidate];
-	[_timer release];
 	_timer = NULL;	
 }
 
-- (int)canAcceptPendingOperations
+- (NSUInteger)canAcceptPendingOperations
 {
-	int available = MAX_ACTIVE_OPERATIONS; // fallback
+	NSInteger available = MAX_ACTIVE_OPERATIONS; // fallback
     if (_delegate && [_delegate respondsToSelector:@selector(maximumNumberOfSimultaneousOperationsForOperationQueue:)]) {
-        int maxNumber = [_delegate maximumNumberOfSimultaneousOperationsForOperationQueue:self];
+        NSInteger maxNumber = [_delegate maximumNumberOfSimultaneousOperationsForOperationQueue:self];
         if ((maxNumber > 0) && (maxNumber < 100)) { // Let's be reasonable
             available = maxNumber;
         }
@@ -193,6 +192,8 @@ NSString *S3OperationObjectForRetryKey = @"S3OperationObjectForRetryKey";
     if ([op state] == S3OperationActive) {
         return;
     }
+    
+    op.delegate = nil;
         
 	[self willChangeValueForKey:@"currentOperations"];
 	[_currentOperations removeObject:op];
@@ -220,7 +221,7 @@ NSString *S3OperationObjectForRetryKey = @"S3OperationObjectForRetryKey";
 
 - (void)startQualifiedOperations:(NSTimer *)timer
 {
-	int slotsAvailable = [self canAcceptPendingOperations];
+	NSInteger slotsAvailable = [self canAcceptPendingOperations];
 	S3Operation *o;
 
     if (slotsAvailable == 0) {

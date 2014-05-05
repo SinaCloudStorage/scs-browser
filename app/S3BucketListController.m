@@ -27,6 +27,11 @@ enum {
     EUIrelandLocation = 2
 };
 
+
+@interface S3BucketListController () <NSToolbarDelegate>
+
+@end
+
 @implementation S3BucketListController
 
 #pragma mark -
@@ -37,7 +42,7 @@ enum {
     if ([S3ActiveWindowController instancesRespondToSelector:@selector(awakeFromNib)] == YES) {
         [super awakeFromNib];
     }
-    NSToolbar *toolbar = [[[NSToolbar alloc] initWithIdentifier:@"BucketsToolbar"] autorelease];
+    NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"BucketsToolbar"];
     [toolbar setDelegate:self];
     [toolbar setVisible:YES];
     [toolbar setAllowsUserCustomization:YES];
@@ -46,7 +51,7 @@ enum {
     [toolbar setDisplayMode:NSToolbarDisplayModeDefault];
     [[self window] setToolbar:toolbar];
 
-    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setDateStyle:NSDateFormatterShortStyle];
     [dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
     [dateFormatter setTimeZone:[NSTimeZone defaultTimeZone]];
@@ -59,10 +64,10 @@ enum {
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar
 {
-    return [NSArray arrayWithObjects: NSToolbarSeparatorItemIdentifier,
+    return @[NSToolbarSeparatorItemIdentifier,
         NSToolbarSpaceItemIdentifier,
         NSToolbarFlexibleSpaceItemIdentifier,
-        @"Refresh", @"Remove", @"Add", nil];
+        @"Refresh", @"Remove", @"Add"];
 }
 
 - (BOOL)validateToolbarItem:(NSToolbarItem *)theItem
@@ -74,7 +79,7 @@ enum {
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar
 {
-    return [NSArray arrayWithObjects: @"Add", @"Remove", NSToolbarFlexibleSpaceItemIdentifier, @"Refresh", nil]; 
+    return @[@"Add", @"Remove", NSToolbarFlexibleSpaceItemIdentifier, @"Refresh"]; 
 }
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag
@@ -106,7 +111,7 @@ enum {
         [item setAction:@selector(refresh:)];
     }
     
-    return [item autorelease];
+    return item;
 }
 
 #pragma mark -
@@ -159,23 +164,21 @@ enum {
     [alert addButtonWithTitle:NSLocalizedString(@"Remove",nil)];
     if ([alert runModal] == NSAlertFirstButtonReturn)
     {   
-        [alert release];
         return;
     }
-    [alert release];
 
     S3Bucket *b;
     NSEnumerator *e = [[_bucketsController selectedObjects] objectEnumerator];
     
     while (b = [e nextObject]) {
-        S3DeleteBucketOperation *op = [[[S3DeleteBucketOperation alloc] initWithConnectionInfo:[self connectionInfo] bucket:b] autorelease];
+        S3DeleteBucketOperation *op = [[S3DeleteBucketOperation alloc] initWithConnectionInfo:[self connectionInfo] bucket:b];
         [self addToCurrentOperations:op];
     }
 }
 
 - (IBAction)refresh:(id)sender
 {
-	S3ListBucketOperation *op = [[[S3ListBucketOperation alloc] initWithConnectionInfo:[self connectionInfo]] autorelease];
+	S3ListBucketOperation *op = [[S3ListBucketOperation alloc] initWithConnectionInfo:[self connectionInfo]];
     
     [self addToCurrentOperations:op];
 }
@@ -185,7 +188,7 @@ enum {
 {
     [sheet orderOut:self];
     if (returnCode==SHEET_OK) {
-        S3Bucket *newBucket = [[[S3Bucket alloc] initWithName:_name] autorelease];
+        S3Bucket *newBucket = [[S3Bucket alloc] initWithName:_name];
         if (newBucket == nil) {
             return;
         }
@@ -199,7 +202,7 @@ enum {
             bucketRegion = [AWSRegion regionWithKey:AWSRegionUSStandardKey];
         }
                 
-        S3AddBucketOperation *op = [[[S3AddBucketOperation alloc] initWithConnectionInfo:[self connectionInfo] bucket:newBucket region:bucketRegion] autorelease];
+        S3AddBucketOperation *op = [[S3AddBucketOperation alloc] initWithConnectionInfo:[self connectionInfo] bucket:newBucket region:bucketRegion];
         
         [self addToCurrentOperations:op];
     }
@@ -214,15 +217,15 @@ enum {
 - (IBAction)open:(id)sender
 {
     
-    S3Bucket *b = nil;
+    S3Bucket *b;
     NSEnumerator* e = [[_bucketsController selectedObjects] objectEnumerator];
     while (b = [e nextObject])
     {
-        S3ObjectListController *c = [_bucketListControllerCache objectForKey:b];
-        if (c) {
+        S3ObjectListController *c = nil;
+        if ((c = [_bucketListControllerCache objectForKey:b])) {
             [c showWindow:self];
         } else {
-            c = [[[S3ObjectListController alloc] initWithWindowNibName:@"Objects"] autorelease];
+            c = [[S3ObjectListController alloc] initWithWindowNibName:@"Objects"];
             [c setBucket:b];
 
             [c setConnectionInfo:[self connectionInfo]];
@@ -236,8 +239,13 @@ enum {
 #pragma mark -
 #pragma mark Key-value coding
 
-+ (void)initialize {
-    [self setKeys:[NSArray arrayWithObjects:@"name",nil] triggerChangeNotificationsForDependentKey:@"isValidName"];
++ (NSSet *)keyPathsForValuesAffectingValueForKey:(NSString *)key
+{
+    if ([key isEqual:@"isValidName"]) {
+        return [NSSet setWithObject:@"name"];
+    }
+    
+    return nil;
 }
 
 - (NSString *)name
@@ -247,8 +255,7 @@ enum {
 
 - (void)setName:(NSString *)aName
 {
-    [_name release];
-    _name = [aName retain];
+    _name = aName;
 }
 
 - (BOOL)isValidName
@@ -272,8 +279,7 @@ enum {
 
 - (void)setBucketsOwner:(S3Owner *)anBucketsOwner
 {
-    [_bucketsOwner release];
-    _bucketsOwner = [anBucketsOwner retain];
+    _bucketsOwner = anBucketsOwner;
 }
 
 - (NSArray *)buckets
@@ -283,8 +289,6 @@ enum {
 
 - (void)setBuckets:(NSArray *)aBuckets
 {
-    [aBuckets retain];
-    [_buckets release];
     _buckets = aBuckets;
 }
 
@@ -294,14 +298,6 @@ enum {
 -(void)dealloc
 {
     [[[NSApp delegate] queue] removeQueueListener:self];
-
-    [_bucketListControllerCache release];
-    
-    [self setName:nil];
-    [self setBucketsOwner:nil];
-    [self setBuckets:nil];
-    
-    [super dealloc];
 }
 
 @end

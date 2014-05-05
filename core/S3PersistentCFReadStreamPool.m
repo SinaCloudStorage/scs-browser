@@ -3,6 +3,7 @@
 //  S3-Objc
 //
 //  Created by Michael Ledford on 7/29/08.
+//  Modernized by Martin Hering on 07/14/12
 //  Copyright 2008 Michael Ledford. All rights reserved.
 //
 
@@ -23,7 +24,11 @@ static NSString *S3DateKey = @"S3DateKey";
 - (void)disarmCleanPoolTimer;
 @end
 
-@implementation S3PersistentCFReadStreamPool
+@implementation S3PersistentCFReadStreamPool {
+    NSMutableDictionary *_activePersistentReadStreams;
+    NSMutableArray *_overflow;
+    NSTimer *_cleanPoolTimer;
+}
 
 - (id)init
 {
@@ -39,9 +44,6 @@ static NSString *S3DateKey = @"S3DateKey";
 {
     [self disarmCleanPoolTimer];
     [self nukePool];
-    [_activePersistentReadStreams release];
-    [_overflow release];
-    [super dealloc];
 }
 
 + (S3PersistentCFReadStreamPool *)sharedPersistentCFReadStreamPool
@@ -63,14 +65,13 @@ static NSString *S3DateKey = @"S3DateKey";
 - (void)armCleanPoolTimer
 {
     if (_cleanPoolTimer == nil) {
-        _cleanPoolTimer = [[NSTimer scheduledTimerWithTimeInterval:S3TimeBetweenCleanings target:self selector:@selector(cleanPool:) userInfo:nil repeats:NO] retain];        
+        _cleanPoolTimer = [NSTimer scheduledTimerWithTimeInterval:S3TimeBetweenCleanings target:self selector:@selector(cleanPool:) userInfo:nil repeats:NO];        
     }
 }
 
 -(void)disarmCleanPoolTimer
 {
 	[_cleanPoolTimer invalidate];
-	[_cleanPoolTimer release];
 	_cleanPoolTimer = nil;	
 }
 
@@ -86,25 +87,23 @@ static NSString *S3DateKey = @"S3DateKey";
         return NO;
     }
 
-    NSNumber *positionNumber = [NSNumber numberWithUnsignedInteger:position];
+    NSNumber *positionNumber = @(position);
     NSDictionary *foundDictionary = [_activePersistentReadStreams objectForKey:positionNumber];
-    CFReadStreamRef foundReadStream = (CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
+    CFReadStreamRef foundReadStream = (__bridge CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
     if (foundReadStream != nil) {
         streamStatus = CFReadStreamGetStatus(foundReadStream);
         if (streamStatus == kCFStreamStatusNotOpen || streamStatus == kCFStreamStatusAtEnd || 
             streamStatus == kCFStreamStatusClosed || streamStatus == kCFStreamStatusError) {
             CFReadStreamClose(foundReadStream);
             NSDate *currentTime = [[NSDate alloc] init];
-            NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:(NSInputStream *)persistentCFReadStream, S3PersistentReadStreamKey, currentTime, S3DateKey, nil];
+            NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:(__bridge NSInputStream *)persistentCFReadStream, S3PersistentReadStreamKey, currentTime, S3DateKey, nil];
             [_activePersistentReadStreams setObject:dictionary forKey:positionNumber];
-            [currentTime release];
-            [dictionary release];
         } else {
             while ((streamStatus == kCFStreamStatusOpening || streamStatus == kCFStreamStatusOpen || 
                     streamStatus == kCFStreamStatusReading || streamStatus == kCFStreamStatusWriting) && ((++position) < NSUIntegerMax)) {
-                positionNumber = [NSNumber numberWithUnsignedInteger:position];
+                positionNumber = @(position);
                 foundDictionary = [_activePersistentReadStreams objectForKey:positionNumber];
-                foundReadStream = (CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
+                foundReadStream = (__bridge CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
                 if (foundReadStream != nil) {
                     streamStatus = CFReadStreamGetStatus(foundReadStream);                    
                 } else {
@@ -112,7 +111,7 @@ static NSString *S3DateKey = @"S3DateKey";
                 }
             }
             if (position == NSUIntegerMax) {
-                [_overflow addObject:(NSInputStream *)persistentCFReadStream];
+                [_overflow addObject:(__bridge NSInputStream *)persistentCFReadStream];
             } else {
                 if (foundReadStream != nil &&
                     (streamStatus == kCFStreamStatusNotOpen || streamStatus == kCFStreamStatusAtEnd || 
@@ -120,18 +119,14 @@ static NSString *S3DateKey = @"S3DateKey";
                     CFReadStreamClose(foundReadStream);
                 }
                 NSDate *currentTime = [[NSDate alloc] init];
-                NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:(NSInputStream *)persistentCFReadStream, S3PersistentReadStreamKey, currentTime, S3DateKey, nil];
+                NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:(__bridge NSInputStream *)persistentCFReadStream, S3PersistentReadStreamKey, currentTime, S3DateKey, nil];
                 [_activePersistentReadStreams setObject:dictionary forKey:positionNumber];
-                [currentTime release];
-                [dictionary release];
             }
         }        
     } else {
         NSDate *currentTime = [[NSDate alloc] init];
-        NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:(NSInputStream *)persistentCFReadStream, S3PersistentReadStreamKey, currentTime, S3DateKey, nil];
+        NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:(__bridge NSInputStream *)persistentCFReadStream, S3PersistentReadStreamKey, currentTime, S3DateKey, nil];
         [_activePersistentReadStreams setObject:dictionary forKey:positionNumber];
-        [currentTime release];
-        [dictionary release];
     }
     
     // Enable timer firing mechanisim here for cleaning up dead streams.
@@ -152,7 +147,7 @@ static NSString *S3DateKey = @"S3DateKey";
     NSDictionary *foundDictionary = nil;
     NSMutableArray *keysToRemove = [[NSMutableArray alloc] init];
     while (foundDictionary = [objectEnumerator nextObject]) {
-        CFReadStreamRef foundReadStream = (CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
+        CFReadStreamRef foundReadStream = (__bridge CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
         CFStreamStatus streamStatus = CFReadStreamGetStatus(foundReadStream);
         if (streamStatus == kCFStreamStatusNotOpen || streamStatus == kCFStreamStatusAtEnd || 
             streamStatus == kCFStreamStatusClosed || streamStatus == kCFStreamStatusError) {
@@ -162,14 +157,13 @@ static NSString *S3DateKey = @"S3DateKey";
                 [keysToRemove addObjectsFromArray:keys];
                 CFReadStreamClose(foundReadStream);
             }
-            [currentTime release];
         }
     }
     [_activePersistentReadStreams removeObjectsForKeys:keysToRemove];
     [keysToRemove removeAllObjects];
     
     for (foundDictionary in _overflow) {
-        CFReadStreamRef foundReadStream = (CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
+        CFReadStreamRef foundReadStream = (__bridge CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
         CFStreamStatus streamStatus = CFReadStreamGetStatus(foundReadStream);
         if (streamStatus == kCFStreamStatusNotOpen || streamStatus == kCFStreamStatusAtEnd || 
             streamStatus == kCFStreamStatusClosed || streamStatus == kCFStreamStatusError) {
@@ -178,11 +172,9 @@ static NSString *S3DateKey = @"S3DateKey";
                 [keysToRemove addObject:foundDictionary];
                 CFReadStreamClose(foundReadStream);                
             }
-            [currentTime release];
         }
     }
     [_overflow removeObjectsInArray:keysToRemove];
-    [keysToRemove release];
     keysToRemove = nil;
     
     [self disarmCleanPoolTimer];
@@ -200,7 +192,7 @@ static NSString *S3DateKey = @"S3DateKey";
     NSDictionary *foundDictionary = nil;
     NSMutableArray *keysToRemove = [[NSMutableArray alloc] init];
     while (foundDictionary = [objectEnumerator nextObject]) {
-        CFReadStreamRef foundReadStream = (CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
+        CFReadStreamRef foundReadStream = (__bridge CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
         if (foundReadStream == readStream) {
             NSArray *keys = [_activePersistentReadStreams allKeysForObject:foundDictionary];
             [keysToRemove addObjectsFromArray:keys];
@@ -211,14 +203,13 @@ static NSString *S3DateKey = @"S3DateKey";
     [keysToRemove removeAllObjects];
 
     for (foundDictionary in _overflow) {
-        CFReadStreamRef foundReadStream = (CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
+        CFReadStreamRef foundReadStream = (__bridge CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
         if (foundReadStream == readStream) {
             [keysToRemove addObject:foundDictionary];
             CFReadStreamClose(foundReadStream);
         }
     }
     [_overflow removeObjectsInArray:keysToRemove];
-    [keysToRemove release];
     keysToRemove = nil;    
 }
 
@@ -227,11 +218,11 @@ static NSString *S3DateKey = @"S3DateKey";
     NSEnumerator *objectEnumerator = [_activePersistentReadStreams objectEnumerator];
     NSDictionary *foundDictionary = nil;
     while (foundDictionary = [objectEnumerator nextObject]) {
-        CFReadStreamRef foundReadStream = (CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
+        CFReadStreamRef foundReadStream = (__bridge CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
         CFReadStreamClose(foundReadStream);
     }
     for (foundDictionary in _overflow) {
-        CFReadStreamRef foundReadStream = (CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
+        CFReadStreamRef foundReadStream = (__bridge CFReadStreamRef)[foundDictionary objectForKey:S3PersistentReadStreamKey];
         CFReadStreamClose(foundReadStream);                
     }
 }
