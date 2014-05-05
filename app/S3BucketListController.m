@@ -297,6 +297,7 @@ enum {
 
 -(void)dealloc
 {
+    [[self window] setToolbar:nil];
     [[[NSApp delegate] queue] removeQueueListener:self];
 }
 
