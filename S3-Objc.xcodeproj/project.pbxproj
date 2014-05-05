@@ -537,7 +537,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# If not present, download Sparkle archive, extract it and cleanup.\nif [ ! -e $SRCROOT/Sparkle.framework ]; then\n\trm -rf $SRCROOT/Sparkle\n\tmkdir $SRCROOT/Sparkle\n\tcd $SRCROOT/Sparkle\t\n\techo \"Downloading Sparkle framework\"\n\tcurl -s -O http://andymatuschak.org/files/Sparkle-1.1.zip\n\techo \"Unzipping Sparkle\"\n\tunzip Sparkle-1.1.zip\n\tmv Extras/English-Only\\ Framework/Sparkle.framework $SRCROOT\n\trm -rf $SRCROOT/Sparkle\n\techo \"Sparkle installed for build\"\nfi";
+			shellScript = "# If not present, download Sparkle archive, extract it and cleanup.\n#if [ ! -e $SRCROOT/Sparkle.framework ]; then\n#\trm -rf $SRCROOT/Sparkle\n#\tmkdir $SRCROOT/Sparkle\n#\tcd $SRCROOT/Sparkle\n#\techo \"Downloading Sparkle framework\"\n#\tcurl -s -O http://andymatuschak.org/files/Sparkle-1.1.zip\n#\techo \"Unzipping Sparkle\"\n#\tunzip Sparkle-1.1.zip\n#\tmv Extras/English-Only\\ Framework/Sparkle.framework $SRCROOT\n#\trm -rf $SRCROOT/Sparkle\n#\techo \"Sparkle installed for build\"\n#fi";
 		};
 /* End PBXShellScriptBuildPhase section */
 
