@@ -59,6 +59,7 @@
 		3066A6AA0AAB608F003CACDA /* S3ActiveWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3066A6A90AAB608F003CACDA /* S3ActiveWindowController.m */; };
 		30F424250B45FBD700A8483B /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 30F424240B45FBD700A8483B /* Credits.rtf */; };
 		3F24AB811917541400ED1493 /* rename.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3F24AB801917541400ED1493 /* rename.tiff */; };
+		3F6BC6F3191789E0007F14B6 /* S3Kit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1B6DBA5E15B2C11D00718490 /* S3Kit.framework */; };
 		65C3B16B0C199136008EB674 /* S3OperationConsoleLogDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 65C3B10B0C1983E4008EB674 /* S3OperationConsoleLogDelegate.m */; };
 		65C3B19C0C1999B1008EB674 /* S3TransferRateCalculator.m in Sources */ = {isa = PBXBuildFile; fileRef = ECB4A4FB0BA881590056558D /* S3TransferRateCalculator.m */; };
 		65CD13FD0D4509D1000385D3 /* S3ObjectStreamedUploadOperation+Attributes.m in Sources */ = {isa = PBXBuildFile; fileRef = 65CD13FC0D4509D1000385D3 /* S3ObjectStreamedUploadOperation+Attributes.m */; };
@@ -98,7 +99,6 @@
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		EC7FA5490E793B5700CB4FC0 /* S3ApplicationDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = EC7FA5480E793B5700CB4FC0 /* S3ApplicationDelegate.m */; };
-		ECB4A4FC0BA8815A0056558D /* S3TransferRateCalculator.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = ECB4A4FA0BA881590056558D /* S3TransferRateCalculator.h */; };
 		ECCA622C0EE4F12A009266B4 /* S3OperationLog.m in Sources */ = {isa = PBXBuildFile; fileRef = ECCA622B0EE4F12A009266B4 /* S3OperationLog.m */; };
 /* End PBXBuildFile section */
 
@@ -109,7 +109,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				ECB4A4FC0BA8815A0056558D /* S3TransferRateCalculator.h in CopyFiles */,
+				3F6BC6F3191789E0007F14B6 /* S3Kit.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
