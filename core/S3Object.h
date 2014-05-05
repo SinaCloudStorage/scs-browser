@@ -5,7 +5,7 @@
 //  Created by Bruce Chen on 3/15/06.
 //  Re-imagined by Michael Ledford on 12/7/08.
 //  Modernized by Martin Hering on 07/14/12
-//  Copyright 2006 Bruce Chen. All rights reserved.
+//  Copyright 2014 Bruce Chen. All rights reserved.
 //
 //
 

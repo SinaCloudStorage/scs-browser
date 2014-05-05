@@ -3,7 +3,7 @@
 //  S3-Objc
 //
 //  Created by Bruce Chen on 3/15/06.
-//  Copyright Bruce Chen 2006. All rights reserved.
+//  Copyright Bruce Chen 2014. All rights reserved.
 //
 
 #import <Cocoa/Cocoa.h>

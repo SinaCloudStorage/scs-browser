@@ -4,7 +4,7 @@
 //
 //  Created by Bruce Chen on 4/23/06.
 //  Modernized by Martin Hering on 07/14/12
-//  Copyright 2006 Bruce Chen. All rights reserved.
+//  Copyright 2014 Bruce Chen. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -60,7 +60,7 @@ typedef NS_ENUM (NSUInteger, S3Permission) {
  getACLTemplatePublicReadWrite
  
  <?xml version="1.0" encoding="UTF-8"?>
- <AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+ <AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2014-03-01/">
  <Owner>
  <ID>selfId</ID>
  </Owner>
@@ -90,7 +90,7 @@ typedef NS_ENUM (NSUInteger, S3Permission) {
  getACLTemplatePrivate
  
  <?xml version="1.0" encoding="UTF-8"?>
- <AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+ <AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2014-03-01/">
  <Owner>
  <ID>selfId</ID>
  </Owner>
@@ -108,7 +108,7 @@ typedef NS_ENUM (NSUInteger, S3Permission) {
  getACLTemplatePublicRead
  
  <?xml version="1.0" encoding="UTF-8"?>
- <AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+ <AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2014-03-01/">
  <Owner>
  <ID>selfId</ID>
  </Owner>

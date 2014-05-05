@@ -3,7 +3,7 @@
 //  S3-Objc
 //
 //  Created by Bruce Chen on 4/8/06.
-//  Copyright 2006 Bruce Chen. All rights reserved.
+//  Copyright 2014 Bruce Chen. All rights reserved.
 //
 
 #import "S3OperationController.h"

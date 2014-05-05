@@ -3,7 +3,7 @@
 //  S3-Objc
 //
 //  Created by Development Account on 9/3/06.
-//  Copyright 2006 Bruce Chen. All rights reserved.
+//  Copyright 2014 Bruce Chen. All rights reserved.
 //
 
 #import "S3ActiveWindowController.h"

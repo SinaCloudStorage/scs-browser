@@ -4,7 +4,7 @@
 //
 //  Created by Bruce Chen on 4/1/06.
 //  Modernized by Martin Hering on 07/14/12
-//  Copyright 2006 Bruce Chen. All rights reserved.
+//  Copyright 2014 Bruce Chen. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>

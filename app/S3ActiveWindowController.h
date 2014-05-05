@@ -3,7 +3,7 @@
 //  S3-Objc
 //
 //  Created by Development Account on 9/3/06.
-//  Copyright 2006 __MyCompanyName__. All rights reserved.
+//  Copyright 2014 __MyCompanyName__. All rights reserved.
 //
 
 #import <Cocoa/Cocoa.h>
