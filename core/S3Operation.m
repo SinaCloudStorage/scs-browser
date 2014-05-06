@@ -497,6 +497,26 @@ ReadStreamClientCallBack(CFReadStreamRef stream, CFStreamEventType type, void *c
     CFStreamClientContext clientContext = {0, (__bridge void *)(self), NULL, NULL, NULL};
     CFReadStreamSetClient(httpOperationReadStream, S3OperationNetworkEvents, ReadStreamClientCallBack, &clientContext);
     
+    
+    // 使用https但不验证证书
+    
+    if (YES) {
+        
+        // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
+        
+        NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
+                                       [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
+                                       [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
+                                       [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
+                                       kCFNull,kCFStreamSSLPeerName,
+                                       nil];
+        
+        CFReadStreamSetProperty((CFReadStreamRef)httpOperationReadStream,
+                                kCFStreamPropertySSLSettings,
+                                (CFTypeRef)sslProperties);
+        
+    }
+    
     // Schedule the stream
     CFReadStreamScheduleWithRunLoop(httpOperationReadStream, CFRunLoopGetMain(), kCFRunLoopCommonModes);
     
