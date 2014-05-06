@@ -367,7 +367,7 @@ ReadStreamClientCallBack(CFReadStreamRef stream, CFStreamEventType type, void *c
     return builtURL;
 }
 
--(void)stop:(id)sender
+- (void)_stop:(id)sender
 {	
     if ([self state] >= S3OperationCanceled || !(httpOperationReadStream)) {
         return;
@@ -392,7 +392,17 @@ ReadStreamClientCallBack(CFReadStreamRef stream, CFStreamEventType type, void *c
     [self.rateCalculator stopTransferRateCalculator];
 }
 
-- (void)start:(id)sender;
+- (void)stop:(id)sender {
+    
+    [self performSelector:@selector(_stop:) onThread:[[self class] threadForRequest:self] withObject:sender waitUntilDone:NO];
+}
+
+- (void)start:(id)sender {
+
+    [self performSelector:@selector(main:) onThread:[[self class] threadForRequest:self] withObject:sender waitUntilDone:NO];
+}
+
+- (void)main:(id)sender
 {
     if ([self responseBodyContentFilePath] != nil) {
         
@@ -746,6 +756,58 @@ ReadStreamClientCallBack(CFReadStreamRef stream, CFStreamEventType type, void *c
 - (NSString *)kind
 {
     return nil;
+}
+
+
+
+#pragma mark threading behaviour
+
+static NSThread *networkThread = nil;
+
+// In the default implementation, all requests run in a single background thread
+// Advanced users only: Override this method in a subclass for a different threading behaviour
+// Eg: return [NSThread mainThread] to run all requests in the main thread
+// Alternatively, you can create a thread on demand, or manage a pool of threads
+// Threads returned by this method will need to run the runloop in default mode (eg CFRunLoopRun())
+// Requests will stop the runloop when they complete
+// If you have multiple requests sharing the thread or you want to re-use the thread, you'll need to restart the runloop
++ (NSThread *)threadForRequest:(S3Operation *)op
+{
+	if (networkThread == nil) {
+        
+		@synchronized(self) {
+		
+            if (networkThread == nil) {
+			
+                networkThread = [[NSThread alloc] initWithTarget:self selector:@selector(runRequests) object:nil];
+				[networkThread start];
+			}
+		}
+	}
+    
+	return networkThread;
+}
+
++ (void)runRequests
+{
+	// Should keep the runloop from exiting
+	CFRunLoopSourceContext context = {0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+	CFRunLoopSourceRef source = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &context);
+	CFRunLoopAddSource(CFRunLoopGetCurrent(), source, kCFRunLoopDefaultMode);
+    
+    BOOL runAlways = YES; // Introduced to cheat Static Analyzer
+    
+	while (runAlways) {
+        
+        @autoreleasepool {
+            
+            CFRunLoopRun();
+        }
+	}
+    
+	// Should never be called, but anyway
+	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), source, kCFRunLoopDefaultMode);
+	CFRelease(source);
 }
 
 @end

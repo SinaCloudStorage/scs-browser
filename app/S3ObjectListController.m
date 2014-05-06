@@ -349,31 +349,45 @@
     }
     
     NSDictionary *dataSourceInfo = nil;
-    NSString *md5 = nil;
+    //NSString *md5 = nil;
     if ([size longLongValue] < (1024 * 16)) {
+        
         NSData *bodyData = [NSData dataWithContentsOfFile:path];
         dataSourceInfo = @{S3ObjectNSDataSourceKey: bodyData};        
-        md5 = [[bodyData md5Digest] encodeBase64];
+        //md5 = [[bodyData md5Digest] encodeBase64];
+    
     } else {
-        dataSourceInfo = @{S3ObjectFilePathDataSourceKey: path};        
-        NSError *error = nil;
-        NSData *bodyData = [NSData dataWithContentsOfFile:path options:(NSMappedRead|NSUncachedRead) error:&error];
-        md5 = [[bodyData md5Digest] encodeBase64];
+    
+        dataSourceInfo = @{S3ObjectFilePathDataSourceKey: path};
+        //NSError *error = nil;
+        //NSData *bodyData = [NSData dataWithContentsOfFile:path options:(NSMappedRead|NSUncachedRead) error:&error];
+        //md5 = [[bodyData md5Digest] encodeBase64];
     }
     
     NSMutableDictionary *metadataDict = [NSMutableDictionary dictionary];
+    
+    /*
     if (md5 != nil) {
+    
         [metadataDict setObject:md5 forKey:S3ObjectMetadataContentMD5Key];
     }
+     */
+    
     if (mime != nil) {
+        
         [metadataDict setObject:mime forKey:S3ObjectMetadataContentTypeKey];
     }
+    
     if (acl != nil) {
+    
         [metadataDict setObject:acl forKey:S3ObjectMetadataACLKey];
     }
+    
     if (size != nil) {
+    
         [metadataDict setObject:size forKey:S3ObjectMetadataContentLengthKey];
     }
+    
     S3Object *objectToAdd = [[S3Object alloc] initWithBucket:[self bucket] key:key userDefinedMetadata:nil metadata:metadataDict dataSourceInfo:dataSourceInfo];
         
     S3AddObjectOperation *op = [[S3AddObjectOperation alloc] initWithConnectionInfo:[self connectionInfo] object:objectToAdd];

@@ -86,7 +86,28 @@ static NSString *S3OperationInfoAddObjectOperationObjectKey = @"S3OperationInfoA
 {
     S3Object *object = [self object];
     
-    return [[object metadata] objectForKey:S3ObjectMetadataContentMD5Key];
+    //NSString *md5 = [[object metadata] objectForKey:S3ObjectMetadataContentMD5Key];
+    NSString *md5 = [object contentMD5];
+    
+    if (!md5) {
+        
+        if ([self requestBodyContentFilePath]) {
+            
+            NSError *error = nil;
+            NSData *bodyData = [NSData dataWithContentsOfFile:[self requestBodyContentFilePath] options:(NSMappedRead|NSUncachedRead) error:&error];
+            
+            if (bodyData && !error) {
+                
+                md5 = [[bodyData md5Digest] encodeBase64];
+            }
+            
+        } else if ([self requestBodyContentData]) {
+        
+            md5 = [[[self requestBodyContentData] md5Digest] encodeBase64];
+        }
+    }
+    
+    return md5;
 }
 
 - (NSData *)requestBodyContentData
