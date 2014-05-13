@@ -652,7 +652,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# If not present, download Sparkle archive, extract it and cleanup.\nif [ ! -e $SRCROOT/ASIKit.framework ]; then\n\trm -rf $SRCROOT/ASIKit\n\tmkdir $SRCROOT/ASIKit\n\tcd $SRCROOT/ASIKit\n\techo \"Downloading ASIKit framework\"\n\tcurl -s -O http://sdk.sinastorage.com/ASIKit.framework.zip\n\techo \"Unzipping ASIKit\"\n\tunzip ASIKit.framework.zip\n\tmv ASIKit.framework $SRCROOT\n#   mv Extras/English-Only\\ Framework/ASIKit.framework $SRCROOT\n\trm -rf $SRCROOT/ASIKit\n\techo \"ASIKit installed for build\"\nfi";
+			shellScript = "# If not present, download ASIKit archive, extract it and cleanup.\nif [ ! -e $SRCROOT/ASIKit.framework ]; then\n\trm -rf $SRCROOT/ASIKit\n\tmkdir $SRCROOT/ASIKit\n\tcd $SRCROOT/ASIKit\n\techo \"Downloading ASIKit framework\"\n\tcurl -s -O http://sdk.sinastorage.com/ASIKit.framework.zip\n\techo \"Unzipping ASIKit\"\n\tunzip ASIKit.framework.zip\n\tmv ASIKit.framework $SRCROOT\n#   mv Extras/English-Only\\ Framework/ASIKit.framework $SRCROOT\n\trm -rf $SRCROOT/ASIKit\n\techo \"ASIKit installed for build\"\nfi";
 		};
 /* End PBXShellScriptBuildPhase section */
 
