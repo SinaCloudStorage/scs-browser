@@ -139,7 +139,7 @@
 
 - (IBAction)showHelp:(id)sender
 {
-    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"http://people.no-distance.net/ol/software/s3/"]];
+    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"http://open.sinastorage.com/"]];
 }
 
 - (S3OperationQueue *)queue

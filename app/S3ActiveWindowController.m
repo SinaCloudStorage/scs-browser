@@ -15,7 +15,7 @@
 #import "S3OperationQueue.h"
 #import "S3OperationLog.h"
 
-@interface S3ActiveWindowController () <S3ConnectionInfoDelegate>
+@interface S3ActiveWindowController ()
 
 @end
 
@@ -126,29 +126,6 @@
 - (void)setConnectionInfo:(S3ConnectionInfo *)aConnectionInfo
 {
     _connectionInfo = aConnectionInfo;
-}
-
-#pragma mark -
-#pragma mark S3ConnectionInfo Delegates
-
-- (NSString *)accessKeyForConnectionInfo:(S3ConnectionInfo *)connectionInfo
-{
-    S3ConnectionInfo *originalConnectionInfo = [_redirectConnectionInfoMappings objectForKey:connectionInfo];
-    id originalDelegate = [originalConnectionInfo delegate];
-    if ([originalDelegate respondsToSelector:@selector(accessKeyForConnectionInfo:)]) {
-        return [originalDelegate accessKeyForConnectionInfo:originalConnectionInfo];
-    }
-    return nil;
-}
-
-- (NSString *)secretAccessKeyForConnectionInfo:(S3ConnectionInfo *)connectionInfo
-{
-    S3ConnectionInfo *originalConnectionInfo = [_redirectConnectionInfoMappings objectForKey:connectionInfo];
-    id originalDelegate = [originalConnectionInfo delegate];
-    if ([originalDelegate respondsToSelector:@selector(secretAccessKeyForConnectionInfo:)]) {
-        return [originalDelegate secretAccessKeyForConnectionInfo:originalConnectionInfo];
-    }
-    return nil;
 }
 
 
