@@ -24,6 +24,6 @@
 - (S3OperationQueue *)queue;
 - (S3OperationLog *)operationLog;
 
-- (void)setAuthenticationCredentials:(NSDictionary *)authDict forConnectionInfo:(S3ConnectionInfo *)connInto;
-- (void)removeAuthenticationCredentialsForConnectionInfo:(S3ConnectionInfo *)connInfo;
+- (void)setAuthenticationCredentials:(NSDictionary *)authDict forConnectionInfo:(id)connInto;
+- (void)removeAuthenticationCredentialsForConnectionInfo:(id)connInfo;
 @end

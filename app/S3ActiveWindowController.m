@@ -129,4 +129,17 @@
 }
 
 
+#pragma mark -
+
+- (S3ConnInfo *)connInfo
+{
+    return _connInfo;
+}
+
+- (void)setConnInfo:(S3ConnInfo *)aConnInfo
+{
+    _connInfo = aConnInfo;
+}
+
+
 @end

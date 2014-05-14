@@ -10,7 +10,7 @@
 
 @protocol S3ConnInfoDelegate;
 
-@interface S3ConnInfo : NSObject <NSCopying, NSMutableCopying>
+@interface S3ConnInfo : NSObject <NSCopying/*, NSMutableCopying*/>
 
 - (id)initWithDelegate:(id<S3ConnInfoDelegate>)delegate;
 - (id)initWithDelegate:(id<S3ConnInfoDelegate>)delegate userInfo:(id)userInfo;

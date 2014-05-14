@@ -17,11 +17,12 @@
 #import "S3ValueTransformers.h"
 #import "S3AppKitExtensions.h"
 #import "S3BucketListController.h"
+#import "S3ConnInfo.h"
 
 // C-string, as it is only used in Keychain Services
 #define S3_BROWSER_KEYCHAIN_SERVICE "S3 Browser"
 
-@interface S3ApplicationDelegate () <S3ConnectionInfoDelegate, S3OperationQueueDelegate>
+@interface S3ApplicationDelegate () <S3ConnectionInfoDelegate, S3OperationQueueDelegate, S3ConnInfoDelegate>
 @property (nonatomic) S3LoginController* loginController;
 @end
 
@@ -88,9 +89,14 @@
     NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
     NSNumber *useSSL = [standardUserDefaults objectForKey:@"useSSL"];
     
+    /*
     S3ConnectionInfo *connectionInfo = [[S3ConnectionInfo alloc] initWithDelegate:self userInfo:nil secureConnection:[useSSL boolValue]];
     [self.loginController setConnectionInfo:connectionInfo];
-	
+	*/
+    
+    S3ConnInfo *connInfo = [[S3ConnInfo alloc] initWithDelegate:self userInfo:nil secureConn:[useSSL boolValue]];
+    [self.loginController setConnInfo:connInfo];
+    
     [self.loginController showWindow:self];
 }
 
@@ -105,10 +111,14 @@
     NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
     NSNumber *useSSL = [standardUserDefaults objectForKey:@"useSSL"];
     
+    /*
     S3ConnectionInfo *connectionInfo = [[S3ConnectionInfo alloc] initWithDelegate:self userInfo:nil secureConnection:[useSSL boolValue]];
-    
     self.loginController = [[S3LoginController alloc] initWithWindowNibName:@"Authentication"];
     [self.loginController setConnectionInfo:connectionInfo];
+     */
+    
+    S3ConnInfo *connInfo = [[S3ConnInfo alloc] initWithDelegate:self userInfo:nil secureConn:[useSSL boolValue]];
+    [self.loginController setConnInfo:connInfo];
 	
     [self.loginController showWindow:self];
         
@@ -152,23 +162,25 @@
     return _operationLog;
 }
 
-- (void)setAuthenticationCredentials:(NSDictionary *)authDict forConnectionInfo:(S3ConnectionInfo *)connInfo
-{
+- (void)setAuthenticationCredentials:(NSDictionary *)authDict forConnectionInfo:(id)connInfo {
+    
     if (authDict == nil || connInfo == nil) {
+        
         return;
     }
     
     [_authenticationCredentials setObject:authDict forKey:connInfo];
 }
 
-- (void)removeAuthenticationCredentialsForConnectionInfo:(S3ConnectionInfo *)connInfo
-{
+- (void)removeAuthenticationCredentialsForConnectionInfo:(id)connInfo {
+    
     if (connInfo != nil) {
+    
         [_authenticationCredentials removeObjectForKey:connInfo];
     }
 }
 
-- (NSDictionary *)authenticationCredentialsForConnectionInfo:(S3ConnectionInfo *)connInfo
+- (NSDictionary *)authenticationCredentialsForConnectionInfo:(id)connInfo
 {
     NSDictionary *dict = [_authenticationCredentials objectForKey:connInfo];
     if (dict != nil) {
@@ -200,6 +212,36 @@
     // TODO: constant defined keys
     return [authenticationCredentials objectForKey:@"secretAccessKey"];
 }
+
+
+#pragma mark S3ConneInfoDelegate Methods
+
+
+- (NSString *)accessKeyForConnInfo:(S3ConnInfo *)connInfo {
+
+    NSDictionary *authenticationCredentials = [self authenticationCredentialsForConnectionInfo:connInfo];
+    
+    if (authenticationCredentials == nil) {
+    
+        return nil;
+    }
+
+    return [authenticationCredentials objectForKey:@"accessKey"];
+}
+
+- (NSString *)secretAccessKeyForConnInfo:(S3ConnInfo *)connInfo {
+    
+    NSDictionary *authenticationCredentials = [self authenticationCredentialsForConnectionInfo:connInfo];
+    
+    if (authenticationCredentials == nil) {
+    
+        return nil;
+    }
+    
+    return [authenticationCredentials objectForKey:@"secretAccessKey"];
+}
+
+
 
 #pragma mark S3OperationQueueDelegate Methods
 
