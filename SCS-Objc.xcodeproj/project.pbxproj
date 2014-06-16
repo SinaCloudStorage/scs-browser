@@ -101,6 +101,7 @@
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		ADED76E31945C209008AC179 /* ASIS3BucketObject+ShowName.m in Sources */ = {isa = PBXBuildFile; fileRef = ADED76E21945C209008AC179 /* ASIS3BucketObject+ShowName.m */; };
 		EC7FA5490E793B5700CB4FC0 /* S3ApplicationDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = EC7FA5480E793B5700CB4FC0 /* S3ApplicationDelegate.m */; };
 		ECCA622C0EE4F12A009266B4 /* S3OperationLog.m in Sources */ = {isa = PBXBuildFile; fileRef = ECCA622B0EE4F12A009266B4 /* S3OperationLog.m */; };
 /* End PBXBuildFile section */
@@ -193,6 +194,8 @@
 		77BC334E09E852D90055FD75 /* S3ClickableURLField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = S3ClickableURLField.m; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* SCS Browser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SCS Browser.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		ADED76E11945C209008AC179 /* ASIS3BucketObject+ShowName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ASIS3BucketObject+ShowName.h"; sourceTree = "<group>"; };
+		ADED76E21945C209008AC179 /* ASIS3BucketObject+ShowName.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ASIS3BucketObject+ShowName.m"; sourceTree = "<group>"; };
 		EC1DB5680E6240850062ADBB /* S3ListBucketOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = S3ListBucketOperation.h; sourceTree = "<group>"; };
 		EC1DB5690E6240850062ADBB /* S3ListBucketOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = S3ListBucketOperation.m; sourceTree = "<group>"; };
 		EC2715960E3CF3A800B17D42 /* S3ConnectionInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = S3ConnectionInfo.m; sourceTree = "<group>"; };
@@ -429,6 +432,8 @@
 				ECCA622B0EE4F12A009266B4 /* S3OperationLog.m */,
 				3F180FFE192225D0005C6F9E /* S3ConnInfo.h */,
 				3F180FFF192225D0005C6F9E /* S3ConnInfo.m */,
+				ADED76E11945C209008AC179 /* ASIS3BucketObject+ShowName.h */,
+				ADED76E21945C209008AC179 /* ASIS3BucketObject+ShowName.m */,
 			);
 			path = app;
 			sourceTree = "<group>";
@@ -716,6 +721,7 @@
 				778B5DCE09E1817D002AF32D /* S3BucketListController.m in Sources */,
 				777CB09D09E5E4F1003E37C9 /* S3LoginController.m in Sources */,
 				77BC305809E800750055FD75 /* S3OperationController.m in Sources */,
+				ADED76E31945C209008AC179 /* ASIS3BucketObject+ShowName.m in Sources */,
 				77BC334F09E852D90055FD75 /* S3ClickableURLField.m in Sources */,
 				77538C6909EB3DCB0024FB3B /* S3AppKitExtensions.m in Sources */,
 				301E14880A9487B000452AD5 /* S3DragAndDropArrayController.m in Sources */,

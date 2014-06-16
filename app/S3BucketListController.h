@@ -16,7 +16,6 @@
 @interface S3BucketListController : S3ActiveWindowController {
     
     NSArray *_buckets;
-    S3Owner *_bucketsOwner;
         
     IBOutlet NSArrayController *_bucketsController;
 
@@ -25,6 +24,9 @@
     NSInteger _location;
     
     NSMutableDictionary *_bucketListControllerCache;
+    
+    NSString *_bucketOwnerId;
+    NSString *_bucketOwnerDisplayName;
 }
 
 - (IBAction)refresh:(id)sender;
@@ -40,8 +42,12 @@
 
 - (BOOL)isValidName;
 
-- (S3Owner *)bucketsOwner;
-- (void)setBucketsOwner:(S3Owner *)anBucketsOwner;
+- (void)setBucketsOwnerWithID:(NSString *)ownerId displayName:(NSString *)displayName;
+
+- (void)setBucketOwnerId:(NSString *)ownerId;
+- (NSString *)bucketOwnerId;
+- (void)setBucketOwnerDisplayName:(NSString *)displayName;
+- (NSString *)bucketOwnerDisplayName;
 
 - (NSArray *)buckets;
 - (void)setBuckets:(NSArray *)aBuckets;

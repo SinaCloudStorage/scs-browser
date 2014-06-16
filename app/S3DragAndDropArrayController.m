@@ -67,5 +67,10 @@
 		return NO;
 }
 
+- (NSTableView *)tableView {
+    
+    return tableView;
+}
+
 @end
 

@@ -306,7 +306,7 @@
 + (NSString *)readableFileSizeFor:(unsigned long long) size
 {
 	if (size == 0.) 
-		return @"Empty";
+		return @"--";
 	else 
 		if (size > 0. && size < 1024.) 
 			return [NSString stringWithFormat:@"%qu bytes", size];

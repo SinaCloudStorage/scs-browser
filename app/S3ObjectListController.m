@@ -23,6 +23,8 @@
 #import "S3OperationQueue.h"
 #import "S3Extensions.h"
 
+#import "ASIS3BucketObject+ShowName.h"
+
 #define SHEET_CANCEL 0
 #define SHEET_OK 1
 
@@ -34,7 +36,8 @@
 #define FILEDATA_TYPE @"mime"
 #define FILEDATA_SIZE @"size"
 
-@interface S3ObjectListController () <NSToolbarDelegate>
+@interface S3ObjectListController () <NSToolbarDelegate> {
+}
 
 @end
 
@@ -77,8 +80,12 @@
     _redirectConnectionInfoMappings = [[NSMutableDictionary alloc] init];
     
     [_objectsController setFileOperationsDelegate:self];
+    [[_objectsController tableView] setDelegate:self];
+    [[_objectsController tableView] setDataSource:self];
     
-    [[[NSApp delegate] queue] addQueueListener:self];
+    _superPrefixs = [NSMutableArray array];
+    _tempObjectsArray = [NSMutableArray array];
+    _canRefresh = YES;
 }
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar
@@ -92,20 +99,72 @@
 - (BOOL)validateToolbarItem:(NSToolbarItem *)theItem
 {
     if ([[theItem itemIdentifier] isEqualToString: @"Remove All"]) {
-        return [[_objectsController arrangedObjects] count] > 0;
+        
+        //TODO:此功能先屏蔽
+        return NO;
+        //return [[_objectsController arrangedObjects] count] > 0;
+        
     } else if ([[theItem itemIdentifier] isEqualToString: @"Remove"]) {
-        return [_objectsController canRemove];        
+        
+        if ([_objectsController canRemove]) {
+            
+            ASIS3BucketObject *b;
+            NSEnumerator *e = [[_objectsController selectedObjects] objectEnumerator];
+            
+            while (b = [e nextObject]) {
+                if ([[b key] hasSuffix:@"/"] || [[b key] isEqualToString:@"..."]) {
+                    return NO;
+                }
+            }
+            return YES;
+            
+        }else {
+            return NO;
+        }
+        
+        
     } else if ([[theItem itemIdentifier] isEqualToString: @"Download"]) {
-        return [_objectsController canRemove];        
+        
+        if ([_objectsController canRemove]) {
+            
+            ASIS3BucketObject *b;
+            NSEnumerator *e = [[_objectsController selectedObjects] objectEnumerator];
+            
+            while (b = [e nextObject]) {
+                if ([[b key] hasSuffix:@"/"] || [[b key] isEqualToString:@"..."]) {
+                    return NO;
+                }
+            }
+            return YES;
+            
+        }else {
+            return NO;
+        }
+        
     } else if ([[theItem itemIdentifier] isEqualToString: @"Rename"]) {
-        return ([[_objectsController selectedObjects] count] == 1 );
+        
+        if ([[_objectsController selectedObjects] count] == 1) {
+            
+            ASIS3BucketObject *b;
+            NSEnumerator *e = [[_objectsController selectedObjects] objectEnumerator];
+            
+            while (b = [e nextObject]) {
+                if ([[b key] hasSuffix:@"/"] || [[b key] isEqualToString:@"..."]) {
+                    return NO;
+                }
+            }
+            return YES;
+            
+        }else {
+            return NO;
+        }
     }
     return YES;
 }
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar
 {
-    return @[@"Upload", @"Download", @"Rename", @"Remove", NSToolbarSeparatorItemIdentifier,  @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Refresh"]; 
+    return @[@"Upload", @"Download", @"Rename", @"Remove", NSToolbarSeparatorItemIdentifier,  @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
 }
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL) flag
@@ -182,51 +241,51 @@
     [NSApp endSheet:[sender window] returnCode:SHEET_OK];
 }
 
-- (void)operationQueueOperationStateDidChange:(NSNotification *)notification
-{
-    S3Operation *op = [[notification userInfo] objectForKey:S3OperationObjectKey];
-    NSUInteger index = [_operations indexOfObjectIdenticalTo:op];
-    if (index == NSNotFound) {
-        return;
-    }
-    
-    [super operationQueueOperationStateDidChange:notification];
-        
-    if ([op isKindOfClass:[S3ListObjectOperation class]] && [op state] == S3OperationDone) {
-        [self addObjects:[(S3ListObjectOperation *)op objects]];
-        [self setObjectsInfo:[(S3ListObjectOperation*)op metadata]];
-        
-        S3ListObjectOperation *next = [(S3ListObjectOperation *)op operationForNextChunk];
-        if (next != nil) {
-            [self addToCurrentOperations:next];            
-        } else {
-            [self setValidList:YES];
-        }
-    }
-    
-    if ([op isKindOfClass:[S3CopyObjectOperation class]] && [_renameOperations containsObject:op] && [op state] == S3OperationDone) {
-        [self setValidList:NO];
-        //S3Object *sourceObject = [[op operationInfo] objectForKey:@"sourceObject"];
-        S3Object *sourceObject = [(S3CopyObjectOperation *)op sourceObject];
-        S3DeleteObjectOperation *deleteOp = [[S3DeleteObjectOperation alloc] initWithConnectionInfo:[op connectionInfo] object:sourceObject];
-        [_renameOperations removeObject:op];
-        [self addToCurrentOperations:deleteOp];
-    }
-    
-    if (([op isKindOfClass:[S3AddObjectOperation class]] || [op isKindOfClass:[S3DeleteObjectOperation class]]) && [op state] == S3OperationDone) {
-        [self setValidList:NO];
-        NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
-        if ([[standardUserDefaults objectForKey:@"norefresh"] boolValue] == TRUE) {
-            return;
-        }
-        // Simple heuristics: if we still have something in the operation queue, no need to refresh now
-        if (![self hasActiveOperations]) {
-            [self refresh:self];            
-        } else {
-            _needsRefresh = YES;
-        }
-    }
-}
+//- (void)operationQueueOperationStateDidChange:(NSNotification *)notification
+//{
+//    S3Operation *op = [[notification userInfo] objectForKey:S3OperationObjectKey];
+//    NSUInteger index = [_operations indexOfObjectIdenticalTo:op];
+//    if (index == NSNotFound) {
+//        return;
+//    }
+//    
+//    [super operationQueueOperationStateDidChange:notification];
+//        
+//    if ([op isKindOfClass:[S3ListObjectOperation class]] && [op state] == S3OperationDone) {
+//        [self addObjects:[(S3ListObjectOperation *)op objects]];
+//        [self setObjectsInfo:[(S3ListObjectOperation*)op metadata]];
+//        
+//        S3ListObjectOperation *next = [(S3ListObjectOperation *)op operationForNextChunk];
+//        if (next != nil) {
+//            [self addToCurrentOperations:next];            
+//        } else {
+//            [self setValidList:YES];
+//        }
+//    }
+//    
+//    if ([op isKindOfClass:[S3CopyObjectOperation class]] && [_renameOperations containsObject:op] && [op state] == S3OperationDone) {
+//        [self setValidList:NO];
+//        //S3Object *sourceObject = [[op operationInfo] objectForKey:@"sourceObject"];
+//        S3Object *sourceObject = [(S3CopyObjectOperation *)op sourceObject];
+//        S3DeleteObjectOperation *deleteOp = [[S3DeleteObjectOperation alloc] initWithConnectionInfo:[op connectionInfo] object:sourceObject];
+//        [_renameOperations removeObject:op];
+//        [self addToCurrentOperations:deleteOp];
+//    }
+//    
+//    if (([op isKindOfClass:[S3AddObjectOperation class]] || [op isKindOfClass:[S3DeleteObjectOperation class]]) && [op state] == S3OperationDone) {
+//        [self setValidList:NO];
+//        NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
+//        if ([[standardUserDefaults objectForKey:@"norefresh"] boolValue] == TRUE) {
+//            return;
+//        }
+//        // Simple heuristics: if we still have something in the operation queue, no need to refresh now
+//        if (![self hasActiveOperations]) {
+//            [self refresh:self];            
+//        } else {
+//            _needsRefresh = YES;
+//        }
+//    }
+//}
 
 //- (void)s3OperationDidFail:(NSNotification *)notification
 //{
@@ -243,17 +302,184 @@
 //    }
 //}
 
+#pragma mark - ASIS3RequestState NSNotification
+
+- (void)asiS3RequestStateDidChange:(NSNotification *)notification {
+    
+    if (![[notification name] isEqualToString:ASIS3RequestStateDidChangeNotification]) {
+        return;
+    }
+    
+    ASIS3Request *request = [[notification userInfo] objectForKey:ASIS3RequestKey];
+    
+    if ([request isKindOfClass:[ASIS3BucketRequest class]]) {
+        if (![[(ASIS3BucketRequest *)request bucket] isEqualToString:[[self bucket] name]]) {
+            return;
+        }
+    }
+    
+    if ([request isKindOfClass:[ASIS3ObjectRequest class]]) {
+        if (![[(ASIS3ObjectRequest *)request bucket] isEqualToString:[[self bucket] name]]) {
+            return;
+        }
+    }
+    
+    ASIS3RequestState requestState = [[[notification userInfo] objectForKey:ASIS3RequestStateKey] unsignedIntegerValue];
+    [self updateRequest:request forState:requestState];
+    
+    NSString *requestKind = [[request userInfo] objectForKey:RequestUserInfoKindKey];
+    
+    //列文件
+    if ([requestKind isEqualToString:ASIS3RequestListObject]) {
+        
+        if (requestState == ASIS3RequestDone) {
+            
+            _prefixArray = [(ASIS3BucketRequest *)request commonPrefixes];
+            _currentPrefix = [(ASIS3BucketRequest *)request prefix];
+            _isTruncated = [(ASIS3BucketRequest *)request isTruncated];
+            
+            
+            // add directory
+            NSMutableArray *prefixesObject = [NSMutableArray array];
+            for (NSString *prefixString in _prefixArray) {
+                ASIS3BucketObject *object = [ASIS3BucketObject objectWithBucket:[[self bucket] name]];
+                [object setKey:prefixString];
+                [object setPrefix:_currentPrefix];
+                [prefixesObject addObject:object];
+            }
+            [_tempObjectsArray addObjectsFromArray:prefixesObject];
+            
+            
+            // add object
+            NSMutableArray *filteredObjects = [NSMutableArray array];
+            for (ASIS3BucketObject *o in [(ASIS3BucketRequest *)request objects]) {
+                if (![[o key] isEqualToString:_currentPrefix]) {
+                    [o setPrefix:_currentPrefix];
+                    [filteredObjects addObject:o];
+                }
+            }
+            [_tempObjectsArray addObjectsFromArray:filteredObjects];
+            
+            
+            if (!_isTruncated) {
+                
+                // add "..."
+                if (_currentPrefix != nil && ![_currentPrefix isEqualToString:@""]) {
+                    ASIS3BucketObject *object = [ASIS3BucketObject objectWithBucket:[[self bucket] name]];
+                    [object setKey:@"..."];
+                    
+                    if ([[self objects] indexOfObject:object] == NSNotFound) {
+                        [self addObjects:@[object]];
+                    }
+                }
+                
+                [self addObjects:_tempObjectsArray];
+                
+                // show list
+                [self setValidList:YES];
+                
+                if (!_canRefresh) {
+                    _canRefresh = YES;
+                }
+                
+            }else {
+                
+                ASIS3BucketRequest *requestForNextChunk = [(ASIS3BucketRequest *)request requestForNextChunk];
+                [requestForNextChunk setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+                [self addToCurrentNetworkQueue:requestForNextChunk];
+            }
+            
+        }else if (requestState == ASIS3RequestError) {
+            NSLog(@"%@", [request error]);
+            _canRefresh = YES;
+        }
+    }
+    
+    //上传、删除、重命名
+    if ([requestKind isEqualToString:ASIS3RequestAddObject] || [requestKind isEqualToString:ASIS3RequestDeleteObject] || [requestKind isEqualToString:ASIS3RequestCopyObject]) {
+        
+        if (requestState == ASIS3RequestDone) {
+            
+            if ([(ASIS3ObjectRequest *)request sourceBucket] != nil && [(ASIS3ObjectRequest *)request sourceKey] != nil) {
+                ASIS3ObjectRequest *deleteRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[(ASIS3ObjectRequest *)request sourceBucket]
+                                                                                            key:[(ASIS3ObjectRequest *)request sourceKey]];
+                [self addToCurrentNetworkQueue:deleteRequest];
+            }else {
+
+                if (_canRefresh) {
+                    [self refresh:self];
+                }
+            }
+        }else if (requestState == ASIS3RequestError) {
+            NSLog(@"%@", [request error]);
+        }
+    }
+    
+    //下载
+    if ([requestKind isEqualToString:ASIS3RequestDownloadObject]) {
+        
+        if (requestState == ASIS3RequestDone) {
+            NSLog(@"finish download");
+        }else if (requestState == ASIS3RequestError) {
+            NSLog(@"%@", [request error]);
+            
+            if ([[NSFileManager defaultManager] fileExistsAtPath:request.downloadDestinationPath]) {
+                [[NSFileManager defaultManager] removeItemAtPath:request.downloadDestinationPath error:NULL];
+            }
+        }
+    }
+}
+
+#pragma mark - NSTableViewDelegate
+
+- (void)tableView:(NSTableView *)tableView sortDescriptorsDidChange:(NSArray *)oldDescriptors {
+    
+    if (_currentPrefix != nil && ![_currentPrefix isEqualToString:@""]) {
+        
+        for (ASIS3BucketObject *o in [_objectsController content]) {
+            
+            if ([[o key] isEqualToString:@"..."]) {
+                [_objectsController removeObject:o];
+            }
+        }
+    }
+}
+
+- (void)tableView:(NSTableView *)tableView didClickTableColumn:(NSTableColumn *)tableColumn {
+    
+    if (_currentPrefix != nil && ![_currentPrefix isEqualToString:@""]) {
+        
+        ASIS3BucketObject *object = [ASIS3BucketObject objectWithBucket:[[self bucket] name]];
+        [object setKey:@"..."];
+        [_objectsController insertObject:object atArrangedObjectIndex:0];
+    }
+}
+
 #pragma mark -
 #pragma mark Actions
 
 - (IBAction)refresh:(id)sender
 {
-    [self setObjects:[NSMutableArray array]];
     [self setValidList:NO];
-        
-    S3ListObjectOperation *op = [[S3ListObjectOperation alloc] initWithConnectionInfo:[self connectionInfo] bucket:[self bucket]];
     
-    [self addToCurrentOperations:op];
+    _canRefresh = NO;
+    
+    if ([self objects]) {
+        [[self objects] removeAllObjects];
+    }
+    
+    [self setObjects:[NSMutableArray array]];
+    
+    [_tempObjectsArray removeAllObjects];
+    
+    ASIS3BucketRequest *listRequest = [ASIS3BucketRequest requestWithBucket:[[self bucket] name]];
+    
+    [listRequest setDelimiter:@"/"];
+    [listRequest setPrefix:_currentPrefix];
+    [listRequest setMaxResultCount:100];
+    
+    [listRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+    [self addToCurrentNetworkQueue:listRequest];
 }
 
 -(IBAction)removeAll:(id)sender
@@ -268,19 +494,20 @@
         return;
     }
     
-    S3Object *b;
+    ASIS3BucketObject *b;
     NSEnumerator *e = [[_objectsController arrangedObjects] objectEnumerator];
         
     while (b = [e nextObject])
     {
-        S3DeleteObjectOperation *op = [[S3DeleteObjectOperation alloc] initWithConnectionInfo:[self connectionInfo] object:b];
-        [self addToCurrentOperations:op];
+        ASIS3ObjectRequest *deleteObjectRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[[self bucket] name] key:[b key]];
+        [deleteObjectRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestDeleteObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+        [self addToCurrentNetworkQueue:deleteObjectRequest];
     }
 }
 
 - (IBAction)remove:(id)sender
 {
-    S3Object *b;
+    ASIS3BucketObject *b;
     NSUInteger count = [[_objectsController selectedObjects] count];
 
     if (count>=10)
@@ -299,8 +526,39 @@
     NSEnumerator *e = [[_objectsController selectedObjects] objectEnumerator];
     while (b = [e nextObject])
     {
-        S3DeleteObjectOperation *op = [[S3DeleteObjectOperation alloc] initWithConnectionInfo:[self connectionInfo] object:b];
-        [self addToCurrentOperations:op];
+        ASIS3ObjectRequest *deleteObjectRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[[self bucket] name] key:[b key]];
+        [deleteObjectRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestDeleteObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+        [self addToCurrentNetworkQueue:deleteObjectRequest];
+    }
+}
+
+- (IBAction)doubleClicked:(id)sender {
+    
+    NSArray* selectedObjects = [_objectsController selectedObjects];
+    
+    for(ASIS3BucketObject* b in selectedObjects) {
+        
+        if ([[b key] hasSuffix:@"/"]) {
+            
+            if (_currentPrefix != nil) {
+                [_superPrefixs addObject:_currentPrefix];
+            }else {
+                [_superPrefixs addObject:@""];
+            }
+            _currentPrefix = [b key];
+            
+            [self refresh:sender];
+            
+        }else if ([[b key] isEqualToString:@"..."]) {
+            
+            _currentPrefix = [_superPrefixs objectAtIndex:[_superPrefixs count]-1];
+            [_superPrefixs removeObjectAtIndex:[_superPrefixs count]-1];
+            [self refresh:sender];
+            
+        }else {
+            
+            [self download:sender];
+        }
     }
 }
 
@@ -308,7 +566,7 @@
 {
     NSArray* selectedObjects = [_objectsController selectedObjects];
         
-    for(S3Object* b in selectedObjects)
+    for(ASIS3BucketObject* b in selectedObjects)
     {
         NSSavePanel *sp = [NSSavePanel savePanel];
         NSString *n = [[b key] lastPathComponent];
@@ -320,25 +578,41 @@
         
         __weak S3ObjectListController* _weakself = self;
         [sp beginWithCompletionHandler:^(NSInteger result) {
-            if (result == NSOKButton)
-        {
-                S3DownloadObjectOperation *op = [[S3DownloadObjectOperation alloc] initWithConnectionInfo:[self connectionInfo]
-                                                                                                   object:b
-                                                                                                   saveTo:[[sp URL] path]];
-                [_weakself addToCurrentOperations:op];
+            if (result == NSOKButton) {
+            
+                ASIS3ObjectRequest *downloadRequest = [ASIS3ObjectRequest requestWithBucket:[[self bucket] name] key:[b key]];
+                
+                NSString *downloadPath = [[sp URL] path];
+                
+                [downloadRequest setTemporaryFileDownloadPath:[NSString stringWithFormat:@"%@.tmp", downloadPath]];
+                [downloadRequest setDownloadDestinationPath:downloadPath];
+                [downloadRequest setDownloadProgressDelegate:self];
+                [downloadRequest setShowAccurateProgress:YES];
+                [downloadRequest setAllowResumeForFileDownloads:YES];
+                
+                long long downloadedPartSize = 0;
+                if ([[NSFileManager defaultManager] fileExistsAtPath:downloadRequest.temporaryFileDownloadPath] && [downloadRequest allowResumeForFileDownloads]) {
+                    downloadedPartSize = [[[NSFileManager defaultManager] attributesOfItemAtPath:downloadRequest.temporaryFileDownloadPath error:nil] fileSize];
+                    [downloadRequest addRequestHeader:@"If-Range" value:[b ETag]];
+                }
+                
+                [downloadRequest setUserInfo:@{RequestUserInfoTransferedBytesKey:[NSString stringWithFormat:@"%lld", (long long)0],
+                                               RequestUserInfoResumeDownloadedFileSizeKey:[NSString stringWithFormat:@"%lld", downloadedPartSize],
+                                               RequestUserInfoKindKey:ASIS3RequestDownloadObject,
+                                               RequestUserInfoStatusKey:RequestUserInfoStatusPending,
+                                               RequestUserInfoSubStatusKey:[NSString stringWithFormat:@"%f", 0.0]}];
+
+                [_weakself addToCurrentNetworkQueue:downloadRequest];
             }
         }];
         
     }
 }
 
-
 - (void)uploadFile:(NSDictionary *)data acl:(NSString *)acl
 {
     NSString *path = [data objectForKey:FILEDATA_PATH];
     NSString *key = [data objectForKey:FILEDATA_KEY];
-    NSString *mime = [data objectForKey:FILEDATA_TYPE];
-    NSNumber *size = [data objectForKey:FILEDATA_SIZE];
     
     if (![self acceptFileForImport:path])
     {   
@@ -348,51 +622,16 @@
         return;        
     }
     
-    NSDictionary *dataSourceInfo = nil;
-    //NSString *md5 = nil;
-    if ([size longLongValue] < (1024 * 16)) {
-        
-        NSData *bodyData = [NSData dataWithContentsOfFile:path];
-        dataSourceInfo = @{S3ObjectNSDataSourceKey: bodyData};        
-        //md5 = [[bodyData md5Digest] encodeBase64];
+    ASIS3ObjectRequest *uploadRequest = [ASIS3ObjectRequest PUTRequestForFile:path withBucket:[[self bucket] name] key:key];
+    [uploadRequest setAccessPolicy:acl];
+    [uploadRequest setUploadProgressDelegate:self];
+    [uploadRequest setShowAccurateProgress:YES];
+    [uploadRequest setUserInfo:@{RequestUserInfoTransferedBytesKey:[NSString stringWithFormat:@"%d", 0],
+                                 RequestUserInfoKindKey:ASIS3RequestAddObject,
+                                 RequestUserInfoStatusKey:RequestUserInfoStatusPending,
+                                 RequestUserInfoSubStatusKey:[NSString stringWithFormat:@"%f", 0.0]}];
     
-    } else {
-    
-        dataSourceInfo = @{S3ObjectFilePathDataSourceKey: path};
-        //NSError *error = nil;
-        //NSData *bodyData = [NSData dataWithContentsOfFile:path options:(NSMappedRead|NSUncachedRead) error:&error];
-        //md5 = [[bodyData md5Digest] encodeBase64];
-    }
-    
-    NSMutableDictionary *metadataDict = [NSMutableDictionary dictionary];
-    
-    /*
-    if (md5 != nil) {
-    
-        [metadataDict setObject:md5 forKey:S3ObjectMetadataContentMD5Key];
-    }
-     */
-    
-    if (mime != nil) {
-        
-        [metadataDict setObject:mime forKey:S3ObjectMetadataContentTypeKey];
-    }
-    
-    if (acl != nil) {
-    
-        [metadataDict setObject:acl forKey:S3ObjectMetadataACLKey];
-    }
-    
-    if (size != nil) {
-    
-        [metadataDict setObject:size forKey:S3ObjectMetadataContentLengthKey];
-    }
-    
-    S3Object *objectToAdd = [[S3Object alloc] initWithBucket:[self bucket] key:key userDefinedMetadata:nil metadata:metadataDict dataSourceInfo:dataSourceInfo];
-        
-    S3AddObjectOperation *op = [[S3AddObjectOperation alloc] initWithConnectionInfo:[self connectionInfo] object:objectToAdd];
-
-    [self addToCurrentOperations:op];
+    [self addToCurrentNetworkQueue:uploadRequest];
 }
 
 - (void)uploadFiles
@@ -445,14 +684,14 @@
         
     NSString *path;
     NSMutableArray *filesInfo = [NSMutableArray array];
-    NSString *prefix = [NSString commonPathComponentInPaths:paths]; 
+    NSString *prefix = [NSString commonPathComponentInPaths:paths];
     
     for (path in paths) {
         NSMutableDictionary *info = [NSMutableDictionary dictionary];
         [info setObject:path forKey:FILEDATA_PATH];
         [info setObject:[path fileSizeForPath] forKey:FILEDATA_SIZE];
         [info safeSetObject:[path mimeTypeForPath] forKey:FILEDATA_TYPE withValueForNil:@"application/octet-stream"];
-        [info setObject:[path substringFromIndex:[prefix length]] forKey:FILEDATA_KEY];
+        [info setObject:[NSString stringWithFormat:@"%@%@", _currentPrefix==nil?@"":_currentPrefix, [path substringFromIndex:[prefix length]]] forKey:FILEDATA_KEY];
         [filesInfo addObject:info];
     }
     
@@ -485,7 +724,7 @@
 
 - (void)didEndRenameSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
-    S3Object *source = (__bridge_transfer S3Object *)contextInfo;
+    ASIS3BucketObject *source = (__bridge_transfer ASIS3BucketObject *)contextInfo;
 
     [sheet orderOut:self];
 
@@ -497,13 +736,12 @@
         return;
     }
     
-    S3Object *newObject = [[S3Object alloc] initWithBucket:[self bucket] key:[self renameName]];
-        
-    S3CopyObjectOperation *copyOp = [[S3CopyObjectOperation alloc] initWithConnectionInfo:[self connectionInfo] from:source to:newObject];
-    
-    [_renameOperations addObject:copyOp];
-    
-    [self addToCurrentOperations:copyOp];
+    ASIS3ObjectRequest *copyRequest = [ASIS3ObjectRequest COPYRequestFromBucket:[[self bucket] name]
+                                                                            key:[source key]
+                                                                       toBucket:[[self bucket] name]
+                                                                            key:[self renameName]];
+    [copyRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestCopyObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+    [self addToCurrentNetworkQueue:copyRequest];
 }
 
 - (IBAction)rename:(id)sender
@@ -520,6 +758,31 @@
         modalDelegate:self
        didEndSelector:@selector(didEndRenameSheet:returnCode:contextInfo:)
           contextInfo:(__bridge_retained void*)selectedObject];
+}
+
+#pragma mark -
+#pragma mark ASIProgressDelegate
+
+- (void)request:(ASIHTTPRequest *)request didReceiveBytes:(long long)bytes {
+    
+    long long bytesDownloaded = [[[request userInfo] objectForKey:RequestUserInfoTransferedBytesKey] longLongValue] + bytes;
+    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
+    [dict setValue:[NSString stringWithFormat:@"%lld", bytesDownloaded] forKey:RequestUserInfoTransferedBytesKey];
+    
+    long long resumeDownloadedFileSize = [[[request userInfo] objectForKey:RequestUserInfoResumeDownloadedFileSizeKey] longLongValue];
+    [dict setValue:[NSString stringWithFormat:@"%.2f%%", (GLfloat)bytesDownloaded / (GLfloat)(resumeDownloadedFileSize + [request contentLength]) * 100.0] forKey:RequestUserInfoSubStatusKey];
+    
+    [request setUserInfo:dict];
+}
+
+- (void)request:(ASIHTTPRequest *)request didSendBytes:(long long)bytes {
+    
+    long long bytesUploaded = [[[request userInfo] objectForKey:RequestUserInfoTransferedBytesKey] longLongValue] + bytes;
+    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
+    [dict setValue:[NSString stringWithFormat:@"%lld", bytesUploaded] forKey:RequestUserInfoTransferedBytesKey];
+    [dict setValue:[NSString stringWithFormat:@"%.2f%%", (GLfloat)bytesUploaded / (GLfloat)[request postLength] * 100.0] forKey:RequestUserInfoSubStatusKey];
+    
+    [request setUserInfo:dict];
 }
 
 #pragma mark -
@@ -552,12 +815,12 @@
     _objectsInfo = aObjectsInfo;
 }
 
-- (S3Bucket *)bucket
+- (ASIS3Bucket *)bucket
 {
     return _bucket; 
 }
 
-- (void)setBucket:(S3Bucket *)aBucket
+- (void)setBucket:(ASIS3Bucket *)aBucket
 {
     _bucket = aBucket;
 }
@@ -637,7 +900,8 @@
 
 -(void)dealloc
 {
-    [[[NSApp delegate] queue] removeQueueListener:self];
+//    [[[NSApp delegate] queue] removeQueueListener:self];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:ASIS3RequestStateDidChangeNotification object:nil];
 }
 
 @end

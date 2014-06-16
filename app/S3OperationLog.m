@@ -10,6 +10,7 @@
 
 #import "S3Operation.h"
 
+
 @implementation S3OperationLog
 
 @synthesize operations = _operations;
@@ -41,21 +42,38 @@
     return [[self operations] count];
 }
 
-- (void)logOperation:(S3Operation *)o
+//- (void)logOperation:(S3Operation *)o
+//{
+//    [self insertObject:o inOperationsAtIndex:[self countOfOperations]];
+//}
+
+- (void)logOperation:(ASIS3Request *)o
 {
     [self insertObject:o inOperationsAtIndex:[self countOfOperations]];
 }
 
-- (void)unlogOperation:(S3Operation *)o
+//- (void)unlogOperation:(S3Operation *)o
+//{
+//    // TODO: Move user defaults out of S3OperationQueue into a delegate method
+//    NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
+//    if ([[standardUserDefaults objectForKey:@"autoclean"] boolValue] == TRUE) {
+//        NSUInteger indexOfObject = [[self operations] indexOfObject:o];
+//        if (indexOfObject != NSNotFound) {
+//            [self removeObjectFromOperationsAtIndex:indexOfObject];            
+//        }
+//    }    
+//}
+
+- (void)unlogOperation:(ASIS3Request *)o
 {
     // TODO: Move user defaults out of S3OperationQueue into a delegate method
     NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
     if ([[standardUserDefaults objectForKey:@"autoclean"] boolValue] == TRUE) {
         NSUInteger indexOfObject = [[self operations] indexOfObject:o];
         if (indexOfObject != NSNotFound) {
-            [self removeObjectFromOperationsAtIndex:indexOfObject];            
+            [self removeObjectFromOperationsAtIndex:indexOfObject];
         }
-    }    
+    }
 }
 
 @end

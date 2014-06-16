@@ -8,13 +8,14 @@
 
 #import <Cocoa/Cocoa.h>
 #import "S3ConnInfo.h"
+#import <ASIKit/ASIKit.h>
 
 @class S3ConnectionInfo;
 @class S3Operation;
 
 // This class handles all operation-based window by maintaining an active/pending operation queue
 
-@interface S3ActiveWindowController : NSWindowController {
+@interface S3ActiveWindowController : NSWindowController <ASIProgressDelegate, ASIHTTPRequestDelegate> {
     
     S3ConnInfo *_connInfo;
 	S3ConnectionInfo *_connectionInfo;
@@ -32,5 +33,15 @@
 - (void)addToCurrentOperations:(S3Operation *)op;
 - (BOOL)hasActiveOperations;
 
-- (void)operationQueueOperationStateDidChange:(NSNotification *)notification;
+//- (void)operationQueueOperationStateDidChange:(NSNotification *)notification;
+
+
+///////
+
+- (void)addToCurrentNetworkQueue:(ASIS3Request *)request;
+- (BOOL)hasActiveRequest;
+- (BOOL)configureRequest:(ASIS3Request *)request;
+
+- (void)updateRequest:(ASIS3Request *)request forState:(int)state;
+
 @end

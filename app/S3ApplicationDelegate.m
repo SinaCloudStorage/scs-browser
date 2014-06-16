@@ -22,6 +22,37 @@
 // C-string, as it is only used in Keychain Services
 #define S3_BROWSER_KEYCHAIN_SERVICE "S3 Browser"
 
+/* Notification UserInfo Keys */
+NSString *ASIS3RequestKey = @"ASIS3RequestKey";
+NSString *ASIS3RequestStateKey = @"ASIS3RequestStateKey";
+NSString *ASIS3RequestStateDidChangeNotification = @"ASIS3RequestStateDidChangeNotification";
+
+NSString *RequestUserInfoTransferedBytesKey = @"transferedBytes";
+NSString *RequestUserInfoResumeDownloadedFileSizeKey = @"resumeDownloadedFileSize";
+NSString *RequestUserInfoKindKey = @"kind";
+NSString *RequestUserInfoStatusKey = @"status";
+NSString *RequestUserInfoSubStatusKey = @"subStatus";
+NSString *RequestUserInfoURLKey = @"url";
+NSString *RequestUserInfoRequestMethodKey = @"requestMethod";
+
+NSString *ASIS3RequestListBucket =      @"ListBucket";
+NSString *ASIS3RequestAddBucket =       @"AddBucket";
+NSString *ASIS3RequestDeleteBucket =    @"DeleteBucket";
+NSString *ASIS3RequestListObject =      @"ListObject";
+NSString *ASIS3RequestAddObject =       @"AddObject";
+NSString *ASIS3RequestDeleteObject =    @"DeleteObject";
+NSString *ASIS3RequestCopyObject =      @"CopyObject";
+NSString *ASIS3RequestDownloadObject =  @"DownloadObject";
+
+NSString *RequestUserInfoStatusPending =                @"Pending";
+NSString *RequestUserInfoStatusActive =                 @"Active";
+NSString *RequestUserInfoStatusCanceled =               @"Canceled";
+NSString *RequestUserInfoStatusReceiveResponseHeaders = @"ReceiveResponseHeaders";
+NSString *RequestUserInfoStatusDone =                   @"Done";
+NSString *RequestUserInfoStatusRequiresRedirect =       @"RequiresRedirect";
+NSString *RequestUserInfoStatusError =                  @"Error";
+
+
 @interface S3ApplicationDelegate () <S3ConnectionInfoDelegate, S3OperationQueueDelegate, S3ConnInfoDelegate>
 @property (nonatomic) S3LoginController* loginController;
 @end
@@ -69,9 +100,23 @@
     if (self != nil) {
         _controllers = [[NSMutableDictionary alloc] init];
         _queue = [[S3OperationQueue alloc] initWithDelegate:self];
+        
+        _networkQueue = [ASINetworkQueue queue];
+        [_networkQueue setDelegate:self];
+        [_networkQueue setShouldCancelAllRequestsOnFailure:NO];
+        [_networkQueue setRequestDidFailSelector:@selector(requestDidFailSelector:)];
+        [_networkQueue setRequestDidFinishSelector:@selector(requestDidFinishSelector:)];
+        [_networkQueue setRequestDidReceiveResponseHeadersSelector:@selector(requestDidReceiveResponseHeadersSelector:)];
+        [_networkQueue setRequestDidStartSelector:@selector(requestDidStartSelector:)];
+        [_networkQueue setRequestWillRedirectSelector:@selector(requestWillRedirectSelector:)];
+        
+        
         _operationLog = [[S3OperationLog alloc] init];
         _authenticationCredentials = [[NSMutableDictionary alloc] init];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(finishedLaunching) name:NSApplicationDidFinishLaunchingNotification object:NSApp];
+        
+        
+        [_networkQueue go];
     }
     
     return self;
@@ -252,4 +297,68 @@
     return [maxOps intValue];
 }
 
+#pragma mark -
+
+- (ASINetworkQueue *)networkQueue {
+    
+    return _networkQueue;
+}
+
+- (void)postNotificationWithRequest:(ASIS3Request *)request state:(ASIS3RequestState)state {
+
+    NSDictionary *dict = @{ASIS3RequestKey : request,
+                           ASIS3RequestStateKey:[NSNumber numberWithUnsignedInteger:state]};
+    [[NSNotificationCenter defaultCenter] postNotificationName:ASIS3RequestStateDidChangeNotification object:self userInfo:dict];
+}
+
+- (void)requestDidStartSelector:(ASIS3Request *)request {
+    //NSLog(@"requestDidStartSelector");
+    [self postNotificationWithRequest:request state:ASIS3RequestActive];
+    
+    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
+    [dict setValue:[request requestMethod] forKey:RequestUserInfoRequestMethodKey];
+    [dict setValue:[request url] forKey:RequestUserInfoURLKey];
+    
+//    if ([[[request userInfo] objectForKey:RequestUserInfoKindKey] isEqualToString:ASIS3RequestDownloadObject] && [request allowResumeForFileDownloads]) {
+//        
+//        NSLog(@"~~~~~~ part: %lld", [request partialDownloadSize]);
+//        NSLog(@"~~~~~~ last: %lld", [request contentLength]);
+//        [dict setValue:[NSString stringWithFormat:@"%lld", [request partialDownloadSize]] forKey:RequestUserInfoResumeDownloadedFileSizeKey];
+//    }
+    
+    [request setUserInfo:dict];
+}
+
+- (void)requestDidReceiveResponseHeadersSelector:(ASIS3Request *)request {
+    //NSLog(@"requestDidReceiveResponseHeadersSelector");
+    [self postNotificationWithRequest:request state:ASIS3RequestReceiveResponseHeaders];
+}
+
+- (void)requestWillRedirectSelector:(ASIS3Request *)request {
+    //NSLog(@"requestWillRedirectSelector");
+    [self postNotificationWithRequest:request state:ASIS3RequestRequiresRedirect];
+}
+
+- (void)requestDidFinishSelector:(ASIS3Request *)request {
+    //NSLog(@"requestDidFinishSelector");
+    
+    if ([request responseStatusCode] >= 400) {
+        [self requestDidFailSelector:request];
+    }else {
+        [self postNotificationWithRequest:request state:ASIS3RequestDone];
+    }
+}
+
+- (void)requestDidFailSelector:(ASIS3Request *)request {
+    //NSLog(@"requestDidFailSelector");
+    
+    if ([request isCancelled]) {
+        [self postNotificationWithRequest:request state:ASIS3RequestCanceled];
+    }else {
+        [self postNotificationWithRequest:request state:ASIS3RequestError];
+    }
+}
+
 @end
+
+

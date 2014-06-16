@@ -58,9 +58,10 @@
         }
 		
 		NSEnumerator *e = [[_operationsArrayController selectedObjects] objectEnumerator];
-		S3Operation *op;
+		ASIS3Request *op;
 		while (op = [e nextObject]) {
-			if (([op state]==S3OperationActive)||([op state]==S3OperationPending)) {
+			if (([[[op userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusActive])||
+                ([[[op userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusPending])) {
 				return NO;
             }
 		}
@@ -68,9 +69,10 @@
 	}
 	if ([[theItem itemIdentifier] isEqualToString:@"Stop"]) {	
 		NSEnumerator *e = [[_operationsArrayController selectedObjects] objectEnumerator];
-		S3Operation *op;
+		ASIS3Request *op;
 		while (op = [e nextObject]) {
-			if (([op state]==S3OperationActive)||([op state]==S3OperationPending)) {
+			if (([[[op userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusActive])||
+                ([[[op userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusPending])) {
 				return YES;
             }
 		}
@@ -93,11 +95,13 @@
 - (IBAction)stop:(id)sender;
 {
 	NSEnumerator *e = [[_operationsArrayController selectedObjects] objectEnumerator];
-	S3Operation *op;
+	ASIS3Request *op;
 	while (op = [e nextObject]) 
 	{
-		if (([op state]==S3OperationActive)||([op state]==S3OperationPending)) {
-			[op stop:self];            
+		if (([[[op userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusActive])||
+            ([[[op userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusPending])) {
+            
+            [op cancel];
         }
 	}	
 }

@@ -24,4 +24,6 @@
 
 - (void)setFileOperationsDelegate:(id)d;
 
+- (NSTableView *)tableView;
+
 @end
