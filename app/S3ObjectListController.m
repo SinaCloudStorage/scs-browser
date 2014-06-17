@@ -377,6 +377,8 @@
                 
                 // show list
                 [self setValidList:YES];
+                [self tableView:[_objectsController tableView] sortDescriptorsDidChange:[_objectsController content]];
+                [self tableView:[_objectsController tableView] didClickTableColumn:0];
                 
                 if (!_canRefresh) {
                     _canRefresh = YES;

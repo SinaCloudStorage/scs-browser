@@ -108,6 +108,10 @@
 
 - (IBAction)info:(id)sender
 {
+    NSInteger seclectIndex = [_operationsArrayController selectionIndex];
+    [_operationsArrayController setSelectionIndex:-1];
+    [_operationsArrayController setSelectionIndex:seclectIndex];
+    
     [_infoPanel orderFront:self];
 }
 
@@ -142,4 +146,5 @@
 	
     return item;
 }
+
 @end

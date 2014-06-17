@@ -85,9 +85,9 @@
                                         </tableColumn>
                                     </tableColumns>
                                     <connections>
-                                        <binding destination="-2" name="doubleClickTarget" keyPath="infoPanel" id="486">
+                                        <binding destination="-2" name="doubleClickTarget" keyPath="self" id="gkb-XW-hzy">
                                             <dictionary key="options">
-                                                <string key="NSSelectorName">orderFront:</string>
+                                                <string key="NSSelectorName">info:</string>
                                             </dictionary>
                                         </binding>
                                     </connections>
