@@ -40,7 +40,7 @@
                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                     <tableColumns>
-                                        <tableColumn editable="NO" width="131" minWidth="40" maxWidth="1000" id="13">
+                                        <tableColumn editable="NO" width="221" minWidth="40" maxWidth="1000" id="13">
                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Key">
                                                 <font key="font" metaFont="smallSystem"/>
                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -81,7 +81,7 @@
                                                 </binding>
                                             </connections>
                                         </tableColumn>
-                                        <tableColumn editable="NO" width="213" minWidth="40" maxWidth="1000" id="19">
+                                        <tableColumn editable="NO" width="123" minWidth="40" maxWidth="1000" id="19">
                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Last modified">
                                                 <font key="font" metaFont="smallSystem"/>
                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -140,7 +140,7 @@
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <scroller key="verticalScroller" verticalHuggingPriority="750" horizontal="NO" id="691">
-                            <rect key="frame" x="583" y="17" width="15" height="458"/>
+                            <rect key="frame" x="582" y="17" width="16" height="458"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <tableHeaderView key="headerView" id="690">
@@ -240,7 +240,7 @@
                             <font key="font" metaFont="menu"/>
                             <menu key="menu" title="OtherViews" id="68">
                                 <items>
-                                    <menuItem title="private" state="on" id="70">
+                                    <menuItem title="private" id="70">
                                         <attributedString key="attributedTitle">
                                             <fragment content="private">
                                                 <attributes>

@@ -20,7 +20,7 @@
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="28" y="458" width="466" height="402"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1058"/>
-            <value key="minSize" type="size" width="213" height="107"/>
+            <value key="minSize" type="size" width="466" height="402"/>
             <view key="contentView" id="6">
                 <rect key="frame" x="0.0" y="0.0" width="466" height="402"/>
                 <autoresizingMask key="autoresizingMask"/>
@@ -110,7 +110,7 @@
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <scroller key="verticalScroller" verticalHuggingPriority="750" horizontal="NO" id="198">
-                            <rect key="frame" x="451" y="17" width="15" height="251"/>
+                            <rect key="frame" x="450" y="17" width="16" height="251"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <tableHeaderView key="headerView" id="197">

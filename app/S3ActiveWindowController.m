@@ -214,7 +214,13 @@
             [dict setValue:RequestUserInfoStatusError forKey:RequestUserInfoStatusKey];
             
             if ([request error] != nil) {
-                [dict setValue:[[[request error] userInfo] objectForKey:NSLocalizedDescriptionKey] forKey:RequestUserInfoSubStatusKey];
+                
+                if ([request responseStatusMessage] != nil && [request responseStatusCode] == 413) {
+                    [dict setValue:[request responseStatusMessage] forKey:RequestUserInfoSubStatusKey];
+                }else {
+                    [dict setValue:[[[request error] userInfo] objectForKey:NSLocalizedDescriptionKey] forKey:RequestUserInfoSubStatusKey];
+                }
+                
             }else if ([[request responseHeaders] objectForKey:@"x-error-code"] != nil) {
                 [dict setValue:[[request responseHeaders] objectForKey:@"x-error-code"] forKey:RequestUserInfoSubStatusKey];
             }else if ([request responseStatusMessage] != nil) {

@@ -625,6 +625,8 @@
     }
     
     ASIS3ObjectRequest *uploadRequest = [ASIS3ObjectRequest PUTRequestForFile:path withBucket:[[self bucket] name] key:key];
+    
+    [uploadRequest addRequestHeader:@"Expect" value:@"100-continue"];
     [uploadRequest setAccessPolicy:acl];
     [uploadRequest setUploadProgressDelegate:self];
     [uploadRequest setShowAccurateProgress:YES];
