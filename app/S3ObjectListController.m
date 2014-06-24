@@ -627,6 +627,14 @@
     ASIS3ObjectRequest *uploadRequest = [ASIS3ObjectRequest PUTRequestForFile:path withBucket:[[self bucket] name] key:key];
     
     [uploadRequest addRequestHeader:@"Expect" value:@"100-continue"];
+    
+    // 控制签名超时
+    NSString *expiredDateString = [[ASIS3Request S3RequestDateFormatter] stringFromDate:[[NSDate date] dateByAddingTimeInterval:60*60*24]];
+    [uploadRequest setDateString:expiredDateString];
+    
+    // 网络不好时适当加大响应超时时间
+    [uploadRequest setTimeOutSeconds:60];
+    
     [uploadRequest setAccessPolicy:acl];
     [uploadRequest setUploadProgressDelegate:self];
     [uploadRequest setShowAccurateProgress:YES];
