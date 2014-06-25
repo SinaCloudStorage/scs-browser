@@ -56,36 +56,47 @@
     return nil;
 }
 
+- (id)initWithWindowNibName:(NSString *)windowNibName {
+    self = [super initWithWindowNibName:windowNibName];
+    if (self) {
+        _initialize = YES;
+    }
+    return self;
+}
+
 - (void)awakeFromNib
 {
-    if ([S3ActiveWindowController instancesRespondToSelector:@selector(awakeFromNib)] == YES) {
-        [super awakeFromNib];
+    @synchronized(self) {
+        
+        if (_initialize) {
+            
+            _initialize = NO;
+            
+            if ([S3ActiveWindowController instancesRespondToSelector:@selector(awakeFromNib)] == YES) {
+                [super awakeFromNib];
+            }
+            NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"ObjectsToolbar"];
+            [toolbar setDelegate:self];
+            [toolbar setVisible:YES];
+            [toolbar setAllowsUserCustomization:YES];
+            [toolbar setAutosavesConfiguration:NO];
+            [toolbar setSizeMode:NSToolbarSizeModeDefault];
+            [toolbar setDisplayMode:NSToolbarDisplayModeDefault];
+            [[self window] setToolbar:toolbar];
+            
+            
+            _renameOperations = [[NSMutableArray alloc] init];
+            _redirectConnectionInfoMappings = [[NSMutableDictionary alloc] init];
+            
+            [_objectsController setFileOperationsDelegate:self];
+            [[_objectsController tableView] setDelegate:self];
+            [[_objectsController tableView] setDataSource:self];
+            
+            _superPrefixs = [NSMutableArray array];
+            _tempObjectsArray = [NSMutableArray array];
+            _canRefresh = YES;
+        }
     }
-    NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"ObjectsToolbar"];
-    [toolbar setDelegate:self];
-    [toolbar setVisible:YES];
-    [toolbar setAllowsUserCustomization:YES];
-    [toolbar setAutosavesConfiguration:NO];
-    [toolbar setSizeMode:NSToolbarSizeModeDefault];
-    [toolbar setDisplayMode:NSToolbarDisplayModeDefault];
-    [[self window] setToolbar:toolbar];
-
-    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateStyle:NSDateFormatterShortStyle];
-    [dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
-    [dateFormatter setTimeZone:[NSTimeZone defaultTimeZone]];
-    [[[[[[self window] contentView] viewWithTag:10] tableColumnWithIdentifier:@"lastModified"] dataCell] setFormatter:dateFormatter];
-
-    _renameOperations = [[NSMutableArray alloc] init];
-    _redirectConnectionInfoMappings = [[NSMutableDictionary alloc] init];
-    
-    [_objectsController setFileOperationsDelegate:self];
-    [[_objectsController tableView] setDelegate:self];
-    [[_objectsController tableView] setDataSource:self];
-    
-    _superPrefixs = [NSMutableArray array];
-    _tempObjectsArray = [NSMutableArray array];
-    _canRefresh = YES;
 }
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar

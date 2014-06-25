@@ -43,6 +43,7 @@
     NSMutableArray *_tempObjectsArray;
     
     BOOL _canRefresh;
+    BOOL _initialize;
 }	
 
 - (IBAction)refresh:(id)sender;
