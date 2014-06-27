@@ -14,20 +14,28 @@
 @implementation ASIS3BucketObject (ShowName)
 
 static char prefixKey;
+static char iconKey;
 
 - (NSString *)showName {
-    
     return [[self key] stringByReplacingOccurrencesOfString:self.prefix == nil? @"":self.prefix withString:@""];;
 }
 
 - (void)setPrefix:(NSString *)aPrefix {
-    
     objc_setAssociatedObject(self, &prefixKey, aPrefix, OBJC_ASSOCIATION_RETAIN);
 }
 
 - (NSString *)prefix {
-    
     return objc_getAssociatedObject(self, &prefixKey);
+}
+
+
+
+- (void)setIcon:(NSImage *)image {
+    objc_setAssociatedObject(self, &iconKey, image, OBJC_ASSOCIATION_RETAIN);
+}
+
+- (NSImage *)icon {
+    return objc_getAssociatedObject(self, &iconKey);
 }
 
 @end

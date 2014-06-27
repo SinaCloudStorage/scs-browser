@@ -186,7 +186,7 @@
     {
         [item setLabel: NSLocalizedString(@"Upload", nil)];
         [item setPaletteLabel: [item label]];
-        [item setImage: [NSImage imageNamed: @"upload.icns"]];
+        [item setImage: [NSImage imageNamed: @"upload.png"]];
         [item setTarget:self];
         [item setAction:@selector(upload:)];
     }
@@ -194,7 +194,7 @@
     {
         [item setLabel: NSLocalizedString(@"Download", nil)];
         [item setPaletteLabel: [item label]];
-        [item setImage: [NSImage imageNamed: @"download.icns"]];
+        [item setImage: [NSImage imageNamed: @"download.png"]];
         [item setTarget:self];
         [item setAction:@selector(download:)];
     }
@@ -202,7 +202,7 @@
     {
         [item setLabel: NSLocalizedString(@"Remove", nil)];
         [item setPaletteLabel: [item label]];
-        [item setImage: [NSImage imageNamed: @"delete.icns"]];
+        [item setImage: [NSImage imageNamed: @"delete.png"]];
         [item setTarget:self];
         [item setAction:@selector(remove:)];
     }
@@ -210,7 +210,7 @@
     {
         [item setLabel: NSLocalizedString(@"Remove All", nil)];
         [item setPaletteLabel: [item label]];
-        [item setImage: [NSImage imageNamed: @"delete.icns"]];
+        [item setImage: [NSImage imageNamed: @"delete.png"]];
         [item setTarget:self];
         [item setAction:@selector(removeAll:)];
     }
@@ -218,13 +218,13 @@
     {
         [item setLabel: NSLocalizedString(@"Refresh", nil)];
         [item setPaletteLabel: [item label]];
-        [item setImage: [NSImage imageNamed: @"refresh.icns"]];
+        [item setImage: [NSImage imageNamed: @"refresh.png"]];
         [item setTarget:self];
         [item setAction:@selector(refresh:)];
     } else if ([itemIdentifier isEqualToString:@"Rename"]) {
         [item setLabel:NSLocalizedString(@"Rename", nil)];
         [item setPaletteLabel: [item label]];
-        [item setImage: [NSImage imageNamed: @"rename.tiff"]];
+        [item setImage: [NSImage imageNamed: @"rename.png"]];
         [item setTarget:self];
         [item setAction:@selector(rename:)];
     }
@@ -356,6 +356,7 @@
                 ASIS3BucketObject *object = [ASIS3BucketObject objectWithBucket:[[self bucket] name]];
                 [object setKey:prefixString];
                 [object setPrefix:_currentPrefix];
+                [object setIcon:[[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)]];
                 [prefixesObject addObject:object];
             }
             [_tempObjectsArray addObjectsFromArray:prefixesObject];
@@ -366,6 +367,10 @@
             for (ASIS3BucketObject *o in [(ASIS3BucketRequest *)request objects]) {
                 if (![[o key] isEqualToString:_currentPrefix]) {
                     [o setPrefix:_currentPrefix];
+                    
+                    NSString *extFileName = [[o key] pathExtension];
+                    [o setIcon:[[NSWorkspace sharedWorkspace] iconForFileType:extFileName]];
+                    
                     [filteredObjects addObject:o];
                 }
             }
@@ -390,6 +395,8 @@
                 [self setValidList:YES];
                 [self tableView:[_objectsController tableView] sortDescriptorsDidChange:[_objectsController content]];
                 [self tableView:[_objectsController tableView] didClickTableColumn:0];
+                
+                [[_objectsController tableView] deselectAll:self];
                 
                 if (!_canRefresh) {
                     _canRefresh = YES;

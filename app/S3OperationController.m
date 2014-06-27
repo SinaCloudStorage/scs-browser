@@ -123,7 +123,7 @@
 	{
 		[item setLabel: NSLocalizedString(@"Stop", nil)];
 		[item setPaletteLabel: [item label]];
-		[item setImage: [NSImage imageNamed: @"stop.icns"]];
+		[item setImage: [NSImage imageNamed: @"stop.png"]];
 		[item setTarget:self];
 		[item setAction:@selector(stop:)];
     }
@@ -131,7 +131,7 @@
 	{
 		[item setLabel: NSLocalizedString(@"Remove", nil)];
 		[item setPaletteLabel: [item label]];
-		[item setImage: [NSImage imageNamed: @"delete.icns"]];
+		[item setImage: [NSImage imageNamed: @"delete.png"]];
 		[item setTarget:self];
 		[item setAction:@selector(remove:)];
     }
@@ -139,7 +139,7 @@
 	{
 		[item setLabel: NSLocalizedString(@"Info", nil)];
 		[item setPaletteLabel: [item label]];
-		[item setImage: [NSImage imageNamed: @"info.icns"]];
+		[item setImage: [NSImage imageNamed: @"info.png"]];
 		[item setTarget:self];
 		[item setAction:@selector(info:)];
     }

@@ -13,9 +13,14 @@
 @property (retain, readonly) NSString *showName;
 @property (retain) NSString *prefix;
 
+@property (retain) NSImage *icon;
+
 - (NSString *)showName;
 
 - (NSString *)prefix;
 - (void)setPrefix:(NSString *)aPrefix;
+
+- (NSImage *)icon;
+- (void)setIcon:(NSImage *)image;
 
 @end

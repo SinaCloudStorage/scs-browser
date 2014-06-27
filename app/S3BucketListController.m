@@ -88,7 +88,7 @@ enum {
     {
         [item setLabel: NSLocalizedString(@"Add", nil)];
         [item setPaletteLabel: [item label]];
-        [item setImage: [NSImage imageNamed: @"add.icns"]];
+        [item setImage: [NSImage imageNamed: @"add.png"]];
         [item setTarget:self];
         [item setAction:@selector(add:)];
     }
@@ -96,7 +96,7 @@ enum {
     {
         [item setLabel: NSLocalizedString(@"Remove", nil)];
         [item setPaletteLabel: [item label]];
-        [item setImage: [NSImage imageNamed: @"delete.icns"]];
+        [item setImage: [NSImage imageNamed: @"delete.png"]];
         [item setTarget:self];
         [item setAction:@selector(remove:)];
     }
@@ -104,7 +104,7 @@ enum {
     {
         [item setLabel: NSLocalizedString(@"Refresh", nil)];
         [item setPaletteLabel: [item label]];
-        [item setImage: [NSImage imageNamed: @"refresh.icns"]];
+        [item setImage: [NSImage imageNamed: @"refresh.png"]];
         [item setTarget:self];
         [item setAction:@selector(refresh:)];
     }
