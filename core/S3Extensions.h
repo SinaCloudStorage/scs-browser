@@ -92,3 +92,16 @@
 - (NSDate *)dateValue;
 
 @end
+
+@interface NSString (FormatJSON)
+
+- (NSString *)formatJSON;
+
+@end
+
+@interface NSData (ResponseDataFormatter)
+
+- (NSString *)jsonString;
+- (NSString *)formatteredJson;
+
+@end

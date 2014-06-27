@@ -649,7 +649,7 @@
                                     <size key="minSize" width="367" height="60"/>
                                     <size key="maxSize" width="463" height="10000000"/>
                                     <connections>
-                                        <binding destination="593" name="data" keyPath="selection.responseData" id="781">
+                                        <binding destination="593" name="data" keyPath="selection.responseData" id="hWr-vr-E6p">
                                             <dictionary key="options">
                                                 <bool key="NSConditionallySetsEditable" value="NO"/>
                                             </dictionary>

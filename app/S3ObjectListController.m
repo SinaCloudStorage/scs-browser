@@ -111,7 +111,7 @@
 {
     if ([[theItem itemIdentifier] isEqualToString: @"Remove All"]) {
         
-        //TODO:此功能先屏蔽
+        //TODO:暂时禁用
         return NO;
         //return [[_objectsController arrangedObjects] count] > 0;
         
@@ -175,7 +175,8 @@
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar
 {
-    return @[@"Upload", @"Download", @"Rename", @"Remove", NSToolbarSeparatorItemIdentifier,  @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
+    //return @[@"Upload", @"Download", @"Rename", @"Remove", NSToolbarSeparatorItemIdentifier,  @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
+    return @[@"Upload", @"Download", @"Rename", @"Remove", NSToolbarSeparatorItemIdentifier, NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
 }
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL) flag
@@ -206,14 +207,14 @@
         [item setTarget:self];
         [item setAction:@selector(remove:)];
     }
-    else if ([itemIdentifier isEqualToString: @"Remove All"])
-    {
-        [item setLabel: NSLocalizedString(@"Remove All", nil)];
-        [item setPaletteLabel: [item label]];
-        [item setImage: [NSImage imageNamed: @"delete.png"]];
-        [item setTarget:self];
-        [item setAction:@selector(removeAll:)];
-    }
+//    else if ([itemIdentifier isEqualToString: @"Remove All"])
+//    {
+//        [item setLabel: NSLocalizedString(@"Remove All", nil)];
+//        [item setPaletteLabel: [item label]];
+//        [item setImage: [NSImage imageNamed: @"delete.png"]];
+//        [item setTarget:self];
+//        [item setAction:@selector(removeAll:)];
+//    }
     else if ([itemIdentifier isEqualToString: @"Refresh"])
     {
         [item setLabel: NSLocalizedString(@"Refresh", nil)];
@@ -357,6 +358,8 @@
                 [object setKey:prefixString];
                 [object setPrefix:_currentPrefix];
                 [object setIcon:[[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)]];
+                [object setSize:101010101010];
+                
                 [prefixesObject addObject:object];
             }
             [_tempObjectsArray addObjectsFromArray:prefixesObject];
@@ -383,6 +386,7 @@
                 if (_currentPrefix != nil && ![_currentPrefix isEqualToString:@""]) {
                     ASIS3BucketObject *object = [ASIS3BucketObject objectWithBucket:[[self bucket] name]];
                     [object setKey:@"..."];
+                    [object setSize:1010101010101];
                     
                     if ([[self objects] indexOfObject:object] == NSNotFound) {
                         [self addObjects:@[object]];
@@ -471,6 +475,7 @@
         
         ASIS3BucketObject *object = [ASIS3BucketObject objectWithBucket:[[self bucket] name]];
         [object setKey:@"..."];
+        [object setSize:1010101010101];
         [_objectsController insertObject:object atArrangedObjectIndex:0];
     }
 }
@@ -556,6 +561,10 @@
     
     NSArray* selectedObjects = [_objectsController selectedObjects];
     
+    if ([selectedObjects count] > 1) {
+        return;
+    }
+    
     for(ASIS3BucketObject* b in selectedObjects) {
         
         if ([[b key] hasSuffix:@"/"]) {
@@ -585,6 +594,17 @@
 - (IBAction)download:(id)sender
 {
     NSArray* selectedObjects = [_objectsController selectedObjects];
+    
+    if ([selectedObjects count] > 5) {
+        
+        NSAlert *alert = [NSAlert alertWithMessageText:@"请重新选择文件"
+                                         defaultButton:@"OK" alternateButton:nil
+                                           otherButton:nil informativeTextWithFormat:@"下载最多同时选择5个文件"];
+        
+        [alert runModal];
+        
+        return;
+    }
         
     for(ASIS3BucketObject* b in selectedObjects)
     {

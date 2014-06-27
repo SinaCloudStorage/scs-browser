@@ -13,3 +13,6 @@
 
 @interface S3FileSizeTransformer: NSValueTransformer
 @end
+
+@interface S3ResponseDataTransformer: NSValueTransformer
+@end

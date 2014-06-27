@@ -211,7 +211,7 @@
                                                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
                                                             <connections>
-                                                                <binding destination="doj-0B-ChD" name="value" keyPath="objectValue.ownerID" id="r0y-Gg-4i3"/>
+                                                                <binding destination="doj-0B-ChD" name="value" keyPath="objectValue.ownerName" id="jQU-ls-u0h"/>
                                                             </connections>
                                                         </textField>
                                                     </subviews>
@@ -246,7 +246,7 @@
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <scroller key="verticalScroller" verticalHuggingPriority="750" horizontal="NO" id="691">
-                            <rect key="frame" x="582" y="17" width="16" height="458"/>
+                            <rect key="frame" x="583" y="17" width="15" height="458"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <tableHeaderView key="headerView" id="690">
