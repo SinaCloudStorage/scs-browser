@@ -649,9 +649,10 @@
                                     <size key="minSize" width="367" height="60"/>
                                     <size key="maxSize" width="463" height="10000000"/>
                                     <connections>
-                                        <binding destination="593" name="data" keyPath="selection.responseData" id="hWr-vr-E6p">
+                                        <binding destination="593" name="data" keyPath="selection.responseData" id="D46-1D-yi7">
                                             <dictionary key="options">
                                                 <bool key="NSConditionallySetsEditable" value="NO"/>
+                                                <string key="NSValueTransformerName">S3ResponseDataTransformer</string>
                                             </dictionary>
                                         </binding>
                                     </connections>

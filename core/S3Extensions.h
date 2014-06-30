@@ -95,13 +95,14 @@
 
 @interface NSString (FormatJSON)
 
-- (NSString *)formatJSON;
+- (NSData *)formatJsonFor:(NSString *)string;
 
 @end
 
 @interface NSData (ResponseDataFormatter)
 
-- (NSString *)jsonString;
-- (NSString *)formatteredJson;
+- (id)jsonString;
+- (id)formatteredJson;
+
 
 @end

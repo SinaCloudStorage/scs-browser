@@ -431,8 +431,12 @@
 
 @implementation NSString (FormatJSON)
 
-- (NSString *)formatJsonFor:(NSString *)string
+- (NSData *)formatJsonFor:(NSString *)string
 {
+    if (string == nil) {
+        return nil;
+    }
+    
     int indentLevel = 0;
     BOOL inString    = NO;
     char currentChar = '\0';
@@ -508,13 +512,24 @@
                 
                 [buf appendBytes:&currentChar length:1];
                 break;
+            case ';':
+                if (!inString) {
+                    [buf appendBytes:";\n" length:2];
+                    for (int j = 0; j < indentLevel; j++) {
+                        [buf appendBytes:tab length:strlen(tab)];
+                    }
+                } else {
+                    [buf appendBytes:&currentChar length:1];
+                }
+                break;
             default:
                 [buf appendBytes:&currentChar length:1];
                 break;
         }
     }
     
-    return [[NSString alloc] initWithData:buf encoding:NSUTF8StringEncoding];
+    //return [[NSString alloc] initWithData:buf encoding:NSUTF8StringEncoding];
+    return buf;
 }
 
 @end
@@ -522,13 +537,33 @@
 
 @implementation NSData (ResponseDataFormatter)
 
-- (NSString *)jsonString {
+- (id)jsonString {
     
-    return nil;
+    NSError *jsonParseError = nil;
+    NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:self options:kNilOptions error:&jsonParseError];
+    
+    if (jsonParseError == nil && jsonObject && [jsonObject isKindOfClass:[NSDictionary class]]) {
+        
+        return [NSString stringWithFormat:@"%@", jsonObject];
+        
+    }else {
+        //return [[NSString alloc] initWithData:self encoding:NSASCIIStringEncoding];
+        return self;
+    }
 }
 
-- (NSString *)formatteredJson {
-    return nil;
+- (id)formatteredJson {
+    
+    
+    if ([self jsonString] && [[self jsonString] isKindOfClass:[NSString class]]) {
+        
+        NSString * string = [self jsonString];
+        return [string formatJsonFor:string];
+        
+    }else {
+        
+        return self;
+    }
 }
 
 @end
