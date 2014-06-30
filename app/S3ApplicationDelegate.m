@@ -72,7 +72,7 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     [userDefaultsValuesDict setObject:@"private" forKey:@"defaultUploadPrivacy"];
     [userDefaultsValuesDict setObject:@NO forKey:@"useKeychain"];
     [userDefaultsValuesDict setObject:@NO forKey:@"useSSL"];
-    [userDefaultsValuesDict setObject:@NO forKey:@"autologin"];
+    [userDefaultsValuesDict setObject:@YES forKey:@"autologin"];
     [[NSUserDefaults standardUserDefaults] registerDefaults:userDefaultsValuesDict];
 
     // Conversion code for new default
@@ -127,6 +127,17 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     [[NSNotificationCenter defaultCenter] removeObserver:self name:NSApplicationDidFinishLaunchingNotification object:NSApp];
 }
 
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)theApplication hasVisibleWindows:(BOOL)flag
+{
+    if (!flag) {
+        [[NSNotificationCenter defaultCenter] addObserver:self.loginController selector:@selector(asiS3RequestStateDidChange:) name:ASIS3RequestStateDidChangeNotification object:nil];
+        [self finishedLaunching];
+        
+        return YES;
+    }
+    return NO;
+}
+
 - (IBAction)openConnection:(id)sender
 {    
 	self.loginController = [[S3LoginController alloc] initWithWindowNibName:@"Authentication"];
@@ -165,8 +176,8 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     S3ConnInfo *connInfo = [[S3ConnInfo alloc] initWithDelegate:self userInfo:nil secureConn:[useSSL boolValue]];
     [self.loginController setConnInfo:connInfo];
 	
-    [self.loginController showWindow:self];
-        
+//    [self.loginController showWindow:self];
+    
     [self.loginController connect:self];
 
 }

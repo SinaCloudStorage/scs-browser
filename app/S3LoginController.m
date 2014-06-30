@@ -220,6 +220,7 @@
             [self.bucketListController showWindow:self];
             
             [self close];
+            [[NSNotificationCenter defaultCenter] removeObserver:self name:ASIS3RequestStateDidChangeNotification object:nil];
             
         }else if (requestState == ASIS3RequestError) {
             

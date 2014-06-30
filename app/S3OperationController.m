@@ -147,10 +147,13 @@
     return item;
 }
 
+
 - (void)scrollToEnd {
     
     NSInteger numberOfRows = [[_operationsArrayController content] count];
+    NSTableView *tableView = [[[self window] contentView] viewWithTag:10];
     
+    [tableView scrollRowToVisible:numberOfRows-1];
 }
 
 @end

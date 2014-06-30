@@ -25,9 +25,6 @@
                             </menuItem>
                             <menuItem title="Check for updates..." id="467">
                                 <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="checkForUpdates:" target="466" id="468"/>
-                                </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="196">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
