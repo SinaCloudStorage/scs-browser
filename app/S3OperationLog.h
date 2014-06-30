@@ -12,6 +12,8 @@
 
 @class S3Operation;
 
+@protocol S3OperationLogDelegate;
+
 @interface S3OperationLog : NSObject {
     NSMutableArray *_operations;
 }

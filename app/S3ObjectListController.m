@@ -123,7 +123,7 @@
             NSEnumerator *e = [[_objectsController selectedObjects] objectEnumerator];
             
             while (b = [e nextObject]) {
-                if ([[b key] hasSuffix:@"/"] || [[b key] isEqualToString:@"..."]) {
+                if ([[b key] hasSuffix:@"/"] || [[b key] isEqualToString:@".."]) {
                     return NO;
                 }
             }
@@ -142,7 +142,7 @@
             NSEnumerator *e = [[_objectsController selectedObjects] objectEnumerator];
             
             while (b = [e nextObject]) {
-                if ([[b key] hasSuffix:@"/"] || [[b key] isEqualToString:@"..."]) {
+                if ([[b key] hasSuffix:@"/"] || [[b key] isEqualToString:@".."]) {
                     return NO;
                 }
             }
@@ -160,7 +160,7 @@
             NSEnumerator *e = [[_objectsController selectedObjects] objectEnumerator];
             
             while (b = [e nextObject]) {
-                if ([[b key] hasSuffix:@"/"] || [[b key] isEqualToString:@"..."]) {
+                if ([[b key] hasSuffix:@"/"] || [[b key] isEqualToString:@".."]) {
                     return NO;
                 }
             }
@@ -385,8 +385,9 @@
                 // add "..."
                 if (_currentPrefix != nil && ![_currentPrefix isEqualToString:@""]) {
                     ASIS3BucketObject *object = [ASIS3BucketObject objectWithBucket:[[self bucket] name]];
-                    [object setKey:@"..."];
+                    [object setKey:@".."];
                     [object setSize:1010101010101];
+                    [object setIcon:[[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)]];
                     
                     if ([[self objects] indexOfObject:object] == NSNotFound) {
                         [self addObjects:@[object]];
@@ -414,8 +415,30 @@
             }
             
         }else if (requestState == ASIS3RequestError) {
+            
+            if (_currentPrefix != nil && ![_currentPrefix isEqualToString:@""]) {
+                ASIS3BucketObject *object = [ASIS3BucketObject objectWithBucket:[[self bucket] name]];
+                [object setKey:@".."];
+                [object setSize:1010101010101];
+                [object setIcon:[[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)]];
+                
+                if ([[self objects] indexOfObject:object] == NSNotFound) {
+                    [self addObjects:@[object]];
+                }
+            }
+            
+            // show list
+            [self setValidList:YES];
+            [self tableView:[_objectsController tableView] sortDescriptorsDidChange:[_objectsController content]];
+            [self tableView:[_objectsController tableView] didClickTableColumn:0];
+            
+            [[_objectsController tableView] deselectAll:self];
+            
+            if (!_canRefresh) {
+                _canRefresh = YES;
+            }
+            
             NSLog(@"%@", [request error]);
-            _canRefresh = YES;
         }
     }
     
@@ -464,7 +487,7 @@
         
         for (ASIS3BucketObject *o in [_objectsController content]) {
             
-            if ([[o key] isEqualToString:@"..."]) {
+            if ([[o key] isEqualToString:@".."]) {
                 [_objectsController removeObject:o];
             }
         }
@@ -476,9 +499,11 @@
     if (_currentPrefix != nil && ![_currentPrefix isEqualToString:@""]) {
         
         ASIS3BucketObject *object = [ASIS3BucketObject objectWithBucket:[[self bucket] name]];
-        [object setKey:@"..."];
+        [object setKey:@".."];
         [object setSize:1010101010101];
+        [object setIcon:[[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)]];
         [_objectsController insertObject:object atArrangedObjectIndex:0];
+        [[_objectsController tableView] deselectAll:self];
     }
 }
 
@@ -580,7 +605,7 @@
             
             [self refresh:sender];
             
-        }else if ([[b key] isEqualToString:@"..."]) {
+        }else if ([[b key] isEqualToString:@".."]) {
             
             _currentPrefix = [_superPrefixs objectAtIndex:[_superPrefixs count]-1];
             [_superPrefixs removeObjectAtIndex:[_superPrefixs count]-1];
