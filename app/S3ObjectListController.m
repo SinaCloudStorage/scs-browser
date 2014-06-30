@@ -424,10 +424,12 @@
         
         if (requestState == ASIS3RequestDone) {
             
-            if ([(ASIS3ObjectRequest *)request sourceBucket] != nil && [(ASIS3ObjectRequest *)request sourceKey] != nil) {
+            if ([requestKind isEqualToString:ASIS3RequestCopyObject]) {
                 ASIS3ObjectRequest *deleteRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[(ASIS3ObjectRequest *)request sourceBucket]
                                                                                             key:[(ASIS3ObjectRequest *)request sourceKey]];
+                [deleteRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestDeleteObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
                 [self addToCurrentNetworkQueue:deleteRequest];
+                
             }else {
 
                 if (_canRefresh) {
