@@ -6,4 +6,4 @@ scs-browser
 * 下载地址: [http://sdk.sinastorage.com/SCS-Browser.zip](http://sdk.sinastorage.com/SCS-Browser.zip)
 * 源码: [https://github.com/SinaCloudStorage/scs-browser](https://github.com/SinaCloudStorage/scs-browser)
 
-![](http://sdk.sinastorage.com/snapshot/snapshot.png)
+![](http://sinastorage.com/sdk/snapshot/snapshot.png?KID=sina,10020eeug8&Expires=1404102047&ssig=EzX5dJ4ADV)
