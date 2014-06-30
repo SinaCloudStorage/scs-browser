@@ -17,7 +17,13 @@ static char prefixKey;
 static char iconKey;
 
 - (NSString *)showName {
-    return [[self key] stringByReplacingOccurrencesOfString:self.prefix == nil? @"":self.prefix withString:@""];;
+    
+    if (self.prefix == nil || [self.prefix isEqualToString:@""]) {
+        return [self key];
+    }else {
+        NSString *name = [self key];
+        return [name substringFromIndex:[self.prefix length]];
+    }
 }
 
 - (void)setPrefix:(NSString *)aPrefix {

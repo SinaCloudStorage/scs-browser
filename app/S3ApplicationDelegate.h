@@ -68,6 +68,8 @@ typedef NS_ENUM (NSUInteger, ASIS3RequestState) {
 
 - (ASINetworkQueue *)networkQueue;
 
+- (NSMutableDictionary *)controllers;
+
 - (void)setAuthenticationCredentials:(NSDictionary *)authDict forConnectionInfo:(id)connInto;
 - (void)removeAuthenticationCredentialsForConnectionInfo:(id)connInfo;
 

@@ -14,6 +14,7 @@
 #import "S3Operation.h"
 #import "S3OperationQueue.h"
 #import "S3OperationLog.h"
+#import "S3OperationController.h"
 
 @interface S3ActiveWindowController ()
 
@@ -155,6 +156,9 @@
         
         [[[NSApp delegate] networkQueue] addOperation:request];
         [[[NSApp delegate] operationLog] logOperation:request];
+        
+        S3OperationController *controller = [[[NSApp delegate] controllers] objectForKey:@"Console"];
+        [controller scrollToEnd];
     }
 }
 

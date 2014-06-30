@@ -207,6 +207,10 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     return _operationLog;
 }
 
+- (NSMutableDictionary *)controllers {
+    return _controllers;
+}
+
 - (void)setAuthenticationCredentials:(NSDictionary *)authDict forConnectionInfo:(id)connInfo {
     
     if (authDict == nil || connInfo == nil) {
@@ -318,13 +322,6 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
     [dict setValue:[request requestMethod] forKey:RequestUserInfoRequestMethodKey];
     [dict setValue:[request url] forKey:RequestUserInfoURLKey];
-    
-//    if ([[[request userInfo] objectForKey:RequestUserInfoKindKey] isEqualToString:ASIS3RequestDownloadObject] && [request allowResumeForFileDownloads]) {
-//        
-//        NSLog(@"~~~~~~ part: %lld", [request partialDownloadSize]);
-//        NSLog(@"~~~~~~ last: %lld", [request contentLength]);
-//        [dict setValue:[NSString stringWithFormat:@"%lld", [request partialDownloadSize]] forKey:RequestUserInfoResumeDownloadedFileSizeKey];
-//    }
     
     [request setUserInfo:dict];
 }

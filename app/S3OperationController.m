@@ -147,6 +147,10 @@
     return item;
 }
 
-
+- (void)scrollToEnd {
+    
+    NSInteger numberOfRows = [[_operationsArrayController content] count];
+    
+}
 
 @end

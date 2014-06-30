@@ -313,22 +313,18 @@
         return @"";
     }
     
-	if (size == 0.) 
-		return @"0 bytes";
-	else 
-		if (size > 0. && size < 1024.) 
-			return [NSString stringWithFormat:@"%qu bytes", size];
-	else 
-		if (size >= 1024. && size < pow(1024., 2.)) 
-			return [NSString stringWithFormat:@"%.1f KB", (size / 1024.)];
-	else 
-		if (size >= pow(1024., 2.) && size < pow(1024., 3.))
-			return [NSString stringWithFormat:@"%.2f MB", (size / pow(1024., 2.))];
-	else 
-		if (size >= pow(1024., 3.))
-			return [NSString stringWithFormat:@"%.3f GB", (size / pow(1024., 3.))];
+    NSArray *filesizename = [NSArray arrayWithObjects:@" Bytes", @" KB", @" MB", @" GB", @" TB", @" PB", @" EB", @" ZB", @" YB", nil];
 	
-	return @"Unknown";
+	if (size > 0) {
+		
+		int i = floor(log2(size) / 10);
+        if (i > 8) i = 8;
+		double s = size / pow(1024, i);
+        
+		return [NSString stringWithFormat:@"%.2f%@", s, [filesizename objectAtIndex:i]];
+	}
+	
+	return @"0 Bytes";
 }
 
 + (NSString *)commonPathComponentInPaths:(NSArray *)paths
@@ -512,16 +508,6 @@
                 
                 [buf appendBytes:&currentChar length:1];
                 break;
-            case ';':
-                if (!inString) {
-                    [buf appendBytes:";\n" length:2];
-                    for (int j = 0; j < indentLevel; j++) {
-                        [buf appendBytes:tab length:strlen(tab)];
-                    }
-                } else {
-                    [buf appendBytes:&currentChar length:1];
-                }
-                break;
             default:
                 [buf appendBytes:&currentChar length:1];
                 break;
@@ -543,11 +529,8 @@
     NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:self options:kNilOptions error:&jsonParseError];
     
     if (jsonParseError == nil && jsonObject && [jsonObject isKindOfClass:[NSDictionary class]]) {
-        
-        return [NSString stringWithFormat:@"%@", jsonObject];
-        
+        return [[NSString alloc] initWithData:self encoding:NSUTF8StringEncoding];
     }else {
-        //return [[NSString alloc] initWithData:self encoding:NSASCIIStringEncoding];
         return self;
     }
 }
