@@ -46,6 +46,8 @@
     BOOL _initialize;
 }	
 
+@property (nonatomic, retain) NSString *currentPrefix;
+
 - (IBAction)refresh:(id)sender;
 - (IBAction)upload:(id)sender;
 - (IBAction)download:(id)sender;

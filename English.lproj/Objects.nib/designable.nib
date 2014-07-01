@@ -118,11 +118,7 @@
                                                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
                                                             <connections>
-                                                                <binding destination="GEe-Mj-Rf1" name="value" keyPath="objectValue.size" id="Ux7-6a-nn5">
-                                                                    <dictionary key="options">
-                                                                        <string key="NSValueTransformerName">S3FileSizeTransformer</string>
-                                                                    </dictionary>
-                                                                </binding>
+                                                                <binding destination="GEe-Mj-Rf1" name="value" keyPath="objectValue.readableSize" id="OYP-6P-Z5J"/>
                                                             </connections>
                                                         </textField>
                                                     </subviews>
@@ -132,7 +128,7 @@
                                                 </tableCellView>
                                             </prototypeCellViews>
                                             <connections>
-                                                <binding destination="7" name="value" keyPath="arrangedObjects.size" id="xOY-82-fIe">
+                                                <binding destination="7" name="value" keyPath="arrangedObjects.readableSize" id="Zmk-fA-gIb">
                                                     <dictionary key="options">
                                                         <bool key="NSConditionallySetsEditable" value="YES"/>
                                                         <string key="NSValueTransformerName">S3FileSizeTransformer</string>
@@ -267,7 +263,7 @@
                         </connections>
                     </progressIndicator>
                     <textField verticalHuggingPriority="750" id="172">
-                        <rect key="frame" x="24" y="3" width="558" height="14"/>
+                        <rect key="frame" x="307" y="3" width="275" height="14"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                         <textFieldCell key="cell" controlSize="small" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="right" title="%{value3}@ with %{value1}@ objects, %{value2}@" id="657">
                             <font key="font" metaFont="smallSystem"/>
@@ -292,6 +288,33 @@
                                 </dictionary>
                             </binding>
                         </connections>
+                    </textField>
+                    <textField verticalHuggingPriority="750" id="6ev-Dl-WEK">
+                        <rect key="frame" x="90" y="3" width="285" height="14"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                        <textFieldCell key="cell" controlSize="small" lineBreakMode="truncatingMiddle" sendsActionOnEndEditing="YES" alignment="left" title="prefix" id="lgM-vk-5Bi">
+                            <font key="font" metaFont="smallSystem"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                        <connections>
+                            <binding destination="-2" name="value" keyPath="currentPrefix" id="FVS-iQ-5C9">
+                                <dictionary key="options">
+                                    <bool key="NSConditionallySetsEnabled" value="YES"/>
+                                    <bool key="NSContinuouslyUpdatesValue" value="YES"/>
+                                    <bool key="NSValidatesImmediately" value="YES"/>
+                                </dictionary>
+                            </binding>
+                        </connections>
+                    </textField>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="9ca-Jd-SCa">
+                        <rect key="frame" x="11" y="3" width="89" height="14"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="current paht: /" id="juo-Is-bAi">
+                            <font key="font" metaFont="smallSystem"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
                     </textField>
                 </subviews>
             </view>

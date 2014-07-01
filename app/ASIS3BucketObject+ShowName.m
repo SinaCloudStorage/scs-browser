@@ -8,6 +8,7 @@
 
 #import <objc/runtime.h>
 #import "ASIS3BucketObject+ShowName.h"
+#import "S3Extensions.h"
 
 
 
@@ -15,6 +16,7 @@
 
 static char prefixKey;
 static char iconKey;
+static char objectTypeKey;
 
 - (NSString *)showName {
     
@@ -42,6 +44,31 @@ static char iconKey;
 
 - (NSImage *)icon {
     return objc_getAssociatedObject(self, &iconKey);
+}
+
+
+
+
+- (NSString *)objetType {
+    return objc_getAssociatedObject(self, &objectTypeKey);
+}
+
+- (void)setObjetType:(NSString *)type {
+    objc_setAssociatedObject(self, &objectTypeKey, type, OBJC_ASSOCIATION_RETAIN);
+}
+
+
+
+
+- (NSString *)readableSize {
+    
+    if ([self.objetType isEqualToString:@"directory"]) {
+        return @"--";
+    }else if ([self.objetType isEqualToString:@"file"]) {
+        return [NSString readableFileSizeFor:self.size];
+    }else {
+        return @"";
+    }
 }
 
 @end

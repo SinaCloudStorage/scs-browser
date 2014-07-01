@@ -166,19 +166,20 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
     NSNumber *useSSL = [standardUserDefaults objectForKey:@"useSSL"];
     
-    /*
-    S3ConnectionInfo *connectionInfo = [[S3ConnectionInfo alloc] initWithDelegate:self userInfo:nil secureConnection:[useSSL boolValue]];
-    self.loginController = [[S3LoginController alloc] initWithWindowNibName:@"Authentication"];
-    [self.loginController setConnectionInfo:connectionInfo];
-     */
+    if (self.shouldReopen == NO) {
+        self.loginController = [[S3LoginController alloc] initWithWindowNibName:@"Authentication"];
+    }
     
     S3ConnInfo *connInfo = [[S3ConnInfo alloc] initWithDelegate:self userInfo:nil secureConn:[useSSL boolValue]];
     [self.loginController setConnInfo:connInfo];
 	
-//    [self.loginController showWindow:self];
+    if (self.shouldReopen == NO) {
+        [self.loginController showWindow:self];
+    }
     
     [self.loginController connect:self];
 
+    self.shouldReopen = NO;
 }
 
 - (void)finishedLaunching
@@ -202,7 +203,6 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     if (self.shouldReopen == YES) {
         
         [self tryAutoLogin];
-        self.shouldReopen = NO;
         return;
     }
     

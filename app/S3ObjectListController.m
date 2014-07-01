@@ -44,6 +44,8 @@
 
 @implementation S3ObjectListController
 
+@synthesize currentPrefix = _currentPrefix;
+
 #pragma mark -
 #pragma mark Toolbar management
 
@@ -347,7 +349,7 @@
         if (requestState == ASIS3RequestDone) {
             
             _prefixArray = [(ASIS3BucketRequest *)request commonPrefixes];
-            _currentPrefix = [(ASIS3BucketRequest *)request prefix];
+            [self setCurrentPrefix:[(ASIS3BucketRequest *)request prefix]];
             _isTruncated = [(ASIS3BucketRequest *)request isTruncated];
             
             
@@ -358,7 +360,7 @@
                 [object setKey:prefixString];
                 [object setPrefix:_currentPrefix];
                 [object setIcon:[[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)]];
-                [object setSize:101010101010];
+                [object setObjetType:@"directory"];
                 
                 [prefixesObject addObject:object];
             }
@@ -373,6 +375,7 @@
                     
                     NSString *extFileName = [[o key] pathExtension];
                     [o setIcon:[[NSWorkspace sharedWorkspace] iconForFileType:extFileName]];
+                    [o setObjetType:@"file"];
                     
                     [filteredObjects addObject:o];
                 }
@@ -386,7 +389,7 @@
                 if (_currentPrefix != nil && ![_currentPrefix isEqualToString:@""]) {
                     ASIS3BucketObject *object = [ASIS3BucketObject objectWithBucket:[[self bucket] name]];
                     [object setKey:@".."];
-                    [object setSize:1010101010101];
+                    [object setObjetType:@"goBack"];
                     [object setIcon:[[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)]];
                     
                     if ([[self objects] indexOfObject:object] == NSNotFound) {
@@ -419,7 +422,7 @@
             if (_currentPrefix != nil && ![_currentPrefix isEqualToString:@""]) {
                 ASIS3BucketObject *object = [ASIS3BucketObject objectWithBucket:[[self bucket] name]];
                 [object setKey:@".."];
-                [object setSize:1010101010101];
+                [object setObjetType:@"goBack"];
                 [object setIcon:[[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)]];
                 
                 if ([[self objects] indexOfObject:object] == NSNotFound) {
@@ -503,7 +506,7 @@
         
         ASIS3BucketObject *object = [ASIS3BucketObject objectWithBucket:[[self bucket] name]];
         [object setKey:@".."];
-        [object setSize:1010101010101];
+        [object setObjetType:@"goBack"];
         [object setIcon:[[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)]];
         [_objectsController insertObject:object atArrangedObjectIndex:0];
         [[_objectsController tableView] deselectAll:self];
@@ -524,12 +527,23 @@
     NSMutableArray *filesInfo = [NSMutableArray array];
     NSString *prefix = [NSString commonPathComponentInPaths:paths];
     
+    NSString *folderName = @"";
+    
+    if ([urls count] == 1) {
+        
+        NSString *decoded = (__bridge_transfer NSString *)CFURLCreateStringByReplacingPercentEscapesUsingEncoding(NULL, (CFStringRef)[[urls objectAtIndex:0] absoluteString], CFSTR(""), kCFStringEncodingUTF8);
+        NSArray *chunks = [decoded componentsSeparatedByString:@"/"];
+        folderName = [NSString stringWithFormat:@"%@/", [chunks objectAtIndex:[chunks count]-2]];
+        
+        prefix = [decoded substringFromIndex:7];
+    }
+    
     for (path in paths) {
         NSMutableDictionary *info = [NSMutableDictionary dictionary];
         [info setObject:path forKey:FILEDATA_PATH];
         [info setObject:[path fileSizeForPath] forKey:FILEDATA_SIZE];
         [info safeSetObject:[path mimeTypeForPath] forKey:FILEDATA_TYPE withValueForNil:@"application/octet-stream"];
-        [info setObject:[NSString stringWithFormat:@"%@%@", _currentPrefix==nil?@"":_currentPrefix, [path substringFromIndex:[prefix length]]] forKey:FILEDATA_KEY];
+        [info setObject:[NSString stringWithFormat:@"%@%@%@", _currentPrefix==nil?@"":_currentPrefix, folderName, [path substringFromIndex:[prefix length]]] forKey:FILEDATA_KEY];
         [filesInfo addObject:info];
     }
     
@@ -653,13 +667,13 @@
             }else {
                 [_superPrefixs addObject:@""];
             }
-            _currentPrefix = [b key];
+            [self setCurrentPrefix:[b key]];
             
             [self refresh:sender];
             
         }else if ([[b key] isEqualToString:@".."]) {
             
-            _currentPrefix = [_superPrefixs objectAtIndex:[_superPrefixs count]-1];
+            [self setCurrentPrefix:[_superPrefixs objectAtIndex:[_superPrefixs count]-1]];
             [_superPrefixs removeObjectAtIndex:[_superPrefixs count]-1];
             [self refresh:sender];
             
@@ -972,6 +986,15 @@
     } else {
         return NSLocalizedString(@"Object list invalid",nil);
     }
+}
+
+- (void)setCurrentPrefix:(NSString *)currentPrefix {
+    _currentPrefix = currentPrefix;
+}
+
+- (NSString *)currentPrefix {
+    
+    return _currentPrefix;
 }
 
 #pragma mark -

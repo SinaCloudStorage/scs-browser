@@ -305,14 +305,6 @@
 
 + (NSString *)readableFileSizeFor:(unsigned long long) size
 {
-    if (size == 101010101010) {
-        return @"--";
-    }
-    
-    if (size == 1010101010101) {
-        return @"";
-    }
-    
     NSArray *filesizename = [NSArray arrayWithObjects:@" Bytes", @" KB", @" MB", @" GB", @" TB", @" PB", @" EB", @" ZB", @" YB", nil];
 	
 	if (size > 0) {
