@@ -110,6 +110,9 @@ NSString *RequestUserInfoStatusError =                  @"Error";
         [_networkQueue setRequestDidStartSelector:@selector(requestDidStartSelector:)];
         [_networkQueue setRequestWillRedirectSelector:@selector(requestWillRedirectSelector:)];
         
+        NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
+        NSNumber *maxOps = [standardUserDefaults objectForKey:@"maxoperations"];
+        [_networkQueue setMaxConcurrentOperationCount:[maxOps intValue]];
         
         _operationLog = [[S3OperationLog alloc] init];
         _authenticationCredentials = [[NSMutableDictionary alloc] init];
@@ -297,17 +300,6 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     return [authenticationCredentials objectForKey:@"secretAccessKey"];
 }
 
-
-
-#pragma mark S3OperationQueueDelegate Methods
-
-- (int)maximumNumberOfSimultaneousOperationsForOperationQueue:(S3OperationQueue *)operationQueue
-{
-    NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
-    NSNumber *maxOps = [standardUserDefaults objectForKey:@"maxoperations"];
-    return [maxOps intValue];
-}
-
 #pragma mark -
 
 - (ASINetworkQueue *)networkQueue {
@@ -350,6 +342,7 @@ NSString *RequestUserInfoStatusError =                  @"Error";
         [self requestDidFailSelector:request];
     }else {
         [self postNotificationWithRequest:request state:ASIS3RequestDone];
+        [[self operationLog] unlogOperation:request];
     }
 }
 

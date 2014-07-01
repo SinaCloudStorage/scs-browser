@@ -456,7 +456,10 @@
             }else {
 
                 if (_canRefresh) {
-                    [self refresh:self];
+                    
+                    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"norefresh"] boolValue] == false) {
+                        [self refresh:self];
+                    }
                 }
             }
         }else if (requestState == ASIS3RequestError) {
