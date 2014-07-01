@@ -11,9 +11,13 @@
 @protocol S3DragAndDropProtocol
 - (void)importURLs:(NSArray *)urls withDialog:(BOOL)dialog;
 - (BOOL)acceptFileForImport:(NSString *)path;
+
+- (void)sortDescriptorsDidChange;
+- (void)didClickTableColumn;
+
 @end
 
-@interface S3DragAndDropArrayController : NSArrayController
+@interface S3DragAndDropArrayController : NSArrayController <NSTableViewDelegate, NSTableViewDataSource>
 {
     IBOutlet NSTableView *tableView;
 	id<S3DragAndDropProtocol> delegate;

@@ -15,6 +15,8 @@
 {
 	[super awakeFromNib];
     [tableView registerForDraggedTypes:@[NSFilenamesPboardType]];
+    [tableView setDelegate:self];
+    [tableView setDataSource:self];
 }
 
 - (void)setFileOperationsDelegate:(id)d
@@ -70,6 +72,19 @@
 - (NSTableView *)tableView {
     
     return tableView;
+}
+
+
+#pragma mark - NSTableViewDelegate
+
+- (void)tableView:(NSTableView *)tableView sortDescriptorsDidChange:(NSArray *)oldDescriptors {
+    
+    [delegate sortDescriptorsDidChange];
+}
+
+- (void)tableView:(NSTableView *)tableView didClickTableColumn:(NSTableColumn *)tableColumn {
+    
+    [delegate didClickTableColumn];
 }
 
 @end

@@ -89,8 +89,8 @@
             _redirectConnectionInfoMappings = [[NSMutableDictionary alloc] init];
             
             [_objectsController setFileOperationsDelegate:self];
-            [[_objectsController tableView] setDelegate:self];
-            [[_objectsController tableView] setDataSource:self];
+//            [[_objectsController tableView] setDelegate:self];
+//            [[_objectsController tableView] setDataSource:self];
             
             _superPrefixs = [NSMutableArray array];
             _tempObjectsArray = [NSMutableArray array];
@@ -398,8 +398,8 @@
                 
                 // show list
                 [self setValidList:YES];
-                [self tableView:[_objectsController tableView] sortDescriptorsDidChange:[_objectsController content]];
-                [self tableView:[_objectsController tableView] didClickTableColumn:0];
+                [self sortDescriptorsDidChange];
+                [self didClickTableColumn];
                 
                 [[_objectsController tableView] deselectAll:self];
                 
@@ -429,8 +429,8 @@
             
             // show list
             [self setValidList:YES];
-            [self tableView:[_objectsController tableView] sortDescriptorsDidChange:[_objectsController content]];
-            [self tableView:[_objectsController tableView] didClickTableColumn:0];
+            [self sortDescriptorsDidChange];
+            [self didClickTableColumn];
             
             [[_objectsController tableView] deselectAll:self];
             
@@ -479,9 +479,9 @@
     }
 }
 
-#pragma mark - NSTableViewDelegate
+#pragma mark - S3DragAndDropProtocol
 
-- (void)tableView:(NSTableView *)tableView sortDescriptorsDidChange:(NSArray *)oldDescriptors {
+- (void)sortDescriptorsDidChange {
     
     if (_currentPrefix != nil && ![_currentPrefix isEqualToString:@""]) {
         
@@ -494,7 +494,7 @@
     }
 }
 
-- (void)tableView:(NSTableView *)tableView didClickTableColumn:(NSTableColumn *)tableColumn {
+- (void)didClickTableColumn {
     
     if (_currentPrefix != nil && ![_currentPrefix isEqualToString:@""]) {
         
@@ -504,6 +504,55 @@
         [object setIcon:[[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)]];
         [_objectsController insertObject:object atArrangedObjectIndex:0];
         [[_objectsController tableView] deselectAll:self];
+    }
+}
+
+- (BOOL)acceptFileForImport:(NSString *)path
+{
+    return [[NSFileManager defaultManager] isReadableFileAtPath:path];
+}
+
+- (void)importURLs:(NSArray *)urls withDialog:(BOOL)dialog
+{
+    // First expand directories and only keep paths to files
+    NSArray *paths = [urls expandPaths];
+    
+    NSString *path;
+    NSMutableArray *filesInfo = [NSMutableArray array];
+    NSString *prefix = [NSString commonPathComponentInPaths:paths];
+    
+    for (path in paths) {
+        NSMutableDictionary *info = [NSMutableDictionary dictionary];
+        [info setObject:path forKey:FILEDATA_PATH];
+        [info setObject:[path fileSizeForPath] forKey:FILEDATA_SIZE];
+        [info safeSetObject:[path mimeTypeForPath] forKey:FILEDATA_TYPE withValueForNil:@"application/octet-stream"];
+        [info setObject:[NSString stringWithFormat:@"%@%@", _currentPrefix==nil?@"":_currentPrefix, [path substringFromIndex:[prefix length]]] forKey:FILEDATA_KEY];
+        [filesInfo addObject:info];
+    }
+    
+    [self setUploadData:filesInfo];
+    
+    NSString* defaultPrivacy = [[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_PRIVACY];
+    if (defaultPrivacy==nil) {
+        defaultPrivacy = ACL_PRIVATE;
+    }
+    [self setUploadACL:defaultPrivacy];
+    [self setUploadSize:[NSString readableSizeForPaths:paths]];
+    
+    if (!dialog)
+        [self uploadFiles];
+    else
+    {
+        if ([paths count]==1)
+        {
+            [self setUploadFilename:[[paths objectAtIndex:0] stringByAbbreviatingWithTildeInPath]];
+            [NSApp beginSheet:uploadSheet modalForWindow:[self window] modalDelegate:self didEndSelector:@selector(didEndSheet:returnCode:contextInfo:) contextInfo:nil];
+        }
+        else
+        {
+            [self setUploadFilename:[NSString stringWithFormat:NSLocalizedString(@"%d elements in %@",nil),[paths count],[prefix stringByAbbreviatingWithTildeInPath]]];
+            [NSApp beginSheet:multipleUploadSheet modalForWindow:[self window] modalDelegate:self didEndSelector:@selector(didEndSheet:returnCode:contextInfo:) contextInfo:nil];
+        }
     }
 }
 
@@ -748,56 +797,6 @@
     
     [self uploadFiles];
 }
-
-- (BOOL)acceptFileForImport:(NSString *)path
-{
-    return [[NSFileManager defaultManager] isReadableFileAtPath:path];
-}
-
-- (void)importURLs:(NSArray *)urls withDialog:(BOOL)dialog
-{
-    // First expand directories and only keep paths to files
-    NSArray *paths = [urls expandPaths];
-        
-    NSString *path;
-    NSMutableArray *filesInfo = [NSMutableArray array];
-    NSString *prefix = [NSString commonPathComponentInPaths:paths];
-    
-    for (path in paths) {
-        NSMutableDictionary *info = [NSMutableDictionary dictionary];
-        [info setObject:path forKey:FILEDATA_PATH];
-        [info setObject:[path fileSizeForPath] forKey:FILEDATA_SIZE];
-        [info safeSetObject:[path mimeTypeForPath] forKey:FILEDATA_TYPE withValueForNil:@"application/octet-stream"];
-        [info setObject:[NSString stringWithFormat:@"%@%@", _currentPrefix==nil?@"":_currentPrefix, [path substringFromIndex:[prefix length]]] forKey:FILEDATA_KEY];
-        [filesInfo addObject:info];
-    }
-    
-    [self setUploadData:filesInfo];
-
-    NSString* defaultPrivacy = [[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_PRIVACY];
-    if (defaultPrivacy==nil) {
-        defaultPrivacy = ACL_PRIVATE;        
-    }
-    [self setUploadACL:defaultPrivacy];
-    [self setUploadSize:[NSString readableSizeForPaths:paths]];
-
-    if (!dialog)
-        [self uploadFiles];
-    else
-    {
-        if ([paths count]==1)
-        {
-            [self setUploadFilename:[[paths objectAtIndex:0] stringByAbbreviatingWithTildeInPath]];
-            [NSApp beginSheet:uploadSheet modalForWindow:[self window] modalDelegate:self didEndSelector:@selector(didEndSheet:returnCode:contextInfo:) contextInfo:nil];			
-        }
-        else
-        {
-            [self setUploadFilename:[NSString stringWithFormat:NSLocalizedString(@"%d elements in %@",nil),[paths count],[prefix stringByAbbreviatingWithTildeInPath]]];
-            [NSApp beginSheet:multipleUploadSheet modalForWindow:[self window] modalDelegate:self didEndSelector:@selector(didEndSheet:returnCode:contextInfo:) contextInfo:nil];							
-        }
-    }
-}
-
 
 - (void)didEndRenameSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {

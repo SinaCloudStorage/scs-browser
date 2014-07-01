@@ -14,7 +14,7 @@
 @class S3Bucket;
 
 
-@interface S3ObjectListController : S3ActiveWindowController  <S3DragAndDropProtocol, NSTableViewDelegate, NSTableViewDataSource> {
+@interface S3ObjectListController : S3ActiveWindowController  <S3DragAndDropProtocol> {
 	
 	ASIS3Bucket *_bucket;
 	NSMutableArray *_objects;

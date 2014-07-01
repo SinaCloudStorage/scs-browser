@@ -130,9 +130,9 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)theApplication hasVisibleWindows:(BOOL)flag
 {
     if (!flag) {
+    
         [[NSNotificationCenter defaultCenter] addObserver:self.loginController selector:@selector(asiS3RequestStateDidChange:) name:ASIS3RequestStateDidChangeNotification object:nil];
         [self finishedLaunching];
-        
         return YES;
     }
     return NO;
@@ -145,14 +145,8 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
     NSNumber *useSSL = [standardUserDefaults objectForKey:@"useSSL"];
     
-    /*
-    S3ConnectionInfo *connectionInfo = [[S3ConnectionInfo alloc] initWithDelegate:self userInfo:nil secureConnection:[useSSL boolValue]];
-    [self.loginController setConnectionInfo:connectionInfo];
-	*/
-    
     S3ConnInfo *connInfo = [[S3ConnInfo alloc] initWithDelegate:self userInfo:nil secureConn:[useSSL boolValue]];
     [self.loginController setConnInfo:connInfo];
-    
     [self.loginController showWindow:self];
 }
 
@@ -184,9 +178,11 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 
 - (void)finishedLaunching
 {
-   
-	S3OperationController *c = [[S3OperationController alloc] initWithWindowNibName:@"Operations"];
-	[_controllers setObject:c forKey:@"Console"];
+    
+    if ([_controllers objectForKey:@"Console"] == nil) {
+        S3OperationController *c = [[S3OperationController alloc] initWithWindowNibName:@"Operations"];
+        [_controllers setObject:c forKey:@"Console"];
+    }
     
     NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
     NSNumber *consoleVisible = [standardUserDefaults objectForKey:@"consolevisible"];
