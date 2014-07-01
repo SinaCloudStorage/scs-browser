@@ -14,6 +14,6 @@
 	IBOutlet NSWindow *_infoPanel;
 }
 
+- (void)scrollToEnd;
+
 @end
-
-

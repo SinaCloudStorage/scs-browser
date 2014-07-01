@@ -12,6 +12,8 @@
 #import "S3ListBucketOperation.h"
 #import "S3OperationQueue.h"
 
+#import <ASIKit/ASIKit.h>
+
 // C-string, as it is only used in Keychain Services
 #define S3_BROWSER_KEYCHAIN_SERVICE "S3 Browser"
 
@@ -34,6 +36,7 @@
 - (void)dealloc
 {
     [[[NSApp delegate] queue] removeQueueListener:self];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:ASIS3RequestStateDidChangeNotification object:nil];
 }
 
 #pragma mark -
@@ -59,7 +62,7 @@
 
 - (void)windowWillClose:(NSNotification *)aNotification
 {
-//	[_connection removeObserver:self forKeyPath:@"accessID"];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:ASIS3RequestStateDidChangeNotification object:nil];
 }
 
 - (IBAction)flippedKeychainSupport:(id)sender;
@@ -73,33 +76,33 @@
 	[self checkPasswordInKeychain];
 }
 
-- (void)operationQueueOperationStateDidChange:(NSNotification *)notification
-{
-    S3Operation *operation = [[notification userInfo] objectForKey:S3OperationObjectKey];
-    NSUInteger index = [_operations indexOfObjectIdenticalTo:operation];
-    if (index == NSNotFound) {
-        return;
-    }
-
-    [super operationQueueOperationStateDidChange:notification];
-
-    if ([operation state] == S3OperationDone && [operation isKindOfClass:[S3ListBucketOperation class]]) {
-
-        if ([_keychainCheckbox state] == NSOnState) {
-            [self setS3SecretKeyToKeychainForS3AccessKey:accessKeyID password:secretAccessKeyID];
-        }
-        
-        self.bucketListController = [[S3BucketListController alloc] initWithWindowNibName:@"Buckets"];
-        
-        [self.bucketListController setConnectionInfo:[self connectionInfo]];
-        
-        [self.bucketListController showWindow:self];
-        [self.bucketListController setBuckets:[(S3ListBucketOperation *)operation bucketList]];
-        [self.bucketListController setBucketsOwner:[(S3ListBucketOperation*)operation owner]];
-
-        [self close];
-    }
-}
+//- (void)operationQueueOperationStateDidChange:(NSNotification *)notification
+//{
+//    S3Operation *operation = [[notification userInfo] objectForKey:S3OperationObjectKey];
+//    NSUInteger index = [_operations indexOfObjectIdenticalTo:operation];
+//    if (index == NSNotFound) {
+//        return;
+//    }
+//
+//    [super operationQueueOperationStateDidChange:notification];
+//
+//    if ([operation state] == S3OperationDone && [operation isKindOfClass:[S3ListBucketOperation class]]) {
+//
+//        if ([_keychainCheckbox state] == NSOnState) {
+//            [self setS3SecretKeyToKeychainForS3AccessKey:accessKeyID password:secretAccessKeyID];
+//        }
+//        
+//        self.bucketListController = [[S3BucketListController alloc] initWithWindowNibName:@"Buckets"];
+//        
+//        [self.bucketListController setConnectionInfo:[self connectionInfo]];
+//        
+//        [self.bucketListController showWindow:self];
+//        [self.bucketListController setBuckets:[(S3ListBucketOperation *)operation bucketList]];
+//        [self.bucketListController setBucketsOwner:[(S3ListBucketOperation*)operation owner]];
+//
+//        [self close];
+//    }
+//}
 
 #pragma mark -
 #pragma mark Actions
@@ -111,13 +114,14 @@
     }
     accessKeyID = [[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_USER];
     
-    NSDictionary *authDict = @{@"accessKey": accessKeyID, @"secretAccessKey": secretAccessKeyID}; 
+    NSDictionary *authDict = @{@"accessKey": accessKeyID, @"secretAccessKey": secretAccessKeyID};
     
-    [[NSApp delegate] setAuthenticationCredentials:authDict forConnectionInfo:[self connectionInfo]];
+    [[NSApp delegate] setAuthenticationCredentials:authDict forConnectionInfo:[self connInfo]];
     
-	S3ListBucketOperation *op = [[S3ListBucketOperation alloc] initWithConnectionInfo:[self connectionInfo]];
-
-    [self addToCurrentOperations:op];
+    
+    ASIS3ServiceRequest *request = [ASIS3ServiceRequest serviceRequest];
+    [request setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+    [self addToCurrentNetworkQueue:request];
 }
 
 - (IBAction)openHelpPage:(id)sender
@@ -179,4 +183,50 @@
         [self setValue:[self getS3SecretKeyFromKeychainForS3AccessKey:[[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_USER]] forKey:@"secretAccessKeyID"];
     }
 }
+
+#pragma mark - ASIS3RequestState NSNotification
+
+- (void)asiS3RequestStateDidChange:(NSNotification *)notification {
+    
+    if (![[notification name] isEqualToString:ASIS3RequestStateDidChangeNotification]) {
+        return;
+    }
+    
+    ASIS3Request *request = [[notification userInfo] objectForKey:ASIS3RequestKey];
+    ASIS3RequestState requestState = [[[notification userInfo] objectForKey:ASIS3RequestStateKey] unsignedIntegerValue];
+    
+    [self updateRequest:request forState:requestState];
+    NSString *requestKind = [[request userInfo] objectForKey:RequestUserInfoKindKey];
+    
+    if ([requestKind isEqualToString:ASIS3RequestListBucket]) {
+        
+        if (requestState == ASIS3RequestDone) {
+            
+            if ([_keychainCheckbox state] == NSOnState) {
+                [self setS3SecretKeyToKeychainForS3AccessKey:accessKeyID password:secretAccessKeyID];
+            }
+            
+            self.bucketListController = [[S3BucketListController alloc] initWithWindowNibName:@"Buckets"];
+            
+            [self.bucketListController setConnInfo:[self connInfo]];
+            [self.bucketListController setBuckets:[(ASIS3ServiceRequest *)request buckets]];
+            
+            ASIS3Bucket *bucket = nil;
+            if ([[(ASIS3ServiceRequest *)request buckets] count] != 0) {
+                bucket = [[(ASIS3ServiceRequest *)request buckets] objectAtIndex:0];
+                [self.bucketListController setBucketsOwnerWithID:[bucket ownerID] displayName:[bucket ownerName]];
+            }
+            
+            [self.bucketListController showWindow:self];
+            
+            [self close];
+            [[NSNotificationCenter defaultCenter] removeObserver:self name:ASIS3RequestStateDidChangeNotification object:nil];
+            
+        }else if (requestState == ASIS3RequestError) {
+            
+            NSLog(@"%@", [request error]);
+        }
+    }
+}
+
 @end

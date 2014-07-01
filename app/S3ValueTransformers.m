@@ -50,3 +50,22 @@
     return [item readableFileSize];
 }
 @end
+
+
+@implementation S3ResponseDataTransformer
+
++ (Class)transformedValueClass
+{
+    return [NSData class];
+}
+
++ (BOOL)allowsReverseTransformation
+{
+    return NO;
+}
+
+- (id)transformedValue:(id)item {
+    return [item formatteredJson];
+}
+
+@end

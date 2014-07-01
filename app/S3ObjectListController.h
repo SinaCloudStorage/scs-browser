@@ -16,7 +16,7 @@
 
 @interface S3ObjectListController : S3ActiveWindowController  <S3DragAndDropProtocol> {
 	
-	S3Bucket *_bucket;
+	ASIS3Bucket *_bucket;
 	NSMutableArray *_objects;
 	NSMutableDictionary *_objectsInfo;
 	
@@ -35,12 +35,23 @@
     
     BOOL _needsRefresh;
     BOOL _validList;
+    
+    NSArray *_prefixArray;
+    NSMutableArray *_superPrefixs;
+    NSString *_currentPrefix;
+    BOOL _isTruncated;
+    NSMutableArray *_tempObjectsArray;
+    
+    BOOL _canRefresh;
+    BOOL _initialize;
 }	
 
 - (IBAction)refresh:(id)sender;
 - (IBAction)upload:(id)sender;
 - (IBAction)download:(id)sender;
 - (IBAction)remove:(id)sender;
+
+- (IBAction)doubleClicked:(id)sender;
 
 - (IBAction)cancelSheet:(id)sender;
 - (IBAction)closeSheet:(id)sender;
@@ -57,8 +68,8 @@
 - (NSMutableDictionary *)objectsInfo;
 - (void)setObjectsInfo:(NSMutableDictionary *)aObjectsInfo;
 
-- (S3Bucket *)bucket;
-- (void)setBucket:(S3Bucket *)aBucket;
+- (ASIS3Bucket *)bucket;
+- (void)setBucket:(ASIS3Bucket *)aBucket;
 
 - (NSString *)renameName;
 - (void)setRenameName:(NSString *)name;

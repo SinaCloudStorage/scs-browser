@@ -58,8 +58,6 @@ enum {
     [[[[[[self window] contentView] viewWithTag:10] tableColumnWithIdentifier:@"creationDate"] dataCell] setFormatter:dateFormatter];
 
     _bucketListControllerCache = [[NSMutableDictionary alloc] init];
-
-    [[[NSApp delegate] queue] addQueueListener:self];
 }
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar
@@ -90,7 +88,7 @@ enum {
     {
         [item setLabel: NSLocalizedString(@"Add", nil)];
         [item setPaletteLabel: [item label]];
-        [item setImage: [NSImage imageNamed: @"add.icns"]];
+        [item setImage: [NSImage imageNamed: @"add.png"]];
         [item setTarget:self];
         [item setAction:@selector(add:)];
     }
@@ -98,7 +96,7 @@ enum {
     {
         [item setLabel: NSLocalizedString(@"Remove", nil)];
         [item setPaletteLabel: [item label]];
-        [item setImage: [NSImage imageNamed: @"delete.icns"]];
+        [item setImage: [NSImage imageNamed: @"delete.png"]];
         [item setTarget:self];
         [item setAction:@selector(remove:)];
     }
@@ -106,7 +104,7 @@ enum {
     {
         [item setLabel: NSLocalizedString(@"Refresh", nil)];
         [item setPaletteLabel: [item label]];
-        [item setImage: [NSImage imageNamed: @"refresh.icns"]];
+        [item setImage: [NSImage imageNamed: @"refresh.png"]];
         [item setTarget:self];
         [item setAction:@selector(refresh:)];
     }
@@ -126,23 +124,68 @@ enum {
 {
     [NSApp endSheet:addSheet returnCode:SHEET_OK];
 }
+//
+//- (void)operationQueueOperationStateDidChange:(NSNotification *)notification
+//{
+//    S3Operation *operation = [[notification userInfo] objectForKey:S3OperationObjectKey];
+//    NSUInteger index = [_operations indexOfObjectIdenticalTo:operation];
+//    if (index == NSNotFound) {
+//        return;
+//    }
+//    
+//    [super operationQueueOperationStateDidChange:notification];
+//
+//    if ([operation state] == S3OperationDone) {
+//        if ([operation isKindOfClass:[S3ListBucketOperation class]]) {
+//            [self setBuckets:[(S3ListBucketOperation *)operation bucketList]];
+//            [self setBucketsOwner:[(S3ListBucketOperation *)operation owner]];			
+//        } else {
+//            [self refresh:self];            
+//        }
+//    }
+//}
 
-- (void)operationQueueOperationStateDidChange:(NSNotification *)notification
-{
-    S3Operation *operation = [[notification userInfo] objectForKey:S3OperationObjectKey];
-    NSUInteger index = [_operations indexOfObjectIdenticalTo:operation];
-    if (index == NSNotFound) {
+#pragma mark - ASIS3RequestState NSNotification
+
+- (void)asiS3RequestStateDidChange:(NSNotification *)notification {
+    
+    if (![[notification name] isEqualToString:ASIS3RequestStateDidChangeNotification]) {
         return;
     }
     
-    [super operationQueueOperationStateDidChange:notification];
-
-    if ([operation state] == S3OperationDone) {
-        if ([operation isKindOfClass:[S3ListBucketOperation class]]) {
-            [self setBuckets:[(S3ListBucketOperation *)operation bucketList]];
-            [self setBucketsOwner:[(S3ListBucketOperation *)operation owner]];			
-        } else {
-            [self refresh:self];            
+    ASIS3Request *request = [[notification userInfo] objectForKey:ASIS3RequestKey];
+    ASIS3RequestState requestState = [[[notification userInfo] objectForKey:ASIS3RequestStateKey] unsignedIntegerValue];
+    
+    [self updateRequest:request forState:requestState];
+    NSString *requestKind = [[request userInfo] objectForKey:RequestUserInfoKindKey];
+    
+    if ([requestKind isEqualToString:ASIS3RequestListBucket]) {
+        
+        if (requestState == ASIS3RequestDone) {
+            
+            [self setBuckets:[(ASIS3ServiceRequest *)request buckets]];
+            
+            ASIS3Bucket *bucket = nil;
+            if ([[(ASIS3ServiceRequest *)request buckets] count] != 0) {
+                bucket = [[(ASIS3ServiceRequest *)request buckets] objectAtIndex:0];
+                [self setBucketsOwnerWithID:[bucket ownerID] displayName:[bucket ownerName]];
+            }
+            
+        }else if (requestState == ASIS3RequestError) {
+            
+            NSLog(@"%@", [request error]);
+        }
+    }
+    
+    if ([requestKind isEqualToString:ASIS3RequestAddBucket] || [requestKind isEqualToString:ASIS3RequestDeleteBucket]) {
+        
+        if (requestState == ASIS3RequestDone) {
+            
+            [self refresh:self];
+            
+        }else if (requestState == ASIS3RequestError) {
+            
+            NSLog(@"%@", [request error]);
         }
     }
 }
@@ -171,40 +214,34 @@ enum {
     NSEnumerator *e = [[_bucketsController selectedObjects] objectEnumerator];
     
     while (b = [e nextObject]) {
-        S3DeleteBucketOperation *op = [[S3DeleteBucketOperation alloc] initWithConnectionInfo:[self connectionInfo] bucket:b];
-        [self addToCurrentOperations:op];
+        
+        ASIS3BucketRequest *deleteRequest = [ASIS3BucketRequest DELETERequestWithBucket:[b name]];
+        [deleteRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestDeleteBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+        [self addToCurrentNetworkQueue:deleteRequest];
     }
 }
 
 - (IBAction)refresh:(id)sender
 {
-	S3ListBucketOperation *op = [[S3ListBucketOperation alloc] initWithConnectionInfo:[self connectionInfo]];
-    
-    [self addToCurrentOperations:op];
+	ASIS3ServiceRequest *request = [ASIS3ServiceRequest serviceRequest];
+    [request setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+    [self addToCurrentNetworkQueue:request];
 }
 
 
 - (void)didEndSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
     [sheet orderOut:self];
+    
     if (returnCode==SHEET_OK) {
-        S3Bucket *newBucket = [[S3Bucket alloc] initWithName:_name];
-        if (newBucket == nil) {
+        
+        if (_name == nil) {
             return;
         }
-        
-        AWSRegion *bucketRegion = nil;
-        if (_location == USWestLocation) {
-            bucketRegion = [AWSRegion regionWithKey:AWSRegionUSWestKey];
-        } else if (_location == EUIrelandLocation) {
-            bucketRegion = [AWSRegion regionWithKey:AWSRegionEUIrelandKey];
-        } else {
-            bucketRegion = [AWSRegion regionWithKey:AWSRegionUSStandardKey];
-        }
                 
-        S3AddBucketOperation *op = [[S3AddBucketOperation alloc] initWithConnectionInfo:[self connectionInfo] bucket:newBucket region:bucketRegion];
-        
-        [self addToCurrentOperations:op];
+        ASIS3BucketRequest *addRequest = [ASIS3BucketRequest PUTRequestWithBucket:_name];
+        [addRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestAddBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+        [self addToCurrentNetworkQueue:addRequest];
     }
 }
 
@@ -217,21 +254,21 @@ enum {
 - (IBAction)open:(id)sender
 {
     
-    S3Bucket *b;
+    ASIS3Bucket *b;
     NSEnumerator* e = [[_bucketsController selectedObjects] objectEnumerator];
     while (b = [e nextObject])
     {
         S3ObjectListController *c = nil;
-        if ((c = [_bucketListControllerCache objectForKey:b])) {
+        if ((c = [_bucketListControllerCache objectForKey:[b name]])) {
             [c showWindow:self];
         } else {
             c = [[S3ObjectListController alloc] initWithWindowNibName:@"Objects"];
             [c setBucket:b];
 
-            [c setConnectionInfo:[self connectionInfo]];
+            [c setConnInfo:[self connInfo]];
             
             [c showWindow:self];            
-            [_bucketListControllerCache setObject:c forKey:b];
+            [_bucketListControllerCache setObject:c forKey:[b name]];
         }
     }
 }
@@ -272,14 +309,28 @@ enum {
     return YES;
 }
 
-- (S3Owner *)bucketsOwner
+
+- (void)setBucketsOwnerWithID:(NSString *)ownerId displayName:(NSString *)displayName
 {
-    return _bucketsOwner; 
+    [self setBucketOwnerId:ownerId];
+    [self setBucketOwnerDisplayName:displayName];
 }
 
-- (void)setBucketsOwner:(S3Owner *)anBucketsOwner
-{
-    _bucketsOwner = anBucketsOwner;
+- (void)setBucketOwnerId:(NSString *)ownerId {
+    _bucketOwnerId = ownerId;
+}
+
+- (void)setBucketOwnerDisplayName:(NSString *)displayName {
+    _bucketOwnerDisplayName = displayName;
+}
+
+
+- (NSString *)bucketOwnerId {
+    return _bucketOwnerId;
+}
+
+- (NSString *)bucketOwnerDisplayName {
+    return _bucketOwnerDisplayName;
 }
 
 - (NSArray *)buckets
@@ -298,7 +349,7 @@ enum {
 -(void)dealloc
 {
     [[self window] setToolbar:nil];
-    [[[NSApp delegate] queue] removeQueueListener:self];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:ASIS3RequestStateDidChangeNotification object:nil];
 }
 
 @end

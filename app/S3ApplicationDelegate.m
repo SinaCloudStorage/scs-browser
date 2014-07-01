@@ -17,11 +17,43 @@
 #import "S3ValueTransformers.h"
 #import "S3AppKitExtensions.h"
 #import "S3BucketListController.h"
+#import "S3ConnInfo.h"
 
 // C-string, as it is only used in Keychain Services
 #define S3_BROWSER_KEYCHAIN_SERVICE "S3 Browser"
 
-@interface S3ApplicationDelegate () <S3ConnectionInfoDelegate, S3OperationQueueDelegate>
+/* Notification UserInfo Keys */
+NSString *ASIS3RequestKey = @"ASIS3RequestKey";
+NSString *ASIS3RequestStateKey = @"ASIS3RequestStateKey";
+NSString *ASIS3RequestStateDidChangeNotification = @"ASIS3RequestStateDidChangeNotification";
+
+NSString *RequestUserInfoTransferedBytesKey = @"transferedBytes";
+NSString *RequestUserInfoResumeDownloadedFileSizeKey = @"resumeDownloadedFileSize";
+NSString *RequestUserInfoKindKey = @"kind";
+NSString *RequestUserInfoStatusKey = @"status";
+NSString *RequestUserInfoSubStatusKey = @"subStatus";
+NSString *RequestUserInfoURLKey = @"url";
+NSString *RequestUserInfoRequestMethodKey = @"requestMethod";
+
+NSString *ASIS3RequestListBucket =      @"ListBucket";
+NSString *ASIS3RequestAddBucket =       @"AddBucket";
+NSString *ASIS3RequestDeleteBucket =    @"DeleteBucket";
+NSString *ASIS3RequestListObject =      @"ListObject";
+NSString *ASIS3RequestAddObject =       @"AddObject";
+NSString *ASIS3RequestDeleteObject =    @"DeleteObject";
+NSString *ASIS3RequestCopyObject =      @"CopyObject";
+NSString *ASIS3RequestDownloadObject =  @"DownloadObject";
+
+NSString *RequestUserInfoStatusPending =                @"Pending";
+NSString *RequestUserInfoStatusActive =                 @"Active";
+NSString *RequestUserInfoStatusCanceled =               @"Canceled";
+NSString *RequestUserInfoStatusReceiveResponseHeaders = @"ReceiveResponseHeaders";
+NSString *RequestUserInfoStatusDone =                   @"Done";
+NSString *RequestUserInfoStatusRequiresRedirect =       @"RequiresRedirect";
+NSString *RequestUserInfoStatusError =                  @"Error";
+
+
+@interface S3ApplicationDelegate () <S3ConnectionInfoDelegate, S3OperationQueueDelegate, S3ConnInfoDelegate>
 @property (nonatomic) S3LoginController* loginController;
 @end
 
@@ -40,7 +72,7 @@
     [userDefaultsValuesDict setObject:@"private" forKey:@"defaultUploadPrivacy"];
     [userDefaultsValuesDict setObject:@NO forKey:@"useKeychain"];
     [userDefaultsValuesDict setObject:@NO forKey:@"useSSL"];
-    [userDefaultsValuesDict setObject:@NO forKey:@"autologin"];
+    [userDefaultsValuesDict setObject:@YES forKey:@"autologin"];
     [[NSUserDefaults standardUserDefaults] registerDefaults:userDefaultsValuesDict];
 
     // Conversion code for new default
@@ -68,9 +100,23 @@
     if (self != nil) {
         _controllers = [[NSMutableDictionary alloc] init];
         _queue = [[S3OperationQueue alloc] initWithDelegate:self];
+        
+        _networkQueue = [ASINetworkQueue queue];
+        [_networkQueue setDelegate:self];
+        [_networkQueue setShouldCancelAllRequestsOnFailure:NO];
+        [_networkQueue setRequestDidFailSelector:@selector(requestDidFailSelector:)];
+        [_networkQueue setRequestDidFinishSelector:@selector(requestDidFinishSelector:)];
+        [_networkQueue setRequestDidReceiveResponseHeadersSelector:@selector(requestDidReceiveResponseHeadersSelector:)];
+        [_networkQueue setRequestDidStartSelector:@selector(requestDidStartSelector:)];
+        [_networkQueue setRequestWillRedirectSelector:@selector(requestWillRedirectSelector:)];
+        
+        
         _operationLog = [[S3OperationLog alloc] init];
         _authenticationCredentials = [[NSMutableDictionary alloc] init];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(finishedLaunching) name:NSApplicationDidFinishLaunchingNotification object:NSApp];
+        
+        
+        [_networkQueue go];
     }
     
     return self;
@@ -81,6 +127,17 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self name:NSApplicationDidFinishLaunchingNotification object:NSApp];
 }
 
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)theApplication hasVisibleWindows:(BOOL)flag
+{
+    if (!flag) {
+    
+        [[NSNotificationCenter defaultCenter] addObserver:self.loginController selector:@selector(asiS3RequestStateDidChange:) name:ASIS3RequestStateDidChangeNotification object:nil];
+        [self finishedLaunching];
+        return YES;
+    }
+    return NO;
+}
+
 - (IBAction)openConnection:(id)sender
 {    
 	self.loginController = [[S3LoginController alloc] initWithWindowNibName:@"Authentication"];
@@ -88,9 +145,8 @@
     NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
     NSNumber *useSSL = [standardUserDefaults objectForKey:@"useSSL"];
     
-    S3ConnectionInfo *connectionInfo = [[S3ConnectionInfo alloc] initWithDelegate:self userInfo:nil secureConnection:[useSSL boolValue]];
-    [self.loginController setConnectionInfo:connectionInfo];
-	
+    S3ConnInfo *connInfo = [[S3ConnInfo alloc] initWithDelegate:self userInfo:nil secureConn:[useSSL boolValue]];
+    [self.loginController setConnInfo:connInfo];
     [self.loginController showWindow:self];
 }
 
@@ -105,22 +161,28 @@
     NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
     NSNumber *useSSL = [standardUserDefaults objectForKey:@"useSSL"];
     
+    /*
     S3ConnectionInfo *connectionInfo = [[S3ConnectionInfo alloc] initWithDelegate:self userInfo:nil secureConnection:[useSSL boolValue]];
-    
     self.loginController = [[S3LoginController alloc] initWithWindowNibName:@"Authentication"];
     [self.loginController setConnectionInfo:connectionInfo];
+     */
+    
+    S3ConnInfo *connInfo = [[S3ConnInfo alloc] initWithDelegate:self userInfo:nil secureConn:[useSSL boolValue]];
+    [self.loginController setConnInfo:connInfo];
 	
-    [self.loginController showWindow:self];
-        
+//    [self.loginController showWindow:self];
+    
     [self.loginController connect:self];
 
 }
 
 - (void)finishedLaunching
 {
-   
-	S3OperationController *c = [[S3OperationController alloc] initWithWindowNibName:@"Operations"];
-	[_controllers setObject:c forKey:@"Console"];
+    
+    if ([_controllers objectForKey:@"Console"] == nil) {
+        S3OperationController *c = [[S3OperationController alloc] initWithWindowNibName:@"Operations"];
+        [_controllers setObject:c forKey:@"Console"];
+    }
     
     NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
     NSNumber *consoleVisible = [standardUserDefaults objectForKey:@"consolevisible"];
@@ -139,7 +201,7 @@
 
 - (IBAction)showHelp:(id)sender
 {
-    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"http://people.no-distance.net/ol/software/s3/"]];
+    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"http://open.sinastorage.com/"]];
 }
 
 - (S3OperationQueue *)queue
@@ -152,23 +214,29 @@
     return _operationLog;
 }
 
-- (void)setAuthenticationCredentials:(NSDictionary *)authDict forConnectionInfo:(S3ConnectionInfo *)connInfo
-{
+- (NSMutableDictionary *)controllers {
+    return _controllers;
+}
+
+- (void)setAuthenticationCredentials:(NSDictionary *)authDict forConnectionInfo:(id)connInfo {
+    
     if (authDict == nil || connInfo == nil) {
+        
         return;
     }
     
     [_authenticationCredentials setObject:authDict forKey:connInfo];
 }
 
-- (void)removeAuthenticationCredentialsForConnectionInfo:(S3ConnectionInfo *)connInfo
-{
+- (void)removeAuthenticationCredentialsForConnectionInfo:(id)connInfo {
+    
     if (connInfo != nil) {
+    
         [_authenticationCredentials removeObjectForKey:connInfo];
     }
 }
 
-- (NSDictionary *)authenticationCredentialsForConnectionInfo:(S3ConnectionInfo *)connInfo
+- (NSDictionary *)authenticationCredentialsForConnectionInfo:(id)connInfo
 {
     NSDictionary *dict = [_authenticationCredentials objectForKey:connInfo];
     if (dict != nil) {
@@ -201,6 +269,36 @@
     return [authenticationCredentials objectForKey:@"secretAccessKey"];
 }
 
+
+#pragma mark S3ConneInfoDelegate Methods
+
+
+- (NSString *)accessKeyForConnInfo:(S3ConnInfo *)connInfo {
+
+    NSDictionary *authenticationCredentials = [self authenticationCredentialsForConnectionInfo:connInfo];
+    
+    if (authenticationCredentials == nil) {
+    
+        return nil;
+    }
+
+    return [authenticationCredentials objectForKey:@"accessKey"];
+}
+
+- (NSString *)secretAccessKeyForConnInfo:(S3ConnInfo *)connInfo {
+    
+    NSDictionary *authenticationCredentials = [self authenticationCredentialsForConnectionInfo:connInfo];
+    
+    if (authenticationCredentials == nil) {
+    
+        return nil;
+    }
+    
+    return [authenticationCredentials objectForKey:@"secretAccessKey"];
+}
+
+
+
 #pragma mark S3OperationQueueDelegate Methods
 
 - (int)maximumNumberOfSimultaneousOperationsForOperationQueue:(S3OperationQueue *)operationQueue
@@ -210,4 +308,61 @@
     return [maxOps intValue];
 }
 
+#pragma mark -
+
+- (ASINetworkQueue *)networkQueue {
+    
+    return _networkQueue;
+}
+
+- (void)postNotificationWithRequest:(ASIS3Request *)request state:(ASIS3RequestState)state {
+
+    NSDictionary *dict = @{ASIS3RequestKey : request,
+                           ASIS3RequestStateKey:[NSNumber numberWithUnsignedInteger:state]};
+    [[NSNotificationCenter defaultCenter] postNotificationName:ASIS3RequestStateDidChangeNotification object:self userInfo:dict];
+}
+
+- (void)requestDidStartSelector:(ASIS3Request *)request {
+    //NSLog(@"requestDidStartSelector");
+    [self postNotificationWithRequest:request state:ASIS3RequestActive];
+    
+    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
+    [dict setValue:[request requestMethod] forKey:RequestUserInfoRequestMethodKey];
+    [dict setValue:[request url] forKey:RequestUserInfoURLKey];
+    
+    [request setUserInfo:dict];
+}
+
+- (void)requestDidReceiveResponseHeadersSelector:(ASIS3Request *)request {
+    //NSLog(@"requestDidReceiveResponseHeadersSelector");
+    [self postNotificationWithRequest:request state:ASIS3RequestReceiveResponseHeaders];
+}
+
+- (void)requestWillRedirectSelector:(ASIS3Request *)request {
+    //NSLog(@"requestWillRedirectSelector");
+    [self postNotificationWithRequest:request state:ASIS3RequestRequiresRedirect];
+}
+
+- (void)requestDidFinishSelector:(ASIS3Request *)request {
+    //NSLog(@"requestDidFinishSelector");
+    
+    if ([request responseStatusCode] >= 400) {
+        [self requestDidFailSelector:request];
+    }else {
+        [self postNotificationWithRequest:request state:ASIS3RequestDone];
+    }
+}
+
+- (void)requestDidFailSelector:(ASIS3Request *)request {
+    //NSLog(@"requestDidFailSelector");
+    
+    if ([request isCancelled]) {
+        [self postNotificationWithRequest:request state:ASIS3RequestCanceled];
+    }else {
+        [self postNotificationWithRequest:request state:ASIS3RequestError];
+    }
+}
+
 @end
+
+
