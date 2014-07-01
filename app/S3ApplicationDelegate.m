@@ -55,6 +55,7 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 
 @interface S3ApplicationDelegate () <S3ConnectionInfoDelegate, S3OperationQueueDelegate, S3ConnInfoDelegate>
 @property (nonatomic) S3LoginController* loginController;
+@property (nonatomic, assign) BOOL shouldReopen;
 @end
 
 @implementation S3ApplicationDelegate
@@ -116,8 +117,8 @@ NSString *RequestUserInfoStatusError =                  @"Error";
         
         _operationLog = [[S3OperationLog alloc] init];
         _authenticationCredentials = [[NSMutableDictionary alloc] init];
+        self.shouldReopen = NO;
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(finishedLaunching) name:NSApplicationDidFinishLaunchingNotification object:NSApp];
-        
         
         [_networkQueue go];
     }
@@ -134,6 +135,7 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 {
     if (!flag) {
     
+        self.shouldReopen = YES;
         [[NSNotificationCenter defaultCenter] addObserver:self.loginController selector:@selector(asiS3RequestStateDidChange:) name:ASIS3RequestStateDidChangeNotification object:nil];
         [self finishedLaunching];
         return YES;
@@ -195,6 +197,13 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     } else {
         // Load the window to be ready for the console to be shown.
         [[_controllers objectForKey:@"Console"] window];
+    }
+    
+    if (self.shouldReopen == YES) {
+        
+        [self tryAutoLogin];
+        self.shouldReopen = NO;
+        return;
     }
     
     if ([[standardUserDefaults objectForKey:@"autologin"] boolValue] == TRUE) {
