@@ -47,7 +47,14 @@
 }
 
 - (id)transformedValue:(id)item {
-    return [item readableFileSize];
+    
+    if ([item integerValue] == -1) {
+        return @"--";
+    }else if ([item integerValue] == -2) {
+        return @"..";
+    }else {
+        return [item readableFileSize];
+    }
 }
 @end
 

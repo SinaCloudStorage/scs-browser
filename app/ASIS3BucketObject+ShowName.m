@@ -60,14 +60,18 @@ static char objectTypeKey;
 
 
 
-- (NSString *)readableSize {
+- (NSNumber *)sizeNumber {
+    
+    if (self.objetType == nil) {
+        return [NSNumber numberWithUnsignedLongLong:self.size];
+    }
     
     if ([self.objetType isEqualToString:@"directory"]) {
-        return @"--";
+        return [NSNumber numberWithInt:-1];
     }else if ([self.objetType isEqualToString:@"file"]) {
-        return [NSString readableFileSizeFor:self.size];
+        return [NSNumber numberWithUnsignedLongLong:self.size];
     }else {
-        return @"";
+        return [NSNumber numberWithInt:-2];
     }
 }
 

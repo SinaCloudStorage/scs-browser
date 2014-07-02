@@ -118,7 +118,11 @@
                                                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
                                                             <connections>
-                                                                <binding destination="GEe-Mj-Rf1" name="value" keyPath="objectValue.readableSize" id="OYP-6P-Z5J"/>
+                                                                <binding destination="GEe-Mj-Rf1" name="value" keyPath="objectValue.sizeNumber" id="1JY-xS-uba">
+                                                                    <dictionary key="options">
+                                                                        <string key="NSValueTransformerName">S3FileSizeTransformer</string>
+                                                                    </dictionary>
+                                                                </binding>
                                                             </connections>
                                                         </textField>
                                                     </subviews>
@@ -128,7 +132,7 @@
                                                 </tableCellView>
                                             </prototypeCellViews>
                                             <connections>
-                                                <binding destination="7" name="value" keyPath="arrangedObjects.readableSize" id="Zmk-fA-gIb">
+                                                <binding destination="7" name="value" keyPath="arrangedObjects.sizeNumber" id="Qx8-4U-Mh2">
                                                     <dictionary key="options">
                                                         <bool key="NSConditionallySetsEditable" value="YES"/>
                                                         <string key="NSValueTransformerName">S3FileSizeTransformer</string>
@@ -242,7 +246,7 @@
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <scroller key="verticalScroller" verticalHuggingPriority="750" horizontal="NO" id="691">
-                            <rect key="frame" x="583" y="17" width="15" height="458"/>
+                            <rect key="frame" x="582" y="17" width="16" height="458"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <tableHeaderView key="headerView" id="690">
