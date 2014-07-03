@@ -324,14 +324,15 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 }
 
 - (void)requestDidStartSelector:(ASIS3Request *)request {
-    //NSLog(@"requestDidStartSelector");
-    [self postNotificationWithRequest:request state:ASIS3RequestActive];
-    
+    NSLog(@"requestDidStartSelector");
+   
     NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
     [dict setValue:[request requestMethod] forKey:RequestUserInfoRequestMethodKey];
     [dict setValue:[request url] forKey:RequestUserInfoURLKey];
-    
+
     [request setUserInfo:dict];
+    
+    [self postNotificationWithRequest:request state:ASIS3RequestActive];
 }
 
 - (void)requestDidReceiveResponseHeadersSelector:(ASIS3Request *)request {
@@ -345,7 +346,7 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 }
 
 - (void)requestDidFinishSelector:(ASIS3Request *)request {
-    //NSLog(@"requestDidFinishSelector");
+    NSLog(@"requestDidFinishSelector");
     
     if ([request responseStatusCode] >= 400) {
         [self requestDidFailSelector:request];
@@ -356,7 +357,7 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 }
 
 - (void)requestDidFailSelector:(ASIS3Request *)request {
-    //NSLog(@"requestDidFailSelector");
+    NSLog(@"requestDidFailSelector");
     
     if ([request isCancelled]) {
         [self postNotificationWithRequest:request state:ASIS3RequestCanceled];

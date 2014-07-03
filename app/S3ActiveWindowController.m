@@ -154,11 +154,18 @@
     
     if ([self configureRequest:request]) {
         
-        [[[NSApp delegate] networkQueue] addOperation:request];
+        if ([request isKindOfClass:[ASIS3ServiceRequest class]]) {
+            [[[NSApp delegate] networkQueue] addOperation:request];
+        }
+        
         [[[NSApp delegate] operationLog] logOperation:request];
         
-        S3OperationController *controller = [[[NSApp delegate] controllers] objectForKey:@"Console"];
-        [controller scrollToEnd];
+        //[[[[NSApp delegate] operationLog] operations] addObject:request];
+        
+        //NSLog(@"%@", request);
+        
+        //S3OperationController *controller = [[[NSApp delegate] controllers] objectForKey:@"Console"];
+        //[controller scrollToEnd];
     }
 }
 
@@ -172,17 +179,24 @@
         return NO;
     }
     
+    if ([ASIS3Request sharedAccessKey] != nil && [ASIS3Request sharedSecretAccessKey] != nil) {
+        return YES;
+    }
+    
     if ([self connInfo].delegate && [[[self connInfo] delegate] respondsToSelector:@selector(accessKeyForConnInfo:)]) {
         
-        [request setAccessKey:[[[self connInfo] delegate] accessKeyForConnInfo:[self connInfo]]];
+        [ASIS3Request setSharedAccessKey:[[[self connInfo] delegate] accessKeyForConnInfo:[self connInfo]]];
+//        [request setAccessKey:[[[self connInfo] delegate] accessKeyForConnInfo:[self connInfo]]];
     }
     
     if ([self connInfo].delegate && [[[self connInfo] delegate] respondsToSelector:@selector(secretAccessKeyForConnInfo:)]) {
         
-        [request setSecretAccessKey:[[[self connInfo] delegate] secretAccessKeyForConnInfo:[self connInfo]]];
+        [ASIS3Request setSharedSecretAccessKey:[[[self connInfo] delegate] secretAccessKeyForConnInfo:[self connInfo]]];
+//        [request setSecretAccessKey:[[[self connInfo] delegate] secretAccessKeyForConnInfo:[self connInfo]]];
     }
     
-    return [request accessKey] && [request secretAccessKey] ? YES : NO;
+    return [ASIS3Request sharedAccessKey] && [ASIS3Request sharedSecretAccessKey] ? YES : NO;
+//    return [request accessKey] && [request secretAccessKey] ? YES : NO;
 }
 
 - (void)updateRequest:(ASIS3Request *)request forState:(int)state {

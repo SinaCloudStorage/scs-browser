@@ -39,7 +39,10 @@ static char objectTypeKey;
 
 
 - (void)setIcon:(NSImage *)image {
+    
+    [self willChangeValueForKey:@"icon"];
     objc_setAssociatedObject(self, &iconKey, image, OBJC_ASSOCIATION_RETAIN);
+    [self didChangeValueForKey:@"icon"];
 }
 
 - (NSImage *)icon {

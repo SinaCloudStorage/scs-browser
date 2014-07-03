@@ -339,7 +339,7 @@
     }
     
     ASIS3RequestState requestState = [[[notification userInfo] objectForKey:ASIS3RequestStateKey] unsignedIntegerValue];
-    [self updateRequest:request forState:requestState];
+    //[self updateRequest:request forState:requestState];
     
     NSString *requestKind = [[request userInfo] objectForKey:RequestUserInfoKindKey];
     
@@ -513,7 +513,21 @@
 - (void)importURLs:(NSArray *)urls withDialog:(BOOL)dialog
 {
     // First expand directories and only keep paths to files
-    NSArray *paths = [urls expandPaths];
+    
+    BOOL hasTooManyFiles = NO;
+    
+    NSArray *paths = [urls expandPaths:&hasTooManyFiles];
+    
+    if (hasTooManyFiles) {
+        
+        NSAlert *alert = [NSAlert alertWithMessageText:@"目录包含文件过多（不能超过1000个）"
+                                         defaultButton:@"OK" alternateButton:nil
+                                           otherButton:nil informativeTextWithFormat:@"请重新分批上传"];
+        
+        [alert runModal];
+        
+        return;
+    }
     
     NSString *path;
     NSMutableArray *filesInfo = [NSMutableArray array];
@@ -521,7 +535,7 @@
     
     NSString *folderName = @"";
     
-    if ([urls count] == 1) {
+    if ([urls count] == 1 && [paths count] != 1) {
         
         NSString *decoded = (__bridge_transfer NSString *)CFURLCreateStringByReplacingPercentEscapesUsingEncoding(NULL, (CFStringRef)[[urls objectAtIndex:0] absoluteString], CFSTR(""), kCFStringEncodingUTF8);
         NSArray *chunks = [decoded componentsSeparatedByString:@"/"];
@@ -753,7 +767,11 @@
         return;        
     }
     
+    
+    
     ASIS3ObjectRequest *uploadRequest = [ASIS3ObjectRequest PUTRequestForFile:path withBucket:[[self bucket] name] key:key];
+    
+    
     
     [uploadRequest addRequestHeader:@"Expect" value:@"100-continue"];
     
@@ -781,7 +799,7 @@
     NSDictionary *data;
 
     while (data = [e nextObject]) {
-        [self uploadFile:data acl:[self uploadACL]];        
+        [self uploadFile:data acl:[self uploadACL]];
     }
 }
 

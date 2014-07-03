@@ -10,9 +10,11 @@
 #import "S3Extensions.h"
 #import <CommonCrypto/CommonCrypto.h>
 
+#define maxFilesNumberInDirectoryToUpload   2000
+
 @implementation NSArray (Comfort)
 
-- (NSArray *) expandPaths
+- (NSArray *) expandPaths:(BOOL *)hasTooManyFiles
 {
 	NSMutableArray *a = [NSMutableArray array];
 	BOOL dir;
@@ -23,8 +25,13 @@
         
 		if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&dir])
 		{		
-			if (!dir)
-				[a addObject:path];
+			if (!dir) {
+                [a addObject:path];
+                if ([a count] > maxFilesNumberInDirectoryToUpload) {
+                    *hasTooManyFiles = YES;
+                    return nil;
+                }
+            }
 			else
 			{
 				NSString *file;
@@ -37,8 +44,13 @@
 						NSString* fullPath = [path stringByAppendingPathComponent:file];
 						
 						if ([[NSFileManager defaultManager] fileExistsAtPath:fullPath isDirectory:&dir])
-							if (!dir)
-								[a addObject:fullPath];
+							if (!dir) {
+                                [a addObject:fullPath];
+                                if ([a count] > maxFilesNumberInDirectoryToUpload) {
+                                    *hasTooManyFiles = YES;
+                                    return nil;
+                                }
+                            }
 					}
 				}
 			}
