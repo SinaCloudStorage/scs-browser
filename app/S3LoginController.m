@@ -121,6 +121,14 @@
     [[NSApp delegate] setAuthenticationCredentials:authDict forConnectionInfo:[self connInfo]];
     
     
+    if ([self connInfo].delegate && [[[self connInfo] delegate] respondsToSelector:@selector(accessKeyForConnInfo:)]) {
+        [ASIS3Request setSharedAccessKey:[[[self connInfo] delegate] accessKeyForConnInfo:[self connInfo]]];
+    }
+    
+    if ([self connInfo].delegate && [[[self connInfo] delegate] respondsToSelector:@selector(secretAccessKeyForConnInfo:)]) {
+        [ASIS3Request setSharedSecretAccessKey:[[[self connInfo] delegate] secretAccessKeyForConnInfo:[self connInfo]]];
+    }
+    
     ASIS3ServiceRequest *request = [ASIS3ServiceRequest serviceRequest];
     //[request setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
     [request setShowKind:ASIS3RequestListBucket];
