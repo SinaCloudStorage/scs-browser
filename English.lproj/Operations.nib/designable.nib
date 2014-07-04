@@ -15,7 +15,7 @@
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application"/>
         <window title="Operations" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hidesOnDeactivate="YES" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="OperationsWindow" animationBehavior="default" id="273" userLabel="Operations" customClass="NSPanel">
-            <windowStyleMask key="styleMask" titled="YES" closable="YES" resizable="YES" utility="YES"/>
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="49" y="407" width="439" height="178"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1058"/>
@@ -51,7 +51,7 @@
                                             </textFieldCell>
                                             <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                             <connections>
-                                                <binding destination="593" name="value" keyPath="arrangedObjects.userInfo.kind" id="7DO-Qi-xQE">
+                                                <binding destination="593" name="value" keyPath="arrangedObjects.showKind" id="tAT-2H-daC">
                                                     <dictionary key="options">
                                                         <bool key="NSConditionallySetsEditable" value="YES"/>
                                                     </dictionary>
@@ -71,12 +71,12 @@
                                             </textFieldCell>
                                             <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                             <connections>
-                                                <binding destination="593" name="displayPatternValue1" keyPath="arrangedObjects.userInfo.status" id="Rwg-pL-VOM">
+                                                <binding destination="593" name="displayPatternValue1" keyPath="arrangedObjects.showStatus" id="nao-yt-Y0G">
                                                     <dictionary key="options">
                                                         <string key="NSDisplayPattern">%{value1}@ %{value2}@</string>
                                                     </dictionary>
                                                 </binding>
-                                                <binding destination="593" name="displayPatternValue2" keyPath="arrangedObjects.userInfo.subStatus" previousBinding="Rwg-pL-VOM" id="tFL-ms-jS9">
+                                                <binding destination="593" name="displayPatternValue2" keyPath="arrangedObjects.showSubStatus" previousBinding="nao-yt-Y0G" id="ULd-QJ-liN">
                                                     <dictionary key="options">
                                                         <string key="NSDisplayPattern">%{value1}@ %{value2}@</string>
                                                     </dictionary>
@@ -172,7 +172,7 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                         <connections>
-                            <binding destination="593" name="value" keyPath="selection.userInfo.url" id="RYR-Pq-fQr"/>
+                            <binding destination="593" name="value" keyPath="selection.showUrl" id="AHD-SC-agI"/>
                         </connections>
                     </textField>
                     <textField verticalHuggingPriority="750" id="378">
@@ -184,7 +184,7 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                         <connections>
-                            <binding destination="593" name="value" keyPath="selection.userInfo.requestMethod" id="zYM-z5-KJm"/>
+                            <binding destination="593" name="value" keyPath="selection.showRequestMethod" id="TXv-5Z-uL9"/>
                         </connections>
                     </textField>
                     <scrollView horizontalLineScroll="14" horizontalPageScroll="10" verticalLineScroll="14" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="380">
@@ -673,15 +673,15 @@
             </view>
         </window>
         <userDefaultsController representsSharedInstance="YES" id="494" userLabel="Shared Defaults"/>
-        <arrayController id="593" userLabel="Operations Array Controller">
+        <arrayController clearsFilterPredicateOnInsertion="NO" id="593" userLabel="Operations Array Controller">
             <declaredKeys>
-                <string>userInfo.kind</string>
-                <string>userInfo.status</string>
-                <string>requestMethod</string>
-                <string>url</string>
+                <string>showKind</string>
+                <string>showStatus</string>
+                <string>showRequestMethod</string>
+                <string>showUrl</string>
                 <string>responseHeaders</string>
                 <string>requestHeaders</string>
-                <string>userInfo.subStatus</string>
+                <string>showSubStatus</string>
                 <string>responseData</string>
                 <string>responseStatusCode</string>
             </declaredKeys>

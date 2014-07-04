@@ -19,6 +19,8 @@
 #import "S3BucketListController.h"
 #import "S3ConnInfo.h"
 
+#import "ASIS3Request+showValue.h"
+
 // C-string, as it is only used in Keychain Services
 #define S3_BROWSER_KEYCHAIN_SERVICE "S3 Browser"
 
@@ -324,13 +326,18 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 }
 
 - (void)requestDidStartSelector:(ASIS3Request *)request {
-    NSLog(@"requestDidStartSelector");
+    //NSLog(@"requestDidStartSelector");
    
-    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
-    [dict setValue:[request requestMethod] forKey:RequestUserInfoRequestMethodKey];
-    [dict setValue:[request url] forKey:RequestUserInfoURLKey];
-
-    [request setUserInfo:dict];
+//    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
+//    [dict setValue:[request requestMethod] forKey:RequestUserInfoRequestMethodKey];
+//    [dict setValue:[request url] forKey:RequestUserInfoURLKey];
+//
+//    [request setUserInfo:dict];
+    
+    
+    [request setShowRequestMethod:[request requestMethod]];
+    [request setShowUrl:[request url]];
+    
     
     [self postNotificationWithRequest:request state:ASIS3RequestActive];
 }
@@ -346,7 +353,7 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 }
 
 - (void)requestDidFinishSelector:(ASIS3Request *)request {
-    NSLog(@"requestDidFinishSelector");
+    //NSLog(@"requestDidFinishSelector");
     
     if ([request responseStatusCode] >= 400) {
         [self requestDidFailSelector:request];
@@ -357,7 +364,7 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 }
 
 - (void)requestDidFailSelector:(ASIS3Request *)request {
-    NSLog(@"requestDidFailSelector");
+    //NSLog(@"requestDidFailSelector");
     
     if ([request isCancelled]) {
         [self postNotificationWithRequest:request state:ASIS3RequestCanceled];

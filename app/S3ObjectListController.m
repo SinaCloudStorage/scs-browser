@@ -24,6 +24,7 @@
 #import "S3Extensions.h"
 
 #import "ASIS3BucketObject+ShowName.h"
+#import "ASIS3Request+showValue.h"
 
 #define SHEET_CANCEL 0
 #define SHEET_OK 1
@@ -339,9 +340,10 @@
     }
     
     ASIS3RequestState requestState = [[[notification userInfo] objectForKey:ASIS3RequestStateKey] unsignedIntegerValue];
-    //[self updateRequest:request forState:requestState];
+    [self updateRequest:request forState:requestState];
     
-    NSString *requestKind = [[request userInfo] objectForKey:RequestUserInfoKindKey];
+    //NSString *requestKind = [[request userInfo] objectForKey:RequestUserInfoKindKey];
+    NSString *requestKind = [request showKind];
     
     
     //列文件
@@ -404,7 +406,9 @@
             }else {
                 
                 ASIS3BucketRequest *requestForNextChunk = [(ASIS3BucketRequest *)request requestForNextChunk];
-                [requestForNextChunk setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+                //[requestForNextChunk setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+                [requestForNextChunk setShowKind:ASIS3RequestListObject];
+                [requestForNextChunk setShowStatus:RequestUserInfoStatusPending];
                 [self addToCurrentNetworkQueue:requestForNextChunk];
             }
             
@@ -445,7 +449,9 @@
             if ([requestKind isEqualToString:ASIS3RequestCopyObject]) {
                 ASIS3ObjectRequest *deleteRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[(ASIS3ObjectRequest *)request sourceBucket]
                                                                                             key:[(ASIS3ObjectRequest *)request sourceKey]];
-                [deleteRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestDeleteObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+                //[deleteRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestDeleteObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+                [deleteRequest setShowKind:ASIS3RequestDeleteObject];
+                [deleteRequest setShowStatus:RequestUserInfoStatusPending];
                 [self addToCurrentNetworkQueue:deleteRequest];
                 
             }else {
@@ -590,9 +596,8 @@
     for (ASIS3Request *request in ops) {
         
         if ([request isKindOfClass:[ASIS3BucketRequest class]] &&
-            [[[request userInfo] objectForKey:RequestUserInfoKindKey] isEqualToString:ASIS3RequestListObject] &&
-            ([[[request userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusActive] ||
-             [[[request userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusPending]))
+            [[request showKind] isEqualToString:ASIS3RequestListObject] &&
+            ([[request showStatus] isEqualToString:RequestUserInfoStatusActive] || [[request showSubStatus] isEqualToString:RequestUserInfoStatusPending]))
         {
             
             return;
@@ -608,7 +613,9 @@
     [listRequest setDelimiter:@"/"];
     [listRequest setPrefix:_currentPrefix];
     [listRequest setMaxResultCount:100];
-    [listRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+    //[listRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+    [listRequest setShowKind:ASIS3RequestListObject];
+    [listRequest setShowStatus:RequestUserInfoStatusPending];
     [self addToCurrentNetworkQueue:listRequest];
 }
 
@@ -630,7 +637,9 @@
     while (b = [e nextObject])
     {
         ASIS3ObjectRequest *deleteObjectRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[[self bucket] name] key:[b key]];
-        [deleteObjectRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestDeleteObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+        //[deleteObjectRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestDeleteObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+        [deleteObjectRequest setShowKind:ASIS3RequestDeleteObject];
+        [deleteObjectRequest setShowStatus:RequestUserInfoStatusPending];
         [self addToCurrentNetworkQueue:deleteObjectRequest];
     }
 }
@@ -657,7 +666,10 @@
     while (b = [e nextObject])
     {
         ASIS3ObjectRequest *deleteObjectRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[[self bucket] name] key:[b key]];
-        [deleteObjectRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestDeleteObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+        //[deleteObjectRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestDeleteObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+        
+        [deleteObjectRequest setShowKind:ASIS3RequestDeleteObject];
+        [deleteObjectRequest setShowStatus:RequestUserInfoStatusPending];
         [self addToCurrentNetworkQueue:deleteObjectRequest];
     }
 }
@@ -741,11 +753,17 @@
                     [downloadRequest addRequestHeader:@"If-Range" value:[b ETag]];
                 }
                 
-                [downloadRequest setUserInfo:@{RequestUserInfoTransferedBytesKey:[NSString stringWithFormat:@"%lld", (long long)0],
-                                               RequestUserInfoResumeDownloadedFileSizeKey:[NSString stringWithFormat:@"%lld", downloadedPartSize],
-                                               RequestUserInfoKindKey:ASIS3RequestDownloadObject,
-                                               RequestUserInfoStatusKey:RequestUserInfoStatusPending,
-                                               RequestUserInfoSubStatusKey:@""}];
+//                [downloadRequest setUserInfo:@{RequestUserInfoTransferedBytesKey:[NSString stringWithFormat:@"%lld", (long long)0],
+//                                               RequestUserInfoResumeDownloadedFileSizeKey:[NSString stringWithFormat:@"%lld", downloadedPartSize],
+//                                               RequestUserInfoKindKey:ASIS3RequestDownloadObject,
+//                                               RequestUserInfoStatusKey:RequestUserInfoStatusPending,
+//                                               RequestUserInfoSubStatusKey:@""}];
+                
+                [downloadRequest setShowKind:ASIS3RequestDownloadObject];
+                [downloadRequest setShowStatus:RequestUserInfoStatusPending];
+                [downloadRequest setShowTransferedBytes:[NSString stringWithFormat:@"%lld", (long long)0]];
+                [downloadRequest setShowResumeDownloadedFileSize:[NSString stringWithFormat:@"%lld", downloadedPartSize]];
+                [downloadRequest setShowSubStatus:@""];
 
                 [_weakself addToCurrentNetworkQueue:downloadRequest];
             }
@@ -785,10 +803,15 @@
     [uploadRequest setAccessPolicy:acl];
     [uploadRequest setUploadProgressDelegate:self];
     [uploadRequest setShowAccurateProgress:YES];
-    [uploadRequest setUserInfo:@{RequestUserInfoTransferedBytesKey:[NSString stringWithFormat:@"%d", 0],
-                                 RequestUserInfoKindKey:ASIS3RequestAddObject,
-                                 RequestUserInfoStatusKey:RequestUserInfoStatusPending,
-                                 RequestUserInfoSubStatusKey:@""}];
+//    [uploadRequest setUserInfo:@{RequestUserInfoTransferedBytesKey:[NSString stringWithFormat:@"%d", 0],
+//                                 RequestUserInfoKindKey:ASIS3RequestAddObject,
+//                                 RequestUserInfoStatusKey:RequestUserInfoStatusPending,
+//                                 RequestUserInfoSubStatusKey:@""}];
+    
+    [uploadRequest setShowKind:ASIS3RequestAddObject];
+    [uploadRequest setShowStatus:RequestUserInfoStatusPending];
+    [uploadRequest setShowTransferedBytes:[NSString stringWithFormat:@"%d", 0]];
+    [uploadRequest setShowSubStatus:@""];
     
     [self addToCurrentNetworkQueue:uploadRequest];
 }
@@ -849,7 +872,11 @@
                                                                             key:[source key]
                                                                        toBucket:[[self bucket] name]
                                                                             key:[self renameName]];
-    [copyRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestCopyObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+//    [copyRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestCopyObject, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+    
+    [copyRequest setShowKind:ASIS3RequestCopyObject];
+    [copyRequest setShowStatus:RequestUserInfoStatusPending];
+
     [self addToCurrentNetworkQueue:copyRequest];
 }
 
@@ -874,24 +901,30 @@
 
 - (void)request:(ASIHTTPRequest *)request didReceiveBytes:(long long)bytes {
     
-    long long bytesDownloaded = [[[request userInfo] objectForKey:RequestUserInfoTransferedBytesKey] longLongValue] + bytes;
-    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
-    [dict setValue:[NSString stringWithFormat:@"%lld", bytesDownloaded] forKey:RequestUserInfoTransferedBytesKey];
+    long long bytesDownloaded = [[(ASIS3Request *)request showTransferedBytes] longLongValue] + bytes;
+//    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
+//    [dict setValue:[NSString stringWithFormat:@"%lld", bytesDownloaded] forKey:RequestUserInfoTransferedBytesKey];
     
-    long long resumeDownloadedFileSize = [[[request userInfo] objectForKey:RequestUserInfoResumeDownloadedFileSizeKey] longLongValue];
-    [dict setValue:[NSString stringWithFormat:@"%.2f%%", (GLfloat)bytesDownloaded / (GLfloat)(resumeDownloadedFileSize + [request contentLength]) * 100.0] forKey:RequestUserInfoSubStatusKey];
+    [(ASIS3Request *)request setShowTransferedBytes:[NSString stringWithFormat:@"%lld", bytesDownloaded]];
     
-    [request setUserInfo:dict];
+    long long resumeDownloadedFileSize = [[(ASIS3Request *)request showResumeDownloadedFileSize] longLongValue];
+//    [dict setValue:[NSString stringWithFormat:@"%.2f%%", (GLfloat)bytesDownloaded / (GLfloat)(resumeDownloadedFileSize + [request contentLength]) * 100.0] forKey:RequestUserInfoSubStatusKey];
+    [(ASIS3Request *)request setShowSubStatus:[NSString stringWithFormat:@"%.2f%%", (GLfloat)bytesDownloaded / (GLfloat)(resumeDownloadedFileSize + [request contentLength]) * 100.0]];
+//    [request setUserInfo:dict];
 }
 
 - (void)request:(ASIHTTPRequest *)request didSendBytes:(long long)bytes {
     
-    long long bytesUploaded = [[[request userInfo] objectForKey:RequestUserInfoTransferedBytesKey] longLongValue] + bytes;
-    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
-    [dict setValue:[NSString stringWithFormat:@"%lld", bytesUploaded] forKey:RequestUserInfoTransferedBytesKey];
-    [dict setValue:[NSString stringWithFormat:@"%.2f%%", (GLfloat)bytesUploaded / (GLfloat)[request postLength] * 100.0] forKey:RequestUserInfoSubStatusKey];
+    //long long bytesUploaded = [[[request userInfo] objectForKey:RequestUserInfoTransferedBytesKey] longLongValue] + bytes;
+    long long bytesUploaded = [[(ASIS3Request *)request showTransferedBytes] longLongValue] + bytes;
+//    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
+//    [dict setValue:[NSString stringWithFormat:@"%lld", bytesUploaded] forKey:RequestUserInfoTransferedBytesKey];
+//    [dict setValue:[NSString stringWithFormat:@"%.2f%%", (GLfloat)bytesUploaded / (GLfloat)[request postLength] * 100.0] forKey:RequestUserInfoSubStatusKey];
     
-    [request setUserInfo:dict];
+    [(ASIS3Request *)request setShowTransferedBytes:[NSString stringWithFormat:@"%lld", bytesUploaded]];
+    [(ASIS3Request *)request setShowSubStatus:[NSString stringWithFormat:@"%.2f%%", (GLfloat)bytesUploaded / (GLfloat)[request postLength] * 100.0]];
+    
+//    [request setUserInfo:dict];
 }
 
 #pragma mark -

@@ -16,6 +16,8 @@
 #import "S3OperationLog.h"
 #import "S3OperationController.h"
 
+#import "ASIS3Request+showValue.h"
+
 @interface S3ActiveWindowController ()
 
 @end
@@ -154,18 +156,12 @@
     
     if ([self configureRequest:request]) {
         
-        if ([request isKindOfClass:[ASIS3ServiceRequest class]]) {
-            [[[NSApp delegate] networkQueue] addOperation:request];
-        }
-        
+        //[[[NSApp delegate] operationLog] logOperation:request];
+        [[[NSApp delegate] networkQueue] addOperation:request];
         [[[NSApp delegate] operationLog] logOperation:request];
         
-        //[[[[NSApp delegate] operationLog] operations] addObject:request];
-        
-        //NSLog(@"%@", request);
-        
-        //S3OperationController *controller = [[[NSApp delegate] controllers] objectForKey:@"Console"];
-        //[controller scrollToEnd];
+        S3OperationController *controller = [[[NSApp delegate] controllers] objectForKey:@"Console"];
+        [controller scrollToEnd];
     }
 }
 
@@ -201,48 +197,64 @@
 
 - (void)updateRequest:(ASIS3Request *)request forState:(int)state {
     
-    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
+    //NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
     
     switch (state) {
             
         case ASIS3RequestPending:
-            [dict setValue:RequestUserInfoStatusPending forKey:RequestUserInfoStatusKey];
+            //[dict setValue:RequestUserInfoStatusPending forKey:RequestUserInfoStatusKey];
+            [request setShowStatus:RequestUserInfoStatusPending];
             break;
             
         case ASIS3RequestActive:
         case ASIS3RequestReceiveResponseHeaders:
-            [dict setValue:RequestUserInfoStatusActive forKey:RequestUserInfoStatusKey];
+            //[dict setValue:RequestUserInfoStatusActive forKey:RequestUserInfoStatusKey];
+            [request setShowStatus:RequestUserInfoStatusActive];
             break;
             
         case ASIS3RequestCanceled:
-            [dict setValue:RequestUserInfoStatusCanceled forKey:RequestUserInfoStatusKey];
-            [dict setValue:[[[request error] userInfo] objectForKey:NSLocalizedDescriptionKey] forKey:RequestUserInfoSubStatusKey];
+            //[dict setValue:RequestUserInfoStatusCanceled forKey:RequestUserInfoStatusKey];
+            //[dict setValue:[[[request error] userInfo] objectForKey:NSLocalizedDescriptionKey] forKey:RequestUserInfoSubStatusKey];
+            
+            [request setShowStatus:RequestUserInfoStatusCanceled];
+            [request setShowSubStatus:[[[request error] userInfo] objectForKey:NSLocalizedDescriptionKey]];
             break;
             
         case ASIS3RequestDone:
-            [dict setValue:RequestUserInfoStatusDone forKey:RequestUserInfoStatusKey];
-            [dict setValue:@"" forKey:RequestUserInfoSubStatusKey];
+            //[dict setValue:RequestUserInfoStatusDone forKey:RequestUserInfoStatusKey];
+            //[dict setValue:@"" forKey:RequestUserInfoSubStatusKey];
+            
+            [request setShowStatus:RequestUserInfoStatusDone];
+            [request setShowSubStatus:@""];
             break;
             
         case ASIS3RequestRequiresRedirect:
-            [dict setValue:RequestUserInfoStatusRequiresRedirect forKey:RequestUserInfoStatusKey];
+            //[dict setValue:RequestUserInfoStatusRequiresRedirect forKey:RequestUserInfoStatusKey];
+            
+            [request setShowStatus:RequestUserInfoStatusRequiresRedirect];
             break;
             
         case ASIS3RequestError:
-            [dict setValue:RequestUserInfoStatusError forKey:RequestUserInfoStatusKey];
+            //[dict setValue:RequestUserInfoStatusError forKey:RequestUserInfoStatusKey];
+            
+            [request setShowStatus:RequestUserInfoStatusError];
             
             if ([request error] != nil) {
                 
                 if ([request responseStatusMessage] != nil && [request responseStatusCode] == 413) {
-                    [dict setValue:[request responseStatusMessage] forKey:RequestUserInfoSubStatusKey];
+                    //[dict setValue:[request responseStatusMessage] forKey:RequestUserInfoSubStatusKey];
+                    [request setShowSubStatus:[request responseStatusMessage]];
                 }else {
-                    [dict setValue:[[[request error] userInfo] objectForKey:NSLocalizedDescriptionKey] forKey:RequestUserInfoSubStatusKey];
+                    //[dict setValue:[[[request error] userInfo] objectForKey:NSLocalizedDescriptionKey] forKey:RequestUserInfoSubStatusKey];
+                    [request setShowSubStatus:[[[request error] userInfo] objectForKey:NSLocalizedDescriptionKey]];
                 }
                 
             }else if ([[request responseHeaders] objectForKey:@"x-error-code"] != nil) {
-                [dict setValue:[[request responseHeaders] objectForKey:@"x-error-code"] forKey:RequestUserInfoSubStatusKey];
+                //[dict setValue:[[request responseHeaders] objectForKey:@"x-error-code"] forKey:RequestUserInfoSubStatusKey];
+                [request setShowSubStatus:[[request responseHeaders] objectForKey:@"x-error-code"]];
             }else if ([request responseStatusMessage] != nil) {
-                [dict setValue:[request responseStatusMessage] forKey:RequestUserInfoSubStatusKey];
+                //[dict setValue:[request responseStatusMessage] forKey:RequestUserInfoSubStatusKey];
+                [request setShowSubStatus:[request responseStatusMessage]];
             }
             break;
             
@@ -250,7 +262,7 @@
             break;
     }
     
-    [request setUserInfo:dict];
+    //[request setUserInfo:dict];
 }
 
 - (void)asiS3RequestStateDidChange:(NSNotification *)notification {

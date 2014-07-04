@@ -18,6 +18,8 @@
 #import "S3DeleteBucketOperation.h"
 #import "S3OperationQueue.h"
 
+#import "ASIS3Request+showValue.h"
+
 #define SHEET_CANCEL 0
 #define SHEET_OK 1
 
@@ -157,7 +159,8 @@ enum {
     ASIS3RequestState requestState = [[[notification userInfo] objectForKey:ASIS3RequestStateKey] unsignedIntegerValue];
     
     [self updateRequest:request forState:requestState];
-    NSString *requestKind = [[request userInfo] objectForKey:RequestUserInfoKindKey];
+    //NSString *requestKind = [[request userInfo] objectForKey:RequestUserInfoKindKey];
+    NSString *requestKind = [request showKind];
     
     if ([requestKind isEqualToString:ASIS3RequestListBucket]) {
         
@@ -216,7 +219,9 @@ enum {
     while (b = [e nextObject]) {
         
         ASIS3BucketRequest *deleteRequest = [ASIS3BucketRequest DELETERequestWithBucket:[b name]];
-        [deleteRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestDeleteBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+        [deleteRequest setShowKind:ASIS3RequestDeleteBucket];
+        [deleteRequest setShowStatus:RequestUserInfoStatusPending];
+        //[deleteRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestDeleteBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
         [self addToCurrentNetworkQueue:deleteRequest];
     }
 }
@@ -224,7 +229,9 @@ enum {
 - (IBAction)refresh:(id)sender
 {
 	ASIS3ServiceRequest *request = [ASIS3ServiceRequest serviceRequest];
-    [request setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+    [request setShowKind:ASIS3RequestListBucket];
+    [request setShowStatus:RequestUserInfoStatusPending];
+    //[request setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
     [self addToCurrentNetworkQueue:request];
 }
 
@@ -240,7 +247,9 @@ enum {
         }
                 
         ASIS3BucketRequest *addRequest = [ASIS3BucketRequest PUTRequestWithBucket:_name];
-        [addRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestAddBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+        [addRequest setShowKind:ASIS3RequestAddBucket];
+        [addRequest setShowStatus:RequestUserInfoStatusPending];
+        //[addRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestAddBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
         [self addToCurrentNetworkQueue:addRequest];
     }
 }

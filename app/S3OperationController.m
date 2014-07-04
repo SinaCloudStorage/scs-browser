@@ -10,6 +10,8 @@
 #import "S3ApplicationDelegate.h"
 #import "S3ValueTransformers.h"
 
+#import "ASIS3Request+showValue.h"
+
 #pragma mark -
 #pragma mark The operation console/inspector itself
 
@@ -60,8 +62,8 @@
 		NSEnumerator *e = [[_operationsArrayController selectedObjects] objectEnumerator];
 		ASIS3Request *op;
 		while (op = [e nextObject]) {
-			if (([[[op userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusActive])||
-                ([[[op userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusPending])) {
+			if (([[op showStatus] isEqualToString:RequestUserInfoStatusActive])||
+                ([[op showStatus] isEqualToString:RequestUserInfoStatusPending])) {
 				return NO;
             }
 		}
@@ -71,8 +73,8 @@
 		NSEnumerator *e = [[_operationsArrayController selectedObjects] objectEnumerator];
 		ASIS3Request *op;
 		while (op = [e nextObject]) {
-			if (([[[op userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusActive])||
-                ([[[op userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusPending])) {
+			if (([[op showStatus] isEqualToString:RequestUserInfoStatusActive])||
+                ([[op showStatus] isEqualToString:RequestUserInfoStatusPending])) {
 				return YES;
             }
 		}
@@ -98,8 +100,8 @@
 	ASIS3Request *op;
 	while (op = [e nextObject]) 
 	{
-		if (([[[op userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusActive])||
-            ([[[op userInfo] objectForKey:RequestUserInfoStatusKey] isEqualToString:RequestUserInfoStatusPending])) {
+		if (([[op showStatus] isEqualToString:RequestUserInfoStatusActive])||
+            ([[op showStatus] isEqualToString:RequestUserInfoStatusPending])) {
             
             [op cancel];
         }

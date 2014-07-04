@@ -12,6 +12,8 @@
 #import "S3ListBucketOperation.h"
 #import "S3OperationQueue.h"
 
+#import "ASIS3Request+showValue.h"
+
 #import <ASIKit/ASIKit.h>
 
 // C-string, as it is only used in Keychain Services
@@ -120,7 +122,9 @@
     
     
     ASIS3ServiceRequest *request = [ASIS3ServiceRequest serviceRequest];
-    [request setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+    //[request setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
+    [request setShowKind:ASIS3RequestListBucket];
+    [request setShowStatus:RequestUserInfoStatusPending];
     [self addToCurrentNetworkQueue:request];
 }
 
@@ -196,7 +200,8 @@
     ASIS3RequestState requestState = [[[notification userInfo] objectForKey:ASIS3RequestStateKey] unsignedIntegerValue];
     
     [self updateRequest:request forState:requestState];
-    NSString *requestKind = [[request userInfo] objectForKey:RequestUserInfoKindKey];
+    //NSString *requestKind = [[request userInfo] objectForKey:RequestUserInfoKindKey];
+    NSString *requestKind = [request showKind];
     
     if ([requestKind isEqualToString:ASIS3RequestListBucket]) {
         
