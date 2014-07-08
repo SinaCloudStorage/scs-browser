@@ -60,7 +60,7 @@
         }
 		
 		NSEnumerator *e = [[_operationsArrayController selectedObjects] objectEnumerator];
-		ASIS3Request *op;
+		LogObject *op;
 		while (op = [e nextObject]) {
 			if (([[op showStatus] isEqualToString:RequestUserInfoStatusActive])||
                 ([[op showStatus] isEqualToString:RequestUserInfoStatusPending])) {
@@ -71,7 +71,7 @@
 	}
 	if ([[theItem itemIdentifier] isEqualToString:@"Stop"]) {	
 		NSEnumerator *e = [[_operationsArrayController selectedObjects] objectEnumerator];
-		ASIS3Request *op;
+		LogObject *op;
 		while (op = [e nextObject]) {
 			if (([[op showStatus] isEqualToString:RequestUserInfoStatusActive])||
                 ([[op showStatus] isEqualToString:RequestUserInfoStatusPending])) {
@@ -97,13 +97,13 @@
 - (IBAction)stop:(id)sender;
 {
 	NSEnumerator *e = [[_operationsArrayController selectedObjects] objectEnumerator];
-	ASIS3Request *op;
+	LogObject *op;
 	while (op = [e nextObject]) 
 	{
 		if (([[op showStatus] isEqualToString:RequestUserInfoStatusActive])||
             ([[op showStatus] isEqualToString:RequestUserInfoStatusPending])) {
             
-            [op cancel];
+            [[op request] cancel];
         }
 	}	
 }

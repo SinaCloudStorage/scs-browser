@@ -20,6 +20,7 @@
     S3ConnInfo *_connInfo;
 	S3ConnectionInfo *_connectionInfo;
     NSMutableArray *_operations;
+    NSMutableArray *_logObjects;
     NSMutableDictionary *_redirectConnectionInfoMappings;
 }
 
@@ -28,9 +29,6 @@
 
 - (S3ConnInfo *)connInfo;
 - (void)setConnInfo:(S3ConnInfo *)aConnInfo;
-
-
-- (void)addToCurrentOperations:(S3Operation *)op;
 - (BOOL)hasActiveOperations;
 
 //- (void)operationQueueOperationStateDidChange:(NSNotification *)notification;
@@ -38,10 +36,11 @@
 
 ///////
 
-- (void)addToCurrentNetworkQueue:(ASIS3Request *)request;
 - (BOOL)hasActiveRequest;
 - (BOOL)configureRequest:(ASIS3Request *)request;
 
 - (void)updateRequest:(ASIS3Request *)request forState:(int)state;
+- (void)addOperations;
+- (void)commit;
 
 @end

@@ -126,26 +126,6 @@ enum {
 {
     [NSApp endSheet:addSheet returnCode:SHEET_OK];
 }
-//
-//- (void)operationQueueOperationStateDidChange:(NSNotification *)notification
-//{
-//    S3Operation *operation = [[notification userInfo] objectForKey:S3OperationObjectKey];
-//    NSUInteger index = [_operations indexOfObjectIdenticalTo:operation];
-//    if (index == NSNotFound) {
-//        return;
-//    }
-//    
-//    [super operationQueueOperationStateDidChange:notification];
-//
-//    if ([operation state] == S3OperationDone) {
-//        if ([operation isKindOfClass:[S3ListBucketOperation class]]) {
-//            [self setBuckets:[(S3ListBucketOperation *)operation bucketList]];
-//            [self setBucketsOwner:[(S3ListBucketOperation *)operation owner]];			
-//        } else {
-//            [self refresh:self];            
-//        }
-//    }
-//}
 
 #pragma mark - ASIS3RequestState NSNotification
 
@@ -158,11 +138,11 @@ enum {
     ASIS3Request *request = [[notification userInfo] objectForKey:ASIS3RequestKey];
     ASIS3RequestState requestState = [[[notification userInfo] objectForKey:ASIS3RequestStateKey] unsignedIntegerValue];
     
-    [self updateRequest:request forState:requestState];
-    //NSString *requestKind = [[request userInfo] objectForKey:RequestUserInfoKindKey];
     NSString *requestKind = [request showKind];
     
     if ([requestKind isEqualToString:ASIS3RequestListBucket]) {
+        
+        [self updateRequest:request forState:requestState];
         
         if (requestState == ASIS3RequestDone) {
             
@@ -181,6 +161,8 @@ enum {
     }
     
     if ([requestKind isEqualToString:ASIS3RequestAddBucket] || [requestKind isEqualToString:ASIS3RequestDeleteBucket]) {
+        
+        [self updateRequest:request forState:requestState];
         
         if (requestState == ASIS3RequestDone) {
             
@@ -221,8 +203,8 @@ enum {
         ASIS3BucketRequest *deleteRequest = [ASIS3BucketRequest DELETERequestWithBucket:[b name]];
         [deleteRequest setShowKind:ASIS3RequestDeleteBucket];
         [deleteRequest setShowStatus:RequestUserInfoStatusPending];
-        //[deleteRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestDeleteBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
-        [self addToCurrentNetworkQueue:deleteRequest];
+        [_operations addObject:deleteRequest];
+        [self addOperations];
     }
 }
 
@@ -231,8 +213,9 @@ enum {
 	ASIS3ServiceRequest *request = [ASIS3ServiceRequest serviceRequest];
     [request setShowKind:ASIS3RequestListBucket];
     [request setShowStatus:RequestUserInfoStatusPending];
-    //[request setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
-    [self addToCurrentNetworkQueue:request];
+    
+    [_operations addObject:request];
+    [self addOperations];
 }
 
 
@@ -249,8 +232,8 @@ enum {
         ASIS3BucketRequest *addRequest = [ASIS3BucketRequest PUTRequestWithBucket:_name];
         [addRequest setShowKind:ASIS3RequestAddBucket];
         [addRequest setShowStatus:RequestUserInfoStatusPending];
-        //[addRequest setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestAddBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
-        [self addToCurrentNetworkQueue:addRequest];
+        [_operations addObject:addRequest];
+        [self addOperations];
     }
 }
 

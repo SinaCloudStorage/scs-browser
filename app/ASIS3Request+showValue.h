@@ -7,6 +7,9 @@
 //
 
 #import <ASIKit/ASIKit.h>
+#import "LogObject.h"
+
+@class LogObject;
 
 @interface ASIS3Request (showValue)
 
@@ -17,6 +20,8 @@
 @property (nonatomic, retain) NSString *showSubStatus;
 @property (nonatomic, retain) NSURL *showUrl;
 @property (nonatomic, retain) NSString *showRequestMethod;
+
+@property (nonatomic, assign) LogObject *logObject;
 
 
 - (void)setShowTransferedBytes:(NSString *)inTransferedBytes;
@@ -39,5 +44,8 @@
 
 - (void)setShowRequestMethod:(NSString *)inRequestMethod;
 - (NSString *)showRequestMethod;
+
+- (void)setLogObject:(LogObject *)logObject;
+- (LogObject *)logObject;
 
 @end

@@ -160,7 +160,7 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                         <connections>
-                            <binding destination="593" name="value" keyPath="selection.responseStatusCode" id="cZi-lW-CDl"/>
+                            <binding destination="593" name="value" keyPath="selection.showResponseStatusCode" id="1fE-1K-qZR"/>
                         </connections>
                     </textField>
                     <textField verticalHuggingPriority="750" id="377">
@@ -649,7 +649,7 @@
                                     <size key="minSize" width="367" height="60"/>
                                     <size key="maxSize" width="463" height="10000000"/>
                                     <connections>
-                                        <binding destination="593" name="data" keyPath="selection.responseData" id="D46-1D-yi7">
+                                        <binding destination="593" name="data" keyPath="selection.showResponseData" id="sai-Hu-SJn">
                                             <dictionary key="options">
                                                 <bool key="NSConditionallySetsEditable" value="NO"/>
                                                 <string key="NSValueTransformerName">S3ResponseDataTransformer</string>
@@ -697,12 +697,9 @@
                 <string>value</string>
             </declaredKeys>
             <connections>
-                <binding destination="593" name="contentDictionary" keyPath="selection.responseHeaders" id="611">
+                <binding destination="593" name="contentDictionary" keyPath="selection.showResponseHeaders" id="2Jy-aP-dBO">
                     <dictionary key="options">
-                        <bool key="NSAlwaysPresentsApplicationModalAlerts" value="NO"/>
                         <bool key="NSConditionallySetsEditable" value="NO"/>
-                        <bool key="NSRaisesForNotApplicableKeys" value="YES"/>
-                        <bool key="NSValidatesImmediately" value="NO"/>
                     </dictionary>
                 </binding>
             </connections>
@@ -713,12 +710,9 @@
                 <string>value</string>
             </declaredKeys>
             <connections>
-                <binding destination="593" name="contentDictionary" keyPath="selection.requestHeaders" id="650">
+                <binding destination="593" name="contentDictionary" keyPath="selection.showRequestHeaders" id="sNh-3b-Lw5">
                     <dictionary key="options">
-                        <bool key="NSAlwaysPresentsApplicationModalAlerts" value="NO"/>
                         <bool key="NSConditionallySetsEditable" value="NO"/>
-                        <bool key="NSRaisesForNotApplicableKeys" value="YES"/>
-                        <bool key="NSValidatesImmediately" value="NO"/>
                     </dictionary>
                 </binding>
             </connections>

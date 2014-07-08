@@ -322,6 +322,7 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 
     NSDictionary *dict = @{ASIS3RequestKey : request,
                            ASIS3RequestStateKey:[NSNumber numberWithUnsignedInteger:state]};
+    
     [[NSNotificationCenter defaultCenter] postNotificationName:ASIS3RequestStateDidChangeNotification object:self userInfo:dict];
 }
 
@@ -359,7 +360,7 @@ NSString *RequestUserInfoStatusError =                  @"Error";
         [self requestDidFailSelector:request];
     }else {
         [self postNotificationWithRequest:request state:ASIS3RequestDone];
-        [[self operationLog] unlogOperation:request];
+        [[self operationLog] unlogOperation:[request logObject]];
     }
 }
 

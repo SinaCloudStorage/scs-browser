@@ -18,12 +18,18 @@ static char statusKey;
 static char subStatusKey;
 static char urlKey;
 static char requestMethodKey;
+static char logObjectKey;
+
+- (void)setLogObject:(LogObject *)logObject {
+    objc_setAssociatedObject(self, &logObjectKey, logObject, OBJC_ASSOCIATION_ASSIGN);
+}
+
+- (LogObject *)logObject {
+    return objc_getAssociatedObject(self, &logObjectKey);
+}
 
 - (void)setShowTransferedBytes:(NSString *)inTransferedBytes {
-    
-    //[self willChangeValueForKey:@"showTransferedBytes"];
     objc_setAssociatedObject(self, &transferedBytesKey, inTransferedBytes, OBJC_ASSOCIATION_RETAIN);
-    //[self didChangeValueForKey:@"showTransferedBytes"];
 }
 
 - (NSString *)showTransferedBytes {
@@ -32,11 +38,7 @@ static char requestMethodKey;
 
 
 - (void)setShowResumeDownloadedFileSize:(NSString *)inResumeDownloadedFileSize {
-    
-    //[self willChangeValueForKey:@"showResumeDownloadedFileSize"];
     objc_setAssociatedObject(self, &resumeDownloadedFileSizeKey, inResumeDownloadedFileSize, OBJC_ASSOCIATION_RETAIN);
-    //[self didChangeValueForKey:@"showResumeDownloadedFileSize"];
-    
 }
 
 - (NSString *)showResumeDownloadedFileSize {
@@ -45,10 +47,7 @@ static char requestMethodKey;
 
 
 - (void)setShowKind:(NSString *)inKind {
-    
-    //[self willChangeValueForKey:@"showKind"];
     objc_setAssociatedObject(self, &kindKey, inKind, OBJC_ASSOCIATION_RETAIN);
-    //[self didChangeValueForKey:@"showKind"];
 }
 
 - (NSString *)showKind {
@@ -57,10 +56,7 @@ static char requestMethodKey;
 
 
 - (void)setShowStatus:(NSString *)inStatus {
-    
-    //[self willChangeValueForKey:@"showStatus"];
     objc_setAssociatedObject(self, &statusKey, inStatus, OBJC_ASSOCIATION_RETAIN);
-    //[self didChangeValueForKey:@"showStatus"];
 }
 
 - (NSString *)showStatus {
@@ -69,10 +65,7 @@ static char requestMethodKey;
 
 
 - (void)setShowSubStatus:(NSString *)inSubStatus {
-    
-    //[self willChangeValueForKey:@"showSubStatus"];
     objc_setAssociatedObject(self, &subStatusKey, inSubStatus, OBJC_ASSOCIATION_RETAIN);
-    //[self didChangeValueForKey:@"showSubStatus"];
 }
 
 - (NSString *)showSubStatus {
@@ -81,10 +74,7 @@ static char requestMethodKey;
 
 
 - (void)setShowUrl:(NSURL *)inUrl {
-    
-    //[self willChangeValueForKey:@"showUrl"];
     objc_setAssociatedObject(self, &urlKey, inUrl, OBJC_ASSOCIATION_RETAIN);
-    //[self didChangeValueForKey:@"showUrl"];
 }
 
 - (NSURL *)showUrl {
@@ -93,10 +83,7 @@ static char requestMethodKey;
 
 
 - (void)setShowRequestMethod:(NSString *)inRequestMethod {
-    
-    //[self willChangeValueForKey:@"showRequestMethod"];
     objc_setAssociatedObject(self, &requestMethodKey, inRequestMethod, OBJC_ASSOCIATION_RETAIN);
-    //[self didChangeValueForKey:@"showRequestMethod"];
 }
 
 - (NSString *)showRequestMethod {
