@@ -111,10 +111,12 @@
 
 - (IBAction)connect:(id)sender
 {
-    if (accessKeyID == nil && secretAccessKeyID == nil) {
+    accessKeyID = [[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_USER];
+    
+    if (accessKeyID == nil || secretAccessKeyID == nil) {
         return;
     }
-    accessKeyID = [[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_USER];
+    //accessKeyID = [[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_USER];
     
     NSDictionary *authDict = @{@"accessKey": accessKeyID, @"secretAccessKey": secretAccessKeyID};
     
