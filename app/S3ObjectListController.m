@@ -757,11 +757,10 @@
                 [downloadRequest setShowSubStatus:@""];
 
                 [_operations addObject:downloadRequest];
+                [self addOperations];
             }
         }];
     }
-    
-    [self addOperations];
 }
 
 - (void)uploadFile:(NSDictionary *)data acl:(NSString *)acl
