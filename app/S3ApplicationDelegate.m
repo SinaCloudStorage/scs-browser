@@ -76,6 +76,7 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     [userDefaultsValuesDict setObject:@NO forKey:@"useKeychain"];
     [userDefaultsValuesDict setObject:@NO forKey:@"useSSL"];
     [userDefaultsValuesDict setObject:@YES forKey:@"autologin"];
+    [userDefaultsValuesDict setObject:@4 forKey:@"maxoperations"];
     [[NSUserDefaults standardUserDefaults] registerDefaults:userDefaultsValuesDict];
 
     // Conversion code for new default

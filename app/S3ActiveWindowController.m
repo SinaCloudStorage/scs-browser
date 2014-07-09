@@ -186,6 +186,12 @@
         return NO;
     }
     
+    if ([[self connInfo] secureConn]) {
+        [request setRequestScheme:ASIS3RequestSchemeHTTPS];
+    }else {
+        [request setRequestScheme:ASIS3RequestSchemeHTTP];
+    }
+    
     if ([ASIS3Request sharedAccessKey] != nil && [ASIS3Request sharedSecretAccessKey] != nil) {
         return YES;
     }
