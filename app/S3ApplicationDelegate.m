@@ -328,45 +328,42 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 }
 
 - (void)requestDidStartSelector:(ASIS3Request *)request {
-    //NSLog(@"requestDidStartSelector");
-   
-//    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
-//    [dict setValue:[request requestMethod] forKey:RequestUserInfoRequestMethodKey];
-//    [dict setValue:[request url] forKey:RequestUserInfoURLKey];
-//
-//    [request setUserInfo:dict];
-    
     
     [request setShowRequestMethod:[request requestMethod]];
     [request setShowUrl:[request url]];
-    
-    
     [self postNotificationWithRequest:request state:ASIS3RequestActive];
 }
 
 - (void)requestDidReceiveResponseHeadersSelector:(ASIS3Request *)request {
-    //NSLog(@"requestDidReceiveResponseHeadersSelector");
+    
     [self postNotificationWithRequest:request state:ASIS3RequestReceiveResponseHeaders];
 }
 
 - (void)requestWillRedirectSelector:(ASIS3Request *)request {
-    //NSLog(@"requestWillRedirectSelector");
+    
     [self postNotificationWithRequest:request state:ASIS3RequestRequiresRedirect];
 }
 
 - (void)requestDidFinishSelector:(ASIS3Request *)request {
-    //NSLog(@"requestDidFinishSelector");
     
-    if ([request responseStatusCode] >= 400) {
+    if ([request responseStatusCode] / 100 != 2) {
+        
         [self requestDidFailSelector:request];
+        
     }else {
-        [self postNotificationWithRequest:request state:ASIS3RequestDone];
-        [[self operationLog] unlogOperation:[request logObject]];
+        
+        if ([[request showKind] isEqualToString:ASIS3RequestDownloadObject] &&
+            [[[NSFileManager defaultManager] attributesOfItemAtPath:request.downloadDestinationPath error:nil] fileSize] != [request contentLength]) {
+            
+            [self requestDidFailSelector:request];
+        }else {
+            [self postNotificationWithRequest:request state:ASIS3RequestDone];
+            [[self operationLog] unlogOperation:[request logObject]];
+        }
     }
 }
 
 - (void)requestDidFailSelector:(ASIS3Request *)request {
-    //NSLog(@"requestDidFailSelector");
     
     if ([request isCancelled]) {
         [self postNotificationWithRequest:request state:ASIS3RequestCanceled];

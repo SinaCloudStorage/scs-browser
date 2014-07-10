@@ -738,7 +738,7 @@
                 
                 NSString *downloadPath = [[sp URL] path];
                 
-                [downloadRequest setTemporaryFileDownloadPath:[NSString stringWithFormat:@"%@.tmp", downloadPath]];
+                [downloadRequest setTemporaryFileDownloadPath:[NSString stringWithFormat:@"%@.%@.tmp", downloadPath, [b ETag]]];
                 [downloadRequest setDownloadDestinationPath:downloadPath];
                 [downloadRequest setDownloadProgressDelegate:self];
                 [downloadRequest setShowAccurateProgress:YES];

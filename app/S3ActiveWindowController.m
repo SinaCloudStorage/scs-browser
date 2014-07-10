@@ -18,6 +18,8 @@
 
 #import "ASIS3Request+showValue.h"
 
+#define NumberOfTimesToRetryOnTimeout   3
+
 @interface S3ActiveWindowController ()
 
 @end
@@ -177,6 +179,9 @@
 }
 
 - (BOOL)hasActiveRequest {
+    
+    //NSLog(@"%d,%lu", [[[NSApp delegate] networkQueue] requestsCount], [[[NSApp delegate] networkQueue] operationCount]);
+    //return YES;
     return ([[[NSApp delegate] networkQueue] requestsCount] > 0);
 }
 
@@ -191,6 +196,7 @@
     }else {
         [request setRequestScheme:ASIS3RequestSchemeHTTP];
     }
+    [request setNumberOfTimesToRetryOnTimeout:NumberOfTimesToRetryOnTimeout];
     
     if ([ASIS3Request sharedAccessKey] != nil && [ASIS3Request sharedSecretAccessKey] != nil) {
         return YES;
@@ -247,8 +253,10 @@
                 
             }else if ([[request responseHeaders] objectForKey:@"x-error-code"] != nil) {
                 [request setShowSubStatus:[[request responseHeaders] objectForKey:@"x-error-code"]];
-            }else if ([request responseStatusMessage] != nil) {
+            }else if ([request responseStatusMessage] != nil && ![[request showKind] isEqualToString:ASIS3RequestDownloadObject]) {
                 [request setShowSubStatus:[request responseStatusMessage]];
+            }else if ([[request showKind] isEqualToString:ASIS3RequestDownloadObject]) {
+                [request setShowSubStatus:@"File damaged."];
             }
             break;
             

@@ -258,12 +258,12 @@
                         <rect key="frame" x="3" y="2" width="16" height="16"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <connections>
-                            <binding destination="-2" name="hidden" keyPath="hasActiveOperations" id="190">
+                            <binding destination="-2" name="animate" keyPath="hasActiveRequest" id="2yl-K0-o63"/>
+                            <binding destination="-2" name="hidden" keyPath="hasActiveRequest" id="ybG-1v-48C">
                                 <dictionary key="options">
                                     <string key="NSValueTransformerName">NSNegateBoolean</string>
                                 </dictionary>
                             </binding>
-                            <binding destination="-2" name="animate" keyPath="hasActiveOperations" id="191"/>
                         </connections>
                     </progressIndicator>
                     <textField verticalHuggingPriority="750" id="172">
@@ -294,7 +294,7 @@
                         </connections>
                     </textField>
                     <textField verticalHuggingPriority="750" id="6ev-Dl-WEK">
-                        <rect key="frame" x="90" y="3" width="224" height="14"/>
+                        <rect key="frame" x="100" y="3" width="209" height="14"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <textFieldCell key="cell" controlSize="small" lineBreakMode="truncatingMiddle" sendsActionOnEndEditing="YES" alignment="left" title="prefix" id="lgM-vk-5Bi">
                             <font key="font" metaFont="smallSystem"/>
@@ -312,7 +312,7 @@
                         </connections>
                     </textField>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="9ca-Jd-SCa">
-                        <rect key="frame" x="11" y="3" width="89" height="14"/>
+                        <rect key="frame" x="21" y="3" width="89" height="14"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="current paht: /" id="juo-Is-bAi">
                             <font key="font" metaFont="smallSystem"/>
