@@ -26,6 +26,7 @@
 #import "ASIS3BucketObject+ShowName.h"
 #import "ASIS3Request+showValue.h"
 #import "LogObject.h"
+#import "S3OperationController.h"
 
 #define SHEET_CANCEL 0
 #define SHEET_OK 1
@@ -345,6 +346,10 @@
     //列文件
     if ([requestKind isEqualToString:ASIS3RequestListObject]) {
         
+        [self willChangeValueForKey:@"hasActiveRequest"];
+        [self hasActiveRequest];
+        [self didChangeValueForKey:@"hasActiveRequest"];
+        
         [self updateRequest:request forState:requestState];
         
         if (requestState == ASIS3RequestDone) {
@@ -442,6 +447,10 @@
     //上传、删除、重命名
     if ([requestKind isEqualToString:ASIS3RequestAddObject] || [requestKind isEqualToString:ASIS3RequestDeleteObject] || [requestKind isEqualToString:ASIS3RequestCopyObject]) {
         
+        [self willChangeValueForKey:@"hasActiveRequest"];
+        [self hasActiveRequest];
+        [self didChangeValueForKey:@"hasActiveRequest"];
+        
         [self updateRequest:request forState:requestState];
         
         if (requestState == ASIS3RequestDone) {
@@ -461,26 +470,64 @@
                         [self refresh:self];
                     }
                 }
+                
+                if ([requestKind isEqualToString:ASIS3RequestAddObject]) {
+                    [self cleanOperationTransferSpeedLog];
+                }
             }
         }else if (requestState == ASIS3RequestError) {
             NSLog(@"%@", [request error]);
+            
+            if ([requestKind isEqualToString:ASIS3RequestAddObject]) {
+                [self cleanOperationTransferSpeedLog];
+            }
         }
     }
     
     //下载
     if ([requestKind isEqualToString:ASIS3RequestDownloadObject]) {
         
+        [self willChangeValueForKey:@"hasActiveRequest"];
+        [self hasActiveRequest];
+        [self didChangeValueForKey:@"hasActiveRequest"];
+        
         [self updateRequest:request forState:requestState];
         
         if (requestState == ASIS3RequestDone) {
+            
             NSLog(@"finish download");
+            [self cleanOperationTransferSpeedLog];
+            
         }else if (requestState == ASIS3RequestError) {
+            
             NSLog(@"%@", [request error]);
             
             if ([[NSFileManager defaultManager] fileExistsAtPath:request.downloadDestinationPath]) {
                 [[NSFileManager defaultManager] removeItemAtPath:request.downloadDestinationPath error:NULL];
             }
+            
+            [self cleanOperationTransferSpeedLog];
         }
+    }
+}
+
+- (void)cleanOperationTransferSpeedLog {
+    
+    BOOL shouldCleanSpeedLog = YES;
+    NSArray *ops = [[[NSApp delegate] networkQueue] operations];
+    for (ASIS3Request *request in ops) {
+        if (([[request showKind] isEqualToString:ASIS3RequestAddObject] || [[request showKind] isEqualToString:ASIS3RequestDownloadObject]) &&
+            ([[request showStatus] isEqualToString:RequestUserInfoStatusActive] || [[request showSubStatus] isEqualToString:RequestUserInfoStatusPending]))
+        {
+            shouldCleanSpeedLog = NO;
+            break;
+        }
+    }
+    
+    if (shouldCleanSpeedLog) {
+        S3OperationController *logController = (S3OperationController *)[[[NSApp delegate] controllers] objectForKey:@"Console"];
+        NSTextField *textField = [[[logController window] contentView] viewWithTag:110];
+        [textField setStringValue:@""];
     }
 }
 
@@ -891,6 +938,12 @@
     [(ASIS3Request *)request setShowSubStatus:[NSString stringWithFormat:@"%.2f%%", (GLfloat)bytesDownloaded / (GLfloat)(resumeDownloadedFileSize + [request contentLength]) * 100.0]];
     
     [[(ASIS3Request *)request logObject] update];
+    
+    S3OperationController *logController = (S3OperationController *)[[[NSApp delegate] controllers] objectForKey:@"Console"];
+    NSTextField *textField = [[[logController window] contentView] viewWithTag:110];
+    NSNumber *speedNumber = [NSNumber numberWithUnsignedLong:[ASIS3Request averageBandwidthUsedPerSecond]];
+    [textField setStringValue:[NSString stringWithFormat:@"Transfer speed : %@/sec", [speedNumber readableFileSize]]];
+    
 }
 
 - (void)request:(ASIHTTPRequest *)request didSendBytes:(long long)bytes {
@@ -900,6 +953,11 @@
     [(ASIS3Request *)request setShowSubStatus:[NSString stringWithFormat:@"%.2f%%", (GLfloat)bytesUploaded / (GLfloat)[request postLength] * 100.0]];
     
     [[(ASIS3Request *)request logObject] update];
+    
+    S3OperationController *logController = (S3OperationController *)[[[NSApp delegate] controllers] objectForKey:@"Console"];
+    NSTextField *textField = [[[logController window] contentView] viewWithTag:110];
+    NSNumber *speedNumber = [NSNumber numberWithUnsignedLong:[ASIS3Request averageBandwidthUsedPerSecond]];
+    [textField setStringValue:[NSString stringWithFormat:@"Transfer speed : %@/sec", [speedNumber readableFileSize]]];
 }
 
 #pragma mark -

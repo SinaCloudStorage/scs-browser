@@ -142,6 +142,10 @@ enum {
     
     if ([requestKind isEqualToString:ASIS3RequestListBucket]) {
         
+        [self willChangeValueForKey:@"hasActiveRequest"];
+        [self hasActiveRequest];
+        [self didChangeValueForKey:@"hasActiveRequest"];
+        
         [self updateRequest:request forState:requestState];
         
         if (requestState == ASIS3RequestDone) {
@@ -161,6 +165,10 @@ enum {
     }
     
     if ([requestKind isEqualToString:ASIS3RequestAddBucket] || [requestKind isEqualToString:ASIS3RequestDeleteBucket]) {
+        
+        [self willChangeValueForKey:@"hasActiveRequest"];
+        [self hasActiveRequest];
+        [self didChangeValueForKey:@"hasActiveRequest"];
         
         [self updateRequest:request forState:requestState];
         
