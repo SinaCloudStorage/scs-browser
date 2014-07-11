@@ -481,6 +481,10 @@
             if ([requestKind isEqualToString:ASIS3RequestAddObject]) {
                 [self cleanOperationTransferSpeedLog];
             }
+        }else if (requestState == ASIS3RequestCanceled) {
+            if ([requestKind isEqualToString:ASIS3RequestAddObject]) {
+                [self cleanOperationTransferSpeedLog];
+            }
         }
     }
     
@@ -505,6 +509,10 @@
             if ([[NSFileManager defaultManager] fileExistsAtPath:request.downloadDestinationPath]) {
                 [[NSFileManager defaultManager] removeItemAtPath:request.downloadDestinationPath error:NULL];
             }
+            
+            [self cleanOperationTransferSpeedLog];
+            
+        }else if (requestState == ASIS3RequestCanceled) {
             
             [self cleanOperationTransferSpeedLog];
         }
