@@ -67,7 +67,7 @@ enum {
     return @[NSToolbarSeparatorItemIdentifier,
         NSToolbarSpaceItemIdentifier,
         NSToolbarFlexibleSpaceItemIdentifier,
-        @"Refresh", @"Remove", @"Add"];
+        @"Show", @"Refresh", @"Remove", @"Add"];
 }
 
 - (BOOL)validateToolbarItem:(NSToolbarItem *)theItem
@@ -79,7 +79,7 @@ enum {
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar
 {
-    return @[@"Add", @"Remove", NSToolbarFlexibleSpaceItemIdentifier, @"Refresh"]; 
+    return @[@"Add", @"Remove", NSToolbarFlexibleSpaceItemIdentifier, @"Refresh", @"Show"];
 }
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag
@@ -109,6 +109,14 @@ enum {
         [item setImage: [NSImage imageNamed: @"refresh.png"]];
         [item setTarget:self];
         [item setAction:@selector(refresh:)];
+    }
+    else if ([itemIdentifier isEqualToString: @"Show"])
+    {
+        [item setLabel: NSLocalizedString(@"Show", nil)];
+        [item setPaletteLabel: [item label]];
+        [item setImage: [NSImage imageNamed: @"show.png"]];
+        [item setTarget:self];
+        [item setAction:@selector(showUserWindow:)];
     }
     
     return item;
@@ -185,6 +193,81 @@ enum {
 
 #pragma mark -
 #pragma mark Actions
+
+- (IBAction)showUserWindow:(id)sender
+{
+    NSMenu *theMenu = [[NSMenu alloc] initWithTitle:@"Window controllers Menu"];
+    
+    [theMenu insertItemWithTitle:@"All" action:@selector(showWindowAll) keyEquivalent:@"" atIndex:0];
+    [theMenu insertItemWithTitle:@"Console" action:@selector(showWindowForBucket:) keyEquivalent:@"Console" atIndex:1];
+    
+    for (NSString *k in [[[NSApp delegate] controllers] allKeys]) {
+        
+        if (![k isEqualToString:@"Buckets"] && ![k isEqualToString:@"Console"]) {
+            
+            NSString *title = [NSString stringWithFormat:@"Bucket: %@", k];
+            [theMenu insertItemWithTitle:title action:@selector(showWindowForBucket:) keyEquivalent:k atIndex:[theMenu numberOfItems]];
+        }
+    }
+    
+    NSPoint myPoint = [[[self window] contentView] convertPoint:[[self window] convertScreenToBase:[NSEvent mouseLocation]] fromView:nil];
+    [theMenu popUpMenuPositioningItem:[theMenu itemAtIndex:0] atLocation:myPoint inView:[[self window] contentView]];
+}
+
+- (void)showWindowAll {
+    for (NSWindowController *c in [[[NSApp delegate] controllers] allValues]) {
+        [c showWindow:self];
+    }
+}
+
+- (void)showWindowForBucket:(id)sender {
+    
+    NSString *key = [(NSMenuItem *)sender keyEquivalent];
+    NSWindowController *wc = [[[NSApp delegate] controllers] objectForKey:key];
+    
+    if (wc && [wc isKindOfClass:[NSWindowController class]]) {
+        
+        [wc showWindow:[NSApp delegate]];
+        
+        NSScreen *mainScreen = [NSScreen mainScreen];
+        NSRect rectScreen = [mainScreen visibleFrame];
+        NSRect rectSelf = self.window.frame;
+        NSRect rectWC = wc.window.frame;
+        
+        NSRect rectPos;
+        
+        int rightMargin = rectScreen.size.width - (rectSelf.origin.x + rectSelf.size.width + 10);
+        int leftMargin = rectSelf.origin.x - 10 - rectScreen.origin.x;
+        
+        if (rightMargin >= rectWC.size.width) {
+            
+            rectPos = NSMakeRect(rectSelf.origin.x + rectSelf.size.width + 10,
+                                 rectSelf.origin.y + rectSelf.size.height - rectWC.size.height,
+                                 rectWC.size.width,
+                                 rectWC.size.height);
+            
+            if (rectPos.origin.y < 0) {
+                rectPos.origin.y = 0;
+            }
+            
+        }else if (rightMargin < rectWC.size.width && leftMargin >= rectWC.size.width) {
+            
+            rectPos = NSMakeRect(rectSelf.origin.x - 10 - rectWC.size.width,
+                                 rectSelf.origin.y + rectSelf.size.height - rectWC.size.height,
+                                 rectWC.size.width,
+                                 rectWC.size.height);
+            
+            if (rectPos.origin.y < 0) {
+                rectPos.origin.y = 0;
+            }
+            
+        }else {
+            return;
+        }
+        
+        [[wc window] setFrame:rectPos display:YES animate:YES];
+    }
+}
 
 - (IBAction)remove:(id)sender
 {
@@ -264,11 +347,11 @@ enum {
         } else {
             c = [[S3ObjectListController alloc] initWithWindowNibName:@"Objects"];
             [c setBucket:b];
-
             [c setConnInfo:[self connInfo]];
-            
             [c showWindow:self];            
             [_bucketListControllerCache setObject:c forKey:[b name]];
+            
+            [[[NSApp delegate] controllers] setObject:c forKey:[b name]];
         }
     }
 }

@@ -57,7 +57,6 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 
 @interface S3ApplicationDelegate () <S3ConnectionInfoDelegate, S3OperationQueueDelegate, S3ConnInfoDelegate>
 @property (nonatomic) S3LoginController* loginController;
-@property (nonatomic, assign) BOOL shouldReopen;
 @end
 
 @implementation S3ApplicationDelegate
@@ -120,7 +119,7 @@ NSString *RequestUserInfoStatusError =                  @"Error";
         
         _operationLog = [[S3OperationLog alloc] init];
         _authenticationCredentials = [[NSMutableDictionary alloc] init];
-        self.shouldReopen = NO;
+
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(finishedLaunching) name:NSApplicationDidFinishLaunchingNotification object:NSApp];
         
         [_networkQueue go];
@@ -136,14 +135,11 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)theApplication hasVisibleWindows:(BOOL)flag
 {
-    if (!flag) {
-    
-        self.shouldReopen = YES;
-        [[NSNotificationCenter defaultCenter] addObserver:self.loginController selector:@selector(asiS3RequestStateDidChange:) name:ASIS3RequestStateDidChangeNotification object:nil];
-        [self finishedLaunching];
-        return YES;
+    for (NSWindowController *c in [_controllers allValues]) {
+        [c showWindow:self];
     }
-    return NO;
+    
+    return YES;
 }
 
 - (IBAction)openConnection:(id)sender
@@ -169,20 +165,12 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
     NSNumber *useSSL = [standardUserDefaults objectForKey:@"useSSL"];
     
-    if (self.shouldReopen == NO) {
-        self.loginController = [[S3LoginController alloc] initWithWindowNibName:@"Authentication"];
-    }
+    self.loginController = [[S3LoginController alloc] initWithWindowNibName:@"Authentication"];
     
     S3ConnInfo *connInfo = [[S3ConnInfo alloc] initWithDelegate:self userInfo:nil secureConn:[useSSL boolValue]];
     [self.loginController setConnInfo:connInfo];
-	
-    if (self.shouldReopen == NO) {
-        [self.loginController showWindow:self];
-    }
-    
+    [self.loginController showWindow:self];
     [self.loginController connect:self];
-
-    self.shouldReopen = NO;
 }
 
 - (void)finishedLaunching
@@ -201,12 +189,6 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     } else {
         // Load the window to be ready for the console to be shown.
         [[_controllers objectForKey:@"Console"] window];
-    }
-    
-    if (self.shouldReopen == YES) {
-        
-        [self tryAutoLogin];
-        return;
     }
     
     if ([[standardUserDefaults objectForKey:@"autologin"] boolValue] == TRUE) {

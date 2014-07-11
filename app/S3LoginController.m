@@ -222,6 +222,7 @@
             }
             
             self.bucketListController = [[S3BucketListController alloc] initWithWindowNibName:@"Buckets"];
+            [[[NSApp delegate] controllers] setObject:self.bucketListController forKey:@"Buckets"];
             
             [self.bucketListController setConnInfo:[self connInfo]];
             [self.bucketListController setBuckets:[(ASIS3ServiceRequest *)request buckets]];
