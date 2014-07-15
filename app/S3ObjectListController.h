@@ -85,4 +85,6 @@
 - (NSMutableArray *)uploadData;
 - (void)setUploadData:(NSMutableArray *)data;
 
+- (BOOL)hasActiveRequest;
+
 @end

@@ -20,6 +20,7 @@
 @property (nonatomic, retain) NSString *showSubStatus;
 @property (nonatomic, retain) NSURL *showUrl;
 @property (nonatomic, retain) NSString *showRequestMethod;
+@property (nonatomic, retain) NSNumber *shouldRefresh;
 
 @property (nonatomic, assign) LogObject *logObject;
 
@@ -47,5 +48,8 @@
 
 - (void)setLogObject:(LogObject *)logObject;
 - (LogObject *)logObject;
+
+- (void)setShouldRefresh:(NSNumber *)inShouldRefresh;
+- (NSNumber *)shouldRefresh;
 
 @end

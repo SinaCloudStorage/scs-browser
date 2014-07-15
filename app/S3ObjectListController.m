@@ -39,6 +39,8 @@
 #define FILEDATA_TYPE @"mime"
 #define FILEDATA_SIZE @"size"
 
+#define MaxResultCountOnePage   1024
+
 @interface S3ObjectListController () <NSToolbarDelegate> {
 }
 
@@ -467,7 +469,10 @@
 
                 if (_canRefresh) {
                     if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"norefresh"] boolValue] == false) {
-                        [self refresh:self];
+                        
+                        if ([[request shouldRefresh] boolValue]) {
+                            [self refresh:self];
+                        }
                     }
                 }
                 
@@ -477,6 +482,10 @@
             }
         }else if (requestState == ASIS3RequestError) {
             NSLog(@"%@", [request error]);
+            
+            if ([[request shouldRefresh] boolValue]) {
+                [self refresh:self];
+            }
             
             if ([requestKind isEqualToString:ASIS3RequestAddObject]) {
                 [self cleanOperationTransferSpeedLog];
@@ -647,13 +656,14 @@
 - (IBAction)refresh:(id)sender
 {
     
-    NSArray *ops = [[[NSApp delegate] networkQueue] operations];
+    NSArray *ops = [[[NSApp delegate] networkRefreshQueue] operations];
     
     for (ASIS3Request *request in ops) {
         
         if ([request isKindOfClass:[ASIS3BucketRequest class]] &&
             [[request showKind] isEqualToString:ASIS3RequestListObject] &&
-            ([[request showStatus] isEqualToString:RequestUserInfoStatusActive] || [[request showSubStatus] isEqualToString:RequestUserInfoStatusPending]))
+            ([[request showStatus] isEqualToString:RequestUserInfoStatusActive] || [[request showSubStatus] isEqualToString:RequestUserInfoStatusPending]) &&
+            ([[(ASIS3BucketRequest *)request bucket] isEqualToString:self.bucket.name]))
         {
             return;
         }
@@ -665,7 +675,7 @@
     ASIS3BucketRequest *listRequest = [ASIS3BucketRequest requestWithBucket:[[self bucket] name]];
     [listRequest setDelimiter:@"/"];
     [listRequest setPrefix:_currentPrefix];
-    [listRequest setMaxResultCount:100];
+    [listRequest setMaxResultCount:MaxResultCountOnePage];
     [listRequest setShowKind:ASIS3RequestListObject];
     [listRequest setShowStatus:RequestUserInfoStatusPending];
     
@@ -715,13 +725,32 @@
         }
     }
     
-    NSEnumerator *e = [[_objectsController selectedObjects] objectEnumerator];
-    while (b = [e nextObject])
-    {
+//    NSEnumerator *e = [[_objectsController selectedObjects] objectEnumerator];
+//    while (b = [e nextObject])
+//    {
+//        ASIS3ObjectRequest *deleteObjectRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[[self bucket] name] key:[b key]];
+//        
+//        [deleteObjectRequest setShowKind:ASIS3RequestDeleteObject];
+//        [deleteObjectRequest setShowStatus:RequestUserInfoStatusPending];
+//        [_operations addObject:deleteObjectRequest];
+//    }
+    
+    
+        
+    for (int i=0; i<count; i++) {
+        
+        b = [[_objectsController selectedObjects] objectAtIndex:i];
+        
         ASIS3ObjectRequest *deleteObjectRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[[self bucket] name] key:[b key]];
         
         [deleteObjectRequest setShowKind:ASIS3RequestDeleteObject];
         [deleteObjectRequest setShowStatus:RequestUserInfoStatusPending];
+        if (i == count-1) {
+            [deleteObjectRequest setShouldRefresh:@YES];
+        }else {
+            [deleteObjectRequest setShouldRefresh:@NO];
+        }
+        
         [_operations addObject:deleteObjectRequest];
     }
     
@@ -818,7 +847,7 @@
     }
 }
 
-- (void)uploadFile:(NSDictionary *)data acl:(NSString *)acl
+- (void)uploadFile:(NSDictionary *)data acl:(NSString *)acl shouldRefresh:(BOOL)shouldRefresh
 {
     NSString *path = [data objectForKey:FILEDATA_PATH];
     NSString *key = [data objectForKey:FILEDATA_KEY];
@@ -850,17 +879,34 @@
     [uploadRequest setShowTransferedBytes:[NSString stringWithFormat:@"%d", 0]];
     [uploadRequest setShowSubStatus:@""];
     
+    if (shouldRefresh) {
+        [uploadRequest setShouldRefresh:@YES];
+    }else {
+        [uploadRequest setShouldRefresh:@NO];
+    }
+    
     [_operations addObject:uploadRequest];
 }
 
 - (void)uploadFiles
 {	
-    NSEnumerator *e = [[self uploadData] objectEnumerator];
+//    NSEnumerator *e = [[self uploadData] objectEnumerator];
     NSDictionary *data;
 
-    while (data = [e nextObject]) {
-        [self uploadFile:data acl:[self uploadACL]];
+    if ([[self uploadData] count] > 1) {
+        
+        for (int i=0; i<[[self uploadData] count]-1; i++) {
+            
+            data = [[self uploadData] objectAtIndex:i];
+            [self uploadFile:data acl:[self uploadACL] shouldRefresh:NO];
+        }
     }
+    
+    data = [[self uploadData] objectAtIndex:[[self uploadData] count]-1];
+    [self uploadFile:data acl:[self uploadACL] shouldRefresh:YES];
+    
+//    while (data = [e nextObject]) {
+//    }
     
     [self addOperations];
 }
@@ -1085,6 +1131,27 @@
 - (NSString *)currentPrefix {
     
     return _currentPrefix;
+}
+
+- (BOOL)hasActiveRequest {
+    
+    for (ASIS3Request *request in [[[NSApp delegate] networkQueue] operations]) {
+        
+        if (([request isKindOfClass:[ASIS3BucketRequest class]] && [[(ASIS3BucketRequest *)request bucket] isEqualToString:self.bucket.name]) ||
+            ([request isKindOfClass:[ASIS3ObjectRequest class]] && [[(ASIS3ObjectRequest *)request bucket] isEqualToString:self.bucket.name])) {
+            
+            return YES;
+        }
+    }
+    
+    for (ASIS3Request *request in [[[NSApp delegate] networkRefreshQueue] operations]) {
+        
+        if ([request isKindOfClass:[ASIS3BucketRequest class]] && [[(ASIS3BucketRequest *)request bucket] isEqualToString:self.bucket.name]) {
+            return YES;
+        }
+    }
+    
+    return NO;
 }
 
 #pragma mark -

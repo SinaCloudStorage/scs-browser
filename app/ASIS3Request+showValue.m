@@ -19,6 +19,7 @@ static char subStatusKey;
 static char urlKey;
 static char requestMethodKey;
 static char logObjectKey;
+static char shouldRefreshKey;
 
 - (void)setLogObject:(LogObject *)logObject {
     objc_setAssociatedObject(self, &logObjectKey, logObject, OBJC_ASSOCIATION_ASSIGN);
@@ -88,6 +89,14 @@ static char logObjectKey;
 
 - (NSString *)showRequestMethod {
     return objc_getAssociatedObject(self, &requestMethodKey);
+}
+
+- (void)setShouldRefresh:(NSNumber *)inShouldRefresh {
+    objc_setAssociatedObject(self, &shouldRefreshKey, inShouldRefresh, OBJC_ASSOCIATION_RETAIN);
+}
+
+- (NSNumber *)shouldRefresh {
+    return objc_getAssociatedObject(self, &shouldRefreshKey);
 }
 
 

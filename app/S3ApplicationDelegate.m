@@ -123,6 +123,17 @@ NSString *RequestUserInfoStatusError =                  @"Error";
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(finishedLaunching) name:NSApplicationDidFinishLaunchingNotification object:NSApp];
         
         [_networkQueue go];
+        
+        _networkRefreshQueue = [ASINetworkQueue queue];
+        [_networkRefreshQueue setDelegate:self];
+        [_networkRefreshQueue setShouldCancelAllRequestsOnFailure:NO];
+        [_networkRefreshQueue setRequestDidFailSelector:@selector(requestDidFailSelector:)];
+        [_networkRefreshQueue setRequestDidFinishSelector:@selector(requestDidFinishSelector:)];
+        [_networkRefreshQueue setRequestDidReceiveResponseHeadersSelector:@selector(requestDidReceiveResponseHeadersSelector:)];
+        [_networkRefreshQueue setRequestDidStartSelector:@selector(requestDidStartSelector:)];
+        [_networkRefreshQueue setRequestWillRedirectSelector:@selector(requestWillRedirectSelector:)];
+        [_networkRefreshQueue setMaxConcurrentOperationCount:1000];
+        [_networkRefreshQueue go];
     }
     
     return self;
@@ -299,6 +310,11 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 - (ASINetworkQueue *)networkQueue {
     
     return _networkQueue;
+}
+
+- (ASINetworkQueue *)networkRefreshQueue {
+    
+    return _networkRefreshQueue;
 }
 
 - (void)postNotificationWithRequest:(ASIS3Request *)request state:(ASIS3RequestState)state {

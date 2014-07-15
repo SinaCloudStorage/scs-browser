@@ -167,7 +167,12 @@
     
     for (ASIS3Request *o in _operations) {
         if ([self configureRequest:o]) {
-            [[[NSApp delegate] networkQueue] addOperation:o];
+            
+            if ([[o showKind] isEqualToString:ASIS3RequestListObject]) {
+                [[[NSApp delegate] networkRefreshQueue] addOperation:o];
+            }else {
+                [[[NSApp delegate] networkQueue] addOperation:o];
+            }
         }
     }
     
@@ -180,9 +185,7 @@
 
 - (BOOL)hasActiveRequest {
     
-    //NSLog(@"%d,%lu", [[[NSApp delegate] networkQueue] requestsCount], [[[NSApp delegate] networkQueue] operationCount]);
-    //return YES;
-    return ([[[NSApp delegate] networkQueue] requestsCount] > 0);
+    return ([[[NSApp delegate] networkQueue] requestsCount] > 0) || ([[[NSApp delegate] networkRefreshQueue] requestsCount] > 0);
 }
 
 - (BOOL)configureRequest:(ASIS3Request *)request {
