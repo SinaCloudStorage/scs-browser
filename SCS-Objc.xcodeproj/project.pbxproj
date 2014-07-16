@@ -93,6 +93,7 @@
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		AD0C174F196FEBA6004D4457 /* show.png in Resources */ = {isa = PBXBuildFile; fileRef = AD0C174E196FEBA6004D4457 /* show.png */; };
+		AD0C17511976382D004D4457 /* removeAll.png in Resources */ = {isa = PBXBuildFile; fileRef = AD0C17501976382D004D4457 /* removeAll.png */; };
 		AD905D41195C20C4002CAC70 /* info.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D40195C20C4002CAC70 /* info.png */; };
 		AD905D43195C277F002CAC70 /* upload.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D42195C277F002CAC70 /* upload.png */; };
 		AD905D4B195C2FC1002CAC70 /* add.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D44195C2FC1002CAC70 /* add.png */; };
@@ -189,6 +190,7 @@
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* SCS Browser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SCS Browser.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD0C174E196FEBA6004D4457 /* show.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = show.png; path = Resources/show.png; sourceTree = "<group>"; };
+		AD0C17501976382D004D4457 /* removeAll.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = removeAll.png; path = Resources/removeAll.png; sourceTree = "<group>"; };
 		AD905D40195C20C4002CAC70 /* info.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = info.png; path = Resources/info.png; sourceTree = "<group>"; };
 		AD905D42195C277F002CAC70 /* upload.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = upload.png; path = Resources/upload.png; sourceTree = "<group>"; };
 		AD905D44195C2FC1002CAC70 /* add.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = add.png; path = Resources/add.png; sourceTree = "<group>"; };
@@ -374,6 +376,7 @@
 				AD905D52195D69FE002CAC70 /* app.icns */,
 				AD905D44195C2FC1002CAC70 /* add.png */,
 				AD905D45195C2FC1002CAC70 /* delete.png */,
+				AD0C17501976382D004D4457 /* removeAll.png */,
 				AD905D46195C2FC1002CAC70 /* download.png */,
 				AD905D47195C2FC1002CAC70 /* refresh.png */,
 				AD905D48195C2FC1002CAC70 /* rename.png */,
@@ -651,6 +654,7 @@
 				AD905D50195C2FC1002CAC70 /* stop.png in Resources */,
 				778B5E0709E18F30002AF32D /* Buckets.nib in Resources */,
 				777CB0AC09E5E85C003E37C9 /* Authentication.nib in Resources */,
+				AD0C17511976382D004D4457 /* removeAll.png in Resources */,
 				AD905D4F195C2FC1002CAC70 /* rename.png in Resources */,
 				AD905D43195C277F002CAC70 /* upload.png in Resources */,
 				77BC305B09E8009A0055FD75 /* Operations.nib in Resources */,

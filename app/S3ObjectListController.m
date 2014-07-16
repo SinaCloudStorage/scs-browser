@@ -117,7 +117,7 @@
     if ([[theItem itemIdentifier] isEqualToString: @"Remove All"]) {
         
         //TODO:暂时禁用
-        return NO;
+        return YES;
         //return [[_objectsController arrangedObjects] count] > 0;
         
     } else if ([[theItem itemIdentifier] isEqualToString: @"Remove"]) {
@@ -181,7 +181,7 @@
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar
 {
     //return @[@"Upload", @"Download", @"Rename", @"Remove", NSToolbarSeparatorItemIdentifier,  @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
-    return @[@"Upload", @"Download", @"Rename", @"Remove", NSToolbarSeparatorItemIdentifier, NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
+    return @[@"Upload", @"Download", @"Rename", @"Remove", NSToolbarSeparatorItemIdentifier, @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
 }
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL) flag
@@ -212,14 +212,14 @@
         [item setTarget:self];
         [item setAction:@selector(remove:)];
     }
-//    else if ([itemIdentifier isEqualToString: @"Remove All"])
-//    {
-//        [item setLabel: NSLocalizedString(@"Remove All", nil)];
-//        [item setPaletteLabel: [item label]];
-//        [item setImage: [NSImage imageNamed: @"delete.png"]];
-//        [item setTarget:self];
-//        [item setAction:@selector(removeAll:)];
-//    }
+    else if ([itemIdentifier isEqualToString: @"Remove All"])
+    {
+        [item setLabel: NSLocalizedString(@"Remove All", nil)];
+        [item setPaletteLabel: [item label]];
+        [item setImage: [NSImage imageNamed: @"removeAll.png"]];
+        [item setTarget:self];
+        [item setAction:@selector(removeAll:)];
+    }
     else if ([itemIdentifier isEqualToString: @"Refresh"])
     {
         [item setLabel: NSLocalizedString(@"Refresh", nil)];
@@ -355,6 +355,28 @@
         [self updateRequest:request forState:requestState];
         
         if (requestState == ASIS3RequestDone) {
+            
+            //Delete all list
+            if ([[request isListForDeleteAll] boolValue]) {
+                
+                NSArray *objArray = [(ASIS3BucketRequest *)request objects];
+                
+                for (int i=0; i<[objArray count]; i++) {
+                    ASIS3BucketObject *o = [objArray objectAtIndex:i];
+                    ASIS3ObjectRequest *deleteRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[(ASIS3BucketRequest *)request bucket] key:[o key]];
+                    [deleteRequest setShowKind:ASIS3RequestDeleteObject];
+                    [deleteRequest setShowStatus:RequestUserInfoStatusPending];
+                    
+                    if (i == [objArray count]-1) {
+                        [deleteRequest setShouldRefresh:@YES];
+                    }
+                    
+                    [_operations addObject:deleteRequest];
+                }
+                [self addOperations];
+
+                return;
+            }
             
             _prefixArray = [(ASIS3BucketRequest *)request commonPrefixes];
             [self setCurrentPrefix:[(ASIS3BucketRequest *)request prefix]];
@@ -695,16 +717,24 @@
         return;
     }
     
-    ASIS3BucketObject *b;
-    NSEnumerator *e = [[_objectsController arrangedObjects] objectEnumerator];
-        
-    while (b = [e nextObject])
-    {
-        ASIS3ObjectRequest *deleteObjectRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[[self bucket] name] key:[b key]];
-        [deleteObjectRequest setShowKind:ASIS3RequestDeleteObject];
-        [deleteObjectRequest setShowStatus:RequestUserInfoStatusPending];
-        //[self addToCurrentNetworkQueue:deleteObjectRequest];
-    }
+//    ASIS3BucketObject *b;
+//    NSEnumerator *e = [[_objectsController arrangedObjects] objectEnumerator];
+//        
+//    while (b = [e nextObject])
+//    {
+//        ASIS3ObjectRequest *deleteObjectRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[[self bucket] name] key:[b key]];
+//        [deleteObjectRequest setShowKind:ASIS3RequestDeleteObject];
+//        [deleteObjectRequest setShowStatus:RequestUserInfoStatusPending];
+//        //[self addToCurrentNetworkQueue:deleteObjectRequest];
+//    }
+    
+    ASIS3BucketRequest *listRequest = [ASIS3BucketRequest requestWithBucket:[[self bucket] name]];
+    [listRequest setShowKind:ASIS3RequestListObject];
+    [listRequest setShowStatus:RequestUserInfoStatusPending];
+    [listRequest setIsListForDeleteAll:@YES];
+    
+    [_operations addObject:listRequest];
+    [self addOperations];
 }
 
 - (IBAction)remove:(id)sender

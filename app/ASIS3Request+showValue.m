@@ -20,6 +20,7 @@ static char urlKey;
 static char requestMethodKey;
 static char logObjectKey;
 static char shouldRefreshKey;
+static char isListForDeleteAllKey;
 
 - (void)setLogObject:(LogObject *)logObject {
     objc_setAssociatedObject(self, &logObjectKey, logObject, OBJC_ASSOCIATION_ASSIGN);
@@ -99,5 +100,12 @@ static char shouldRefreshKey;
     return objc_getAssociatedObject(self, &shouldRefreshKey);
 }
 
+- (void)setIsListForDeleteAll:(NSNumber *)inIsListForDeleteAll {
+    objc_setAssociatedObject(self, &isListForDeleteAllKey, inIsListForDeleteAll, OBJC_ASSOCIATION_RETAIN);
+}
+
+- (NSNumber *)isListForDeleteAll {
+    return objc_getAssociatedObject(self, &isListForDeleteAllKey);
+}
 
 @end

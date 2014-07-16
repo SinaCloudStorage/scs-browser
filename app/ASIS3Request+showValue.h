@@ -21,6 +21,7 @@
 @property (nonatomic, retain) NSURL *showUrl;
 @property (nonatomic, retain) NSString *showRequestMethod;
 @property (nonatomic, retain) NSNumber *shouldRefresh;
+@property (nonatomic, retain) NSNumber *isListForDeleteAll;
 
 @property (nonatomic, assign) LogObject *logObject;
 
@@ -51,5 +52,8 @@
 
 - (void)setShouldRefresh:(NSNumber *)inShouldRefresh;
 - (NSNumber *)shouldRefresh;
+
+- (void)setIsListForDeleteAll:(NSNumber *)inIsListForDeleteAll;
+- (NSNumber *)isListForDeleteAll;
 
 @end
