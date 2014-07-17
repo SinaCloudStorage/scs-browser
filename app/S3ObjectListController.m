@@ -484,6 +484,7 @@
                                                                                             key:[(ASIS3ObjectRequest *)request sourceKey]];
                 [deleteRequest setShowKind:ASIS3RequestDeleteObject];
                 [deleteRequest setShowStatus:RequestUserInfoStatusPending];
+                [deleteRequest setShouldRefresh:@YES];
                 [_operations addObject:deleteRequest];
                 [self addOperations];
                 
