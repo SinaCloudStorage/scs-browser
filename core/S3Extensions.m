@@ -10,7 +10,7 @@
 #import "S3Extensions.h"
 #import <CommonCrypto/CommonCrypto.h>
 
-#define maxFilesNumberInDirectoryToUpload   2000
+#define maxFilesNumberInDirectoryToUpload   2048
 
 @implementation NSArray (Comfort)
 

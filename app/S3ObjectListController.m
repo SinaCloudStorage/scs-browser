@@ -614,7 +614,7 @@
     
     if (hasTooManyFiles) {
         
-        NSAlert *alert = [NSAlert alertWithMessageText:@"目录包含文件过多（不能超过1000个）"
+        NSAlert *alert = [NSAlert alertWithMessageText:@"目录包含文件过多（不能超过2048个）"
                                          defaultButton:@"OK" alternateButton:nil
                                            otherButton:nil informativeTextWithFormat:@"请重新分批上传"];
         
