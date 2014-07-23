@@ -92,7 +92,8 @@
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		AD0C174F196FEBA6004D4457 /* show.png in Resources */ = {isa = PBXBuildFile; fileRef = AD0C174E196FEBA6004D4457 /* show.png */; };
 		AD0C17511976382D004D4457 /* removeAll.png in Resources */ = {isa = PBXBuildFile; fileRef = AD0C17501976382D004D4457 /* removeAll.png */; };
-		AD0C175B197F6E91004D4457 /* ASIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD0C175A197F6E91004D4457 /* ASIKit.framework */; };
+		AD0C175D197FA58A004D4457 /* ASIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD0C175A197F6E91004D4457 /* ASIKit.framework */; };
+		AD0C175F197FA62B004D4457 /* ASIKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = AD0C175A197F6E91004D4457 /* ASIKit.framework */; };
 		AD905D41195C20C4002CAC70 /* info.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D40195C20C4002CAC70 /* info.png */; };
 		AD905D43195C277F002CAC70 /* upload.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D42195C277F002CAC70 /* upload.png */; };
 		AD905D4B195C2FC1002CAC70 /* add.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D44195C2FC1002CAC70 /* add.png */; };
@@ -116,6 +117,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				AD0C175F197FA62B004D4457 /* ASIKit.framework in CopyFiles */,
 				3F6BC6F3191789E0007F14B6 /* S3Kit.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -268,11 +270,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AD0C175D197FA58A004D4457 /* ASIKit.framework in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				777D0D2D0A332CB4003CABA0 /* Security.framework in Frameworks */,
 				306299E50A953E0A00634B34 /* SystemConfiguration.framework in Frameworks */,
 				1B6DBA9915B2C28000718490 /* S3Kit.framework in Frameworks */,
-				AD0C175B197F6E91004D4457 /* ASIKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
