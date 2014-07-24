@@ -26,7 +26,7 @@
 
 @interface NSArray (Comfort)
 
-- (NSArray *)expandPaths;
+- (NSArray *) expandPaths:(BOOL *)hasTooManyFiles;
 - (BOOL)hasObjectSatisfying:(SEL)aSelector withArgument:(id)argument;
 
 @end

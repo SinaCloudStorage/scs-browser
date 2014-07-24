@@ -110,7 +110,7 @@
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <scroller key="verticalScroller" verticalHuggingPriority="750" horizontal="NO" id="198">
-                            <rect key="frame" x="450" y="17" width="16" height="251"/>
+                            <rect key="frame" x="451" y="17" width="15" height="251"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <tableHeaderView key="headerView" id="197">
@@ -173,8 +173,8 @@
                         <rect key="frame" x="4" y="3" width="16" height="16"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <connections>
-                            <binding destination="-2" name="animate" keyPath="hasActiveOperations" id="131"/>
-                            <binding destination="-2" name="hidden" keyPath="hasActiveOperations" id="132">
+                            <binding destination="-2" name="animate" keyPath="hasActiveRequest" id="uSK-iy-ubJ"/>
+                            <binding destination="-2" name="hidden" keyPath="hasActiveRequest" id="UXQ-ii-Hsw">
                                 <dictionary key="options">
                                     <string key="NSValueTransformerName">NSNegateBoolean</string>
                                 </dictionary>

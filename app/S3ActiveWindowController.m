@@ -16,6 +16,10 @@
 #import "S3OperationLog.h"
 #import "S3OperationController.h"
 
+#import "ASIS3Request+showValue.h"
+
+#define NumberOfTimesToRetryOnTimeout   3
+
 @interface S3ActiveWindowController ()
 
 @end
@@ -24,6 +28,7 @@
 
 - (void)awakeFromNib
 {
+    _logObjects = [[NSMutableArray alloc] init];
     _operations = [[NSMutableArray alloc] init];
     _redirectConnectionInfoMappings = [[NSMutableDictionary alloc] init];
     
@@ -112,16 +117,6 @@
 
 #pragma mark -
 
-- (void)addToCurrentOperations:(S3Operation *)op
-{
-    /*
-	if ([[[NSApp delegate] queue] addToCurrentOperations:op]) {
-		[_operations addObject:op];
-        [[[NSApp delegate] operationLog] logOperation:op];
-    }
-     */
-}
-
 - (BOOL)hasActiveOperations
 {
 	return ([_operations count] > 0);
@@ -150,20 +145,47 @@
     _connInfo = aConnInfo;
 }
 
-- (void)addToCurrentNetworkQueue:(ASIS3Request *)request {
+- (void)addOperations {
     
-    if ([self configureRequest:request]) {
+    LogObject *obj = nil;
+    
+    for (ASIS3Request *o in _operations) {
         
-        [[[NSApp delegate] networkQueue] addOperation:request];
-        [[[NSApp delegate] operationLog] logOperation:request];
+        obj = [[LogObject alloc] initWithRequest:o];
+        [o setLogObject:obj];
+        [obj update];
         
-        S3OperationController *controller = [[[NSApp delegate] controllers] objectForKey:@"Console"];
-        [controller scrollToEnd];
+        [_logObjects addObject:obj];
     }
+    
+    [self commit];
+}
+
+- (void)commit {
+    
+    [[[NSApp delegate] operationLog] logOperations:_logObjects];
+    
+    for (ASIS3Request *o in _operations) {
+        if ([self configureRequest:o]) {
+            
+            if ([[o showKind] isEqualToString:ASIS3RequestListObject]) {
+                [[[NSApp delegate] networkRefreshQueue] addOperation:o];
+            }else {
+                [[[NSApp delegate] networkQueue] addOperation:o];
+            }
+        }
+    }
+    
+    [_logObjects removeAllObjects];
+    [_operations removeAllObjects];
+    
+    S3OperationController *controller = [[[NSApp delegate] controllers] objectForKey:@"Console"];
+    [controller scrollToEnd];
 }
 
 - (BOOL)hasActiveRequest {
-    return ([[[NSApp delegate] networkQueue] requestsCount] > 0);
+    
+    return ([[[NSApp delegate] networkQueue] requestsCount] > 0) || ([[[NSApp delegate] networkRefreshQueue] requestsCount] > 0);
 }
 
 - (BOOL)configureRequest:(ASIS3Request *)request {
@@ -172,63 +194,72 @@
         return NO;
     }
     
+    if ([[self connInfo] secureConn]) {
+        [request setRequestScheme:ASIS3RequestSchemeHTTPS];
+    }else {
+        [request setRequestScheme:ASIS3RequestSchemeHTTP];
+    }
+    [request setNumberOfTimesToRetryOnTimeout:NumberOfTimesToRetryOnTimeout];
+    
+    if ([ASIS3Request sharedAccessKey] != nil && [ASIS3Request sharedSecretAccessKey] != nil) {
+        return YES;
+    }
+    
     if ([self connInfo].delegate && [[[self connInfo] delegate] respondsToSelector:@selector(accessKeyForConnInfo:)]) {
-        
-        [request setAccessKey:[[[self connInfo] delegate] accessKeyForConnInfo:[self connInfo]]];
+        [ASIS3Request setSharedAccessKey:[[[self connInfo] delegate] accessKeyForConnInfo:[self connInfo]]];
     }
     
     if ([self connInfo].delegate && [[[self connInfo] delegate] respondsToSelector:@selector(secretAccessKeyForConnInfo:)]) {
-        
-        [request setSecretAccessKey:[[[self connInfo] delegate] secretAccessKeyForConnInfo:[self connInfo]]];
+        [ASIS3Request setSharedSecretAccessKey:[[[self connInfo] delegate] secretAccessKeyForConnInfo:[self connInfo]]];
     }
     
-    return [request accessKey] && [request secretAccessKey] ? YES : NO;
+    return [ASIS3Request sharedAccessKey] && [ASIS3Request sharedSecretAccessKey] ? YES : NO;
 }
 
 - (void)updateRequest:(ASIS3Request *)request forState:(int)state {
     
-    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
-    
     switch (state) {
             
         case ASIS3RequestPending:
-            [dict setValue:RequestUserInfoStatusPending forKey:RequestUserInfoStatusKey];
+            [request setShowStatus:RequestUserInfoStatusPending];
             break;
             
         case ASIS3RequestActive:
         case ASIS3RequestReceiveResponseHeaders:
-            [dict setValue:RequestUserInfoStatusActive forKey:RequestUserInfoStatusKey];
+            [request setShowStatus:RequestUserInfoStatusActive];
             break;
             
         case ASIS3RequestCanceled:
-            [dict setValue:RequestUserInfoStatusCanceled forKey:RequestUserInfoStatusKey];
-            [dict setValue:[[[request error] userInfo] objectForKey:NSLocalizedDescriptionKey] forKey:RequestUserInfoSubStatusKey];
+            [request setShowStatus:RequestUserInfoStatusCanceled];
+            [request setShowSubStatus:[[[request error] userInfo] objectForKey:NSLocalizedDescriptionKey]];
             break;
             
         case ASIS3RequestDone:
-            [dict setValue:RequestUserInfoStatusDone forKey:RequestUserInfoStatusKey];
-            [dict setValue:@"" forKey:RequestUserInfoSubStatusKey];
+            [request setShowStatus:RequestUserInfoStatusDone];
+            [request setShowSubStatus:@""];
             break;
             
         case ASIS3RequestRequiresRedirect:
-            [dict setValue:RequestUserInfoStatusRequiresRedirect forKey:RequestUserInfoStatusKey];
+            [request setShowStatus:RequestUserInfoStatusRequiresRedirect];
             break;
             
         case ASIS3RequestError:
-            [dict setValue:RequestUserInfoStatusError forKey:RequestUserInfoStatusKey];
+            [request setShowStatus:RequestUserInfoStatusError];
             
             if ([request error] != nil) {
                 
                 if ([request responseStatusMessage] != nil && [request responseStatusCode] == 413) {
-                    [dict setValue:[request responseStatusMessage] forKey:RequestUserInfoSubStatusKey];
+                    [request setShowSubStatus:[request responseStatusMessage]];
                 }else {
-                    [dict setValue:[[[request error] userInfo] objectForKey:NSLocalizedDescriptionKey] forKey:RequestUserInfoSubStatusKey];
+                    [request setShowSubStatus:[[[request error] userInfo] objectForKey:NSLocalizedDescriptionKey]];
                 }
                 
             }else if ([[request responseHeaders] objectForKey:@"x-error-code"] != nil) {
-                [dict setValue:[[request responseHeaders] objectForKey:@"x-error-code"] forKey:RequestUserInfoSubStatusKey];
-            }else if ([request responseStatusMessage] != nil) {
-                [dict setValue:[request responseStatusMessage] forKey:RequestUserInfoSubStatusKey];
+                [request setShowSubStatus:[[request responseHeaders] objectForKey:@"x-error-code"]];
+            }else if ([request responseStatusMessage] != nil && ![[request showKind] isEqualToString:ASIS3RequestDownloadObject]) {
+                [request setShowSubStatus:[request responseStatusMessage]];
+            }else if ([[request showKind] isEqualToString:ASIS3RequestDownloadObject]) {
+                [request setShowSubStatus:@"File damaged."];
             }
             break;
             
@@ -236,7 +267,7 @@
             break;
     }
     
-    [request setUserInfo:dict];
+    [[request logObject] update];
 }
 
 - (void)asiS3RequestStateDidChange:(NSNotification *)notification {

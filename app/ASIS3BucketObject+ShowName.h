@@ -14,6 +14,7 @@
 @property (retain) NSString *prefix;
 
 @property (retain) NSImage *icon;
+@property (retain, readonly) NSNumber *sizeNumber;
 
 - (NSString *)showName;
 
@@ -22,5 +23,9 @@
 
 - (NSImage *)icon;
 - (void)setIcon:(NSImage *)image;
+
+- (NSNumber *)sizeNumber;
+- (NSString *)objetType;
+- (void)setObjetType:(NSString *)type;
 
 @end

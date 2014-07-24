@@ -258,11 +258,11 @@
         <window title="Panel" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="457" userLabel="Preferences" customClass="NSPanel">
             <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="213" y="416" width="365" height="208"/>
+            <rect key="contentRect" x="213" y="416" width="393" height="208"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1058"/>
             <value key="minSize" type="size" width="365" height="107"/>
             <view key="contentView" id="458">
-                <rect key="frame" x="0.0" y="0.0" width="365" height="208"/>
+                <rect key="frame" x="0.0" y="0.0" width="393" height="208"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <button id="459">
@@ -307,8 +307,17 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
+                    <textField verticalHuggingPriority="750" id="KP7-kr-lU8">
+                        <rect key="frame" x="250" y="51" width="139" height="17"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="(work on restart app)" id="q8Z-cN-Rbn">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
                     <textField verticalHuggingPriority="750" id="485">
-                        <rect key="frame" x="236" y="47" width="21" height="17"/>
+                        <rect key="frame" x="232" y="51" width="21" height="17"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="4" placeholderString="4" id="534">
                             <font key="font" metaFont="system"/>
@@ -324,7 +333,7 @@
                         </connections>
                     </textField>
                     <slider verticalHuggingPriority="750" id="492">
-                        <rect key="frame" x="39" y="26" width="292" height="17"/>
+                        <rect key="frame" x="39" y="26" width="334" height="17"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <sliderCell key="cell" controlSize="small" continuous="YES" alignment="left" minValue="1" maxValue="8" doubleValue="4" tickMarkPosition="below" numberOfTickMarks="8" allowsTickMarkValuesOnly="YES" sliderType="linear" id="535">
                             <font key="font" size="12" name="Helvetica"/>

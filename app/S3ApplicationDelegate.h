@@ -59,6 +59,7 @@ typedef NS_ENUM (NSUInteger, ASIS3RequestState) {
     NSMutableDictionary *_authenticationCredentials;
     
     ASINetworkQueue *_networkQueue;
+    ASINetworkQueue *_networkRefreshQueue;
 }
 
 - (IBAction)openConnection:(id)sender;
@@ -67,6 +68,7 @@ typedef NS_ENUM (NSUInteger, ASIS3RequestState) {
 - (S3OperationLog *)operationLog;
 
 - (ASINetworkQueue *)networkQueue;
+- (ASINetworkQueue *)networkRefreshQueue;
 
 - (NSMutableDictionary *)controllers;
 

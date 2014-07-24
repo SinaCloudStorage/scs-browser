@@ -12,6 +12,8 @@
 #import "S3ListBucketOperation.h"
 #import "S3OperationQueue.h"
 
+#import "ASIS3Request+showValue.h"
+
 #import <ASIKit/ASIKit.h>
 
 // C-string, as it is only used in Keychain Services
@@ -109,19 +111,31 @@
 
 - (IBAction)connect:(id)sender
 {
-    if (accessKeyID == nil && secretAccessKeyID == nil) {
+    accessKeyID = [[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_USER];
+    
+    if (accessKeyID == nil || secretAccessKeyID == nil) {
         return;
     }
-    accessKeyID = [[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_USER];
+    //accessKeyID = [[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_USER];
     
     NSDictionary *authDict = @{@"accessKey": accessKeyID, @"secretAccessKey": secretAccessKeyID};
     
     [[NSApp delegate] setAuthenticationCredentials:authDict forConnectionInfo:[self connInfo]];
     
     
+    if ([self connInfo].delegate && [[[self connInfo] delegate] respondsToSelector:@selector(accessKeyForConnInfo:)]) {
+        [ASIS3Request setSharedAccessKey:[[[self connInfo] delegate] accessKeyForConnInfo:[self connInfo]]];
+    }
+    
+    if ([self connInfo].delegate && [[[self connInfo] delegate] respondsToSelector:@selector(secretAccessKeyForConnInfo:)]) {
+        [ASIS3Request setSharedSecretAccessKey:[[[self connInfo] delegate] secretAccessKeyForConnInfo:[self connInfo]]];
+    }
+    
     ASIS3ServiceRequest *request = [ASIS3ServiceRequest serviceRequest];
-    [request setUserInfo:@{RequestUserInfoKindKey:ASIS3RequestListBucket, RequestUserInfoStatusKey:RequestUserInfoStatusPending}];
-    [self addToCurrentNetworkQueue:request];
+    [request setShowKind:ASIS3RequestListBucket];
+    [request setShowStatus:RequestUserInfoStatusPending];
+    [_operations addObject:request];
+    [self addOperations];
 }
 
 - (IBAction)openHelpPage:(id)sender
@@ -194,11 +208,12 @@
     
     ASIS3Request *request = [[notification userInfo] objectForKey:ASIS3RequestKey];
     ASIS3RequestState requestState = [[[notification userInfo] objectForKey:ASIS3RequestStateKey] unsignedIntegerValue];
-    
-    [self updateRequest:request forState:requestState];
-    NSString *requestKind = [[request userInfo] objectForKey:RequestUserInfoKindKey];
+
+    NSString *requestKind = [request showKind];
     
     if ([requestKind isEqualToString:ASIS3RequestListBucket]) {
+        
+        [self updateRequest:request forState:requestState];
         
         if (requestState == ASIS3RequestDone) {
             
@@ -207,6 +222,7 @@
             }
             
             self.bucketListController = [[S3BucketListController alloc] initWithWindowNibName:@"Buckets"];
+            [[[NSApp delegate] controllers] setObject:self.bucketListController forKey:@"Buckets"];
             
             [self.bucketListController setConnInfo:[self connInfo]];
             [self.bucketListController setBuckets:[(ASIS3ServiceRequest *)request buckets]];
@@ -220,7 +236,10 @@
             [self.bucketListController showWindow:self];
             
             [self close];
-            [[NSNotificationCenter defaultCenter] removeObserver:self name:ASIS3RequestStateDidChangeNotification object:nil];
+            
+            if (self && [self window] && ![[self window] isVisible]) {
+                [[NSNotificationCenter defaultCenter] removeObserver:self name:ASIS3RequestStateDidChangeNotification object:nil];
+            }
             
         }else if (requestState == ASIS3RequestError) {
             

@@ -19,6 +19,8 @@
 #import "S3BucketListController.h"
 #import "S3ConnInfo.h"
 
+#import "ASIS3Request+showValue.h"
+
 // C-string, as it is only used in Keychain Services
 #define S3_BROWSER_KEYCHAIN_SERVICE "S3 Browser"
 
@@ -73,6 +75,7 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     [userDefaultsValuesDict setObject:@NO forKey:@"useKeychain"];
     [userDefaultsValuesDict setObject:@NO forKey:@"useSSL"];
     [userDefaultsValuesDict setObject:@YES forKey:@"autologin"];
+    [userDefaultsValuesDict setObject:@4 forKey:@"maxoperations"];
     [[NSUserDefaults standardUserDefaults] registerDefaults:userDefaultsValuesDict];
 
     // Conversion code for new default
@@ -110,13 +113,27 @@ NSString *RequestUserInfoStatusError =                  @"Error";
         [_networkQueue setRequestDidStartSelector:@selector(requestDidStartSelector:)];
         [_networkQueue setRequestWillRedirectSelector:@selector(requestWillRedirectSelector:)];
         
+        NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
+        NSNumber *maxOps = [standardUserDefaults objectForKey:@"maxoperations"];
+        [_networkQueue setMaxConcurrentOperationCount:[maxOps intValue]];
         
         _operationLog = [[S3OperationLog alloc] init];
         _authenticationCredentials = [[NSMutableDictionary alloc] init];
+
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(finishedLaunching) name:NSApplicationDidFinishLaunchingNotification object:NSApp];
         
-        
         [_networkQueue go];
+        
+        _networkRefreshQueue = [ASINetworkQueue queue];
+        [_networkRefreshQueue setDelegate:self];
+        [_networkRefreshQueue setShouldCancelAllRequestsOnFailure:NO];
+        [_networkRefreshQueue setRequestDidFailSelector:@selector(requestDidFailSelector:)];
+        [_networkRefreshQueue setRequestDidFinishSelector:@selector(requestDidFinishSelector:)];
+        [_networkRefreshQueue setRequestDidReceiveResponseHeadersSelector:@selector(requestDidReceiveResponseHeadersSelector:)];
+        [_networkRefreshQueue setRequestDidStartSelector:@selector(requestDidStartSelector:)];
+        [_networkRefreshQueue setRequestWillRedirectSelector:@selector(requestWillRedirectSelector:)];
+        [_networkRefreshQueue setMaxConcurrentOperationCount:1000];
+        [_networkRefreshQueue go];
     }
     
     return self;
@@ -129,13 +146,11 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)theApplication hasVisibleWindows:(BOOL)flag
 {
-    if (!flag) {
-    
-        [[NSNotificationCenter defaultCenter] addObserver:self.loginController selector:@selector(asiS3RequestStateDidChange:) name:ASIS3RequestStateDidChangeNotification object:nil];
-        [self finishedLaunching];
-        return YES;
+    for (NSWindowController *c in [_controllers allValues]) {
+        [c showWindow:self];
     }
-    return NO;
+    
+    return YES;
 }
 
 - (IBAction)openConnection:(id)sender
@@ -161,19 +176,12 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
     NSNumber *useSSL = [standardUserDefaults objectForKey:@"useSSL"];
     
-    /*
-    S3ConnectionInfo *connectionInfo = [[S3ConnectionInfo alloc] initWithDelegate:self userInfo:nil secureConnection:[useSSL boolValue]];
     self.loginController = [[S3LoginController alloc] initWithWindowNibName:@"Authentication"];
-    [self.loginController setConnectionInfo:connectionInfo];
-     */
     
     S3ConnInfo *connInfo = [[S3ConnInfo alloc] initWithDelegate:self userInfo:nil secureConn:[useSSL boolValue]];
     [self.loginController setConnInfo:connInfo];
-	
-//    [self.loginController showWindow:self];
-    
+    [self.loginController showWindow:self];
     [self.loginController connect:self];
-
 }
 
 - (void)finishedLaunching
@@ -297,17 +305,6 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     return [authenticationCredentials objectForKey:@"secretAccessKey"];
 }
 
-
-
-#pragma mark S3OperationQueueDelegate Methods
-
-- (int)maximumNumberOfSimultaneousOperationsForOperationQueue:(S3OperationQueue *)operationQueue
-{
-    NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
-    NSNumber *maxOps = [standardUserDefaults objectForKey:@"maxoperations"];
-    return [maxOps intValue];
-}
-
 #pragma mark -
 
 - (ASINetworkQueue *)networkQueue {
@@ -315,46 +312,56 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     return _networkQueue;
 }
 
+- (ASINetworkQueue *)networkRefreshQueue {
+    
+    return _networkRefreshQueue;
+}
+
 - (void)postNotificationWithRequest:(ASIS3Request *)request state:(ASIS3RequestState)state {
 
     NSDictionary *dict = @{ASIS3RequestKey : request,
                            ASIS3RequestStateKey:[NSNumber numberWithUnsignedInteger:state]};
+    
     [[NSNotificationCenter defaultCenter] postNotificationName:ASIS3RequestStateDidChangeNotification object:self userInfo:dict];
 }
 
 - (void)requestDidStartSelector:(ASIS3Request *)request {
-    //NSLog(@"requestDidStartSelector");
+    
+    [request setShowRequestMethod:[request requestMethod]];
+    [request setShowUrl:[request url]];
     [self postNotificationWithRequest:request state:ASIS3RequestActive];
-    
-    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:[request userInfo]];
-    [dict setValue:[request requestMethod] forKey:RequestUserInfoRequestMethodKey];
-    [dict setValue:[request url] forKey:RequestUserInfoURLKey];
-    
-    [request setUserInfo:dict];
 }
 
 - (void)requestDidReceiveResponseHeadersSelector:(ASIS3Request *)request {
-    //NSLog(@"requestDidReceiveResponseHeadersSelector");
+    
     [self postNotificationWithRequest:request state:ASIS3RequestReceiveResponseHeaders];
 }
 
 - (void)requestWillRedirectSelector:(ASIS3Request *)request {
-    //NSLog(@"requestWillRedirectSelector");
+    
     [self postNotificationWithRequest:request state:ASIS3RequestRequiresRedirect];
 }
 
 - (void)requestDidFinishSelector:(ASIS3Request *)request {
-    //NSLog(@"requestDidFinishSelector");
     
-    if ([request responseStatusCode] >= 400) {
+    if ([request responseStatusCode] / 100 != 2) {
+        
         [self requestDidFailSelector:request];
+        
     }else {
-        [self postNotificationWithRequest:request state:ASIS3RequestDone];
+        
+        if ([[request showKind] isEqualToString:ASIS3RequestDownloadObject] &&
+            [[[NSFileManager defaultManager] attributesOfItemAtPath:request.downloadDestinationPath error:nil] fileSize] != [request contentLength]) {
+            
+            [self requestDidFailSelector:request];
+        }else {
+            [self postNotificationWithRequest:request state:ASIS3RequestDone];
+            [[self operationLog] unlogOperation:[request logObject]];
+        }
     }
 }
 
 - (void)requestDidFailSelector:(ASIS3Request *)request {
-    //NSLog(@"requestDidFailSelector");
     
     if ([request isCancelled]) {
         [self postNotificationWithRequest:request state:ASIS3RequestCanceled];

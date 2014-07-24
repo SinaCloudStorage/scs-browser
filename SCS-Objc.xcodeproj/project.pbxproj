@@ -58,8 +58,6 @@
 		306299E50A953E0A00634B34 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 306299E40A953E0A00634B34 /* SystemConfiguration.framework */; };
 		3066A6AA0AAB608F003CACDA /* S3ActiveWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3066A6A90AAB608F003CACDA /* S3ActiveWindowController.m */; };
 		30F424250B45FBD700A8483B /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 30F424240B45FBD700A8483B /* Credits.rtf */; };
-		3F180FFB1921DE4E005C6F9E /* ASIKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3F180FF91921DE41005C6F9E /* ASIKit.framework */; };
-		3F180FFC19221C4D005C6F9E /* ASIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F180FF91921DE41005C6F9E /* ASIKit.framework */; };
 		3F181000192225D0005C6F9E /* S3ConnInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F180FFF192225D0005C6F9E /* S3ConnInfo.m */; };
 		3F6BC6F3191789E0007F14B6 /* S3Kit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1B6DBA5E15B2C11D00718490 /* S3Kit.framework */; };
 		65C3B16B0C199136008EB674 /* S3OperationConsoleLogDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 65C3B10B0C1983E4008EB674 /* S3OperationConsoleLogDelegate.m */; };
@@ -92,6 +90,10 @@
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		AD0C174F196FEBA6004D4457 /* show.png in Resources */ = {isa = PBXBuildFile; fileRef = AD0C174E196FEBA6004D4457 /* show.png */; };
+		AD0C17511976382D004D4457 /* removeAll.png in Resources */ = {isa = PBXBuildFile; fileRef = AD0C17501976382D004D4457 /* removeAll.png */; };
+		AD0C175D197FA58A004D4457 /* ASIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD0C175A197F6E91004D4457 /* ASIKit.framework */; };
+		AD0C175F197FA62B004D4457 /* ASIKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = AD0C175A197F6E91004D4457 /* ASIKit.framework */; };
 		AD905D41195C20C4002CAC70 /* info.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D40195C20C4002CAC70 /* info.png */; };
 		AD905D43195C277F002CAC70 /* upload.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D42195C277F002CAC70 /* upload.png */; };
 		AD905D4B195C2FC1002CAC70 /* add.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D44195C2FC1002CAC70 /* add.png */; };
@@ -101,6 +103,8 @@
 		AD905D4F195C2FC1002CAC70 /* rename.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D48195C2FC1002CAC70 /* rename.png */; };
 		AD905D50195C2FC1002CAC70 /* stop.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D49195C2FC1002CAC70 /* stop.png */; };
 		AD905D53195D69FE002CAC70 /* app.icns in Resources */ = {isa = PBXBuildFile; fileRef = AD905D52195D69FE002CAC70 /* app.icns */; };
+		AD905D5A19651330002CAC70 /* ASIS3Request+showValue.m in Sources */ = {isa = PBXBuildFile; fileRef = AD905D5919651330002CAC70 /* ASIS3Request+showValue.m */; };
+		AD905D5D196A8BC9002CAC70 /* LogObject.m in Sources */ = {isa = PBXBuildFile; fileRef = AD905D5C196A8BC9002CAC70 /* LogObject.m */; };
 		ADED76E31945C209008AC179 /* ASIS3BucketObject+ShowName.m in Sources */ = {isa = PBXBuildFile; fileRef = ADED76E21945C209008AC179 /* ASIS3BucketObject+ShowName.m */; };
 		EC7FA5490E793B5700CB4FC0 /* S3ApplicationDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = EC7FA5480E793B5700CB4FC0 /* S3ApplicationDelegate.m */; };
 		ECCA622C0EE4F12A009266B4 /* S3OperationLog.m in Sources */ = {isa = PBXBuildFile; fileRef = ECCA622B0EE4F12A009266B4 /* S3OperationLog.m */; };
@@ -113,7 +117,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				3F180FFB1921DE4E005C6F9E /* ASIKit.framework in CopyFiles */,
+				AD0C175F197FA62B004D4457 /* ASIKit.framework in CopyFiles */,
 				3F6BC6F3191789E0007F14B6 /* S3Kit.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -144,7 +148,6 @@
 		3066A6A90AAB608F003CACDA /* S3ActiveWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = S3ActiveWindowController.m; sourceTree = "<group>"; };
 		30F424240B45FBD700A8483B /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = Credits.rtf; path = Resources/Credits.rtf; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* S3-Objc_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "S3-Objc_Prefix.pch"; sourceTree = "<group>"; };
-		3F180FF91921DE41005C6F9E /* ASIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = ASIKit.framework; sourceTree = "<group>"; };
 		3F180FFE192225D0005C6F9E /* S3ConnInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = S3ConnInfo.h; sourceTree = "<group>"; };
 		3F180FFF192225D0005C6F9E /* S3ConnInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = S3ConnInfo.m; sourceTree = "<group>"; };
 		65C3B10A0C1983E4008EB674 /* S3OperationConsoleLogDelegate.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = S3OperationConsoleLogDelegate.h; path = util/S3OperationConsoleLogDelegate.h; sourceTree = "<group>"; };
@@ -185,6 +188,9 @@
 		77BC334E09E852D90055FD75 /* S3ClickableURLField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = S3ClickableURLField.m; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* SCS Browser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SCS Browser.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD0C174E196FEBA6004D4457 /* show.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = show.png; path = Resources/show.png; sourceTree = "<group>"; };
+		AD0C17501976382D004D4457 /* removeAll.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = removeAll.png; path = Resources/removeAll.png; sourceTree = "<group>"; };
+		AD0C175A197F6E91004D4457 /* ASIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = ASIKit.framework; sourceTree = "<group>"; };
 		AD905D40195C20C4002CAC70 /* info.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = info.png; path = Resources/info.png; sourceTree = "<group>"; };
 		AD905D42195C277F002CAC70 /* upload.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = upload.png; path = Resources/upload.png; sourceTree = "<group>"; };
 		AD905D44195C2FC1002CAC70 /* add.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = add.png; path = Resources/add.png; sourceTree = "<group>"; };
@@ -194,6 +200,10 @@
 		AD905D48195C2FC1002CAC70 /* rename.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = rename.png; path = Resources/rename.png; sourceTree = "<group>"; };
 		AD905D49195C2FC1002CAC70 /* stop.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = stop.png; path = Resources/stop.png; sourceTree = "<group>"; };
 		AD905D52195D69FE002CAC70 /* app.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = app.icns; sourceTree = "<group>"; };
+		AD905D5819651330002CAC70 /* ASIS3Request+showValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ASIS3Request+showValue.h"; sourceTree = "<group>"; };
+		AD905D5919651330002CAC70 /* ASIS3Request+showValue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ASIS3Request+showValue.m"; sourceTree = "<group>"; };
+		AD905D5B196A8BC9002CAC70 /* LogObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LogObject.h; sourceTree = "<group>"; };
+		AD905D5C196A8BC9002CAC70 /* LogObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogObject.m; sourceTree = "<group>"; };
 		ADED76E11945C209008AC179 /* ASIS3BucketObject+ShowName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ASIS3BucketObject+ShowName.h"; sourceTree = "<group>"; };
 		ADED76E21945C209008AC179 /* ASIS3BucketObject+ShowName.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ASIS3BucketObject+ShowName.m"; sourceTree = "<group>"; };
 		EC1DB5680E6240850062ADBB /* S3ListBucketOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = S3ListBucketOperation.h; sourceTree = "<group>"; };
@@ -260,11 +270,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AD0C175D197FA58A004D4457 /* ASIKit.framework in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				777D0D2D0A332CB4003CABA0 /* Security.framework in Frameworks */,
 				306299E50A953E0A00634B34 /* SystemConfiguration.framework in Frameworks */,
 				1B6DBA9915B2C28000718490 /* S3Kit.framework in Frameworks */,
-				3F180FFC19221C4D005C6F9E /* ASIKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -284,7 +294,7 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				3F180FF91921DE41005C6F9E /* ASIKit.framework */,
+				AD0C175A197F6E91004D4457 /* ASIKit.framework */,
 				1B6DBA5F15B2C11D00718490 /* Cocoa.framework */,
 				306299E40A953E0A00634B34 /* SystemConfiguration.framework */,
 				777D0D2C0A332CB4003CABA0 /* Security.framework */,
@@ -366,12 +376,14 @@
 				AD905D52195D69FE002CAC70 /* app.icns */,
 				AD905D44195C2FC1002CAC70 /* add.png */,
 				AD905D45195C2FC1002CAC70 /* delete.png */,
+				AD0C17501976382D004D4457 /* removeAll.png */,
 				AD905D46195C2FC1002CAC70 /* download.png */,
 				AD905D47195C2FC1002CAC70 /* refresh.png */,
 				AD905D48195C2FC1002CAC70 /* rename.png */,
 				AD905D49195C2FC1002CAC70 /* stop.png */,
 				AD905D40195C20C4002CAC70 /* info.png */,
 				AD905D42195C277F002CAC70 /* upload.png */,
+				AD0C174E196FEBA6004D4457 /* show.png */,
 				30F424240B45FBD700A8483B /* Credits.rtf */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
@@ -430,10 +442,14 @@
 				77538C6809EB3DCB0024FB3B /* S3AppKitExtensions.m */,
 				ECCA622A0EE4F12A009266B4 /* S3OperationLog.h */,
 				ECCA622B0EE4F12A009266B4 /* S3OperationLog.m */,
+				AD905D5B196A8BC9002CAC70 /* LogObject.h */,
+				AD905D5C196A8BC9002CAC70 /* LogObject.m */,
 				3F180FFE192225D0005C6F9E /* S3ConnInfo.h */,
 				3F180FFF192225D0005C6F9E /* S3ConnInfo.m */,
 				ADED76E11945C209008AC179 /* ASIS3BucketObject+ShowName.h */,
 				ADED76E21945C209008AC179 /* ASIS3BucketObject+ShowName.m */,
+				AD905D5819651330002CAC70 /* ASIS3Request+showValue.h */,
+				AD905D5919651330002CAC70 /* ASIS3Request+showValue.m */,
 			);
 			path = app;
 			sourceTree = "<group>";
@@ -630,6 +646,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D11072A0486CEB800E47090 /* MainMenu.nib in Resources */,
+				AD0C174F196FEBA6004D4457 /* show.png in Resources */,
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				AD905D4C195C2FC1002CAC70 /* delete.png in Resources */,
 				778B5D2809E170EA002AF32D /* Objects.nib in Resources */,
@@ -637,6 +654,7 @@
 				AD905D50195C2FC1002CAC70 /* stop.png in Resources */,
 				778B5E0709E18F30002AF32D /* Buckets.nib in Resources */,
 				777CB0AC09E5E85C003E37C9 /* Authentication.nib in Resources */,
+				AD0C17511976382D004D4457 /* removeAll.png in Resources */,
 				AD905D4F195C2FC1002CAC70 /* rename.png in Resources */,
 				AD905D43195C277F002CAC70 /* upload.png in Resources */,
 				77BC305B09E8009A0055FD75 /* Operations.nib in Resources */,
@@ -662,7 +680,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# If not present, download ASIKit archive, extract it and cleanup.\nif [ ! -e $SRCROOT/ASIKit.framework ]; then\n\trm -rf $SRCROOT/ASIKit\n\tmkdir $SRCROOT/ASIKit\n\tcd $SRCROOT/ASIKit\n\techo \"Downloading ASIKit framework\"\n\tcurl -s -O http://sdk.sinastorage.com/ASIKit.framework.zip\n\techo \"Unzipping ASIKit\"\n\tunzip ASIKit.framework.zip\n\tmv ASIKit.framework $SRCROOT\n#   mv Extras/English-Only\\ Framework/ASIKit.framework $SRCROOT\n\trm -rf $SRCROOT/ASIKit\n\techo \"ASIKit installed for build\"\nfi";
+			shellScript = "# If not present, download ASIKit archive, extract it and cleanup.\nif [ ! -e $SRCROOT/ASIKit.framework ]; then\n\trm -rf $SRCROOT/ASIKit\n\tmkdir $SRCROOT/ASIKit\n\tcd $SRCROOT/ASIKit\n\techo \"Downloading ASIKit framework\"\n\tcurl -s -O http://sdk.sinastorage.cn/ASIKit.framework.zip\n\techo \"Unzipping ASIKit\"\n\tunzip ASIKit.framework.zip\n\tmv ASIKit.framework $SRCROOT\n#   mv Extras/English-Only\\ Framework/ASIKit.framework $SRCROOT\n\trm -rf $SRCROOT/ASIKit\n\techo \"ASIKit installed for build\"\nfi";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -724,11 +742,13 @@
 				ADED76E31945C209008AC179 /* ASIS3BucketObject+ShowName.m in Sources */,
 				77BC334F09E852D90055FD75 /* S3ClickableURLField.m in Sources */,
 				77538C6909EB3DCB0024FB3B /* S3AppKitExtensions.m in Sources */,
+				AD905D5A19651330002CAC70 /* ASIS3Request+showValue.m in Sources */,
 				301E14880A9487B000452AD5 /* S3DragAndDropArrayController.m in Sources */,
 				3066A6AA0AAB608F003CACDA /* S3ActiveWindowController.m in Sources */,
 				778C8AB80B659674006212F9 /* S3ValueTransformers.m in Sources */,
 				EC7FA5490E793B5700CB4FC0 /* S3ApplicationDelegate.m in Sources */,
 				ECCA622C0EE4F12A009266B4 /* S3OperationLog.m in Sources */,
+				AD905D5D196A8BC9002CAC70 /* LogObject.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
