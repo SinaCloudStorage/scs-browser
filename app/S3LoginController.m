@@ -111,12 +111,12 @@
 
 - (IBAction)connect:(id)sender
 {
-    accessKeyID = [[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_USER];
+    accessKeyID = [(NSTextField *)[[self.window contentView] viewWithTag:110] stringValue];
+    secretAccessKeyID = [(NSTextField *)[[self.window contentView] viewWithTag:111] stringValue];
     
     if (accessKeyID == nil || secretAccessKeyID == nil) {
         return;
     }
-    //accessKeyID = [[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_USER];
     
     NSDictionary *authDict = @{@"accessKey": accessKeyID, @"secretAccessKey": secretAccessKeyID};
     
@@ -218,6 +218,7 @@
         if (requestState == ASIS3RequestDone) {
             
             if ([_keychainCheckbox state] == NSOnState) {
+                [[NSUserDefaults standardUserDefaults] setValue:accessKeyID forKey:DEFAULT_USER];
                 [self setS3SecretKeyToKeychainForS3AccessKey:accessKeyID password:secretAccessKeyID];
             }
             
