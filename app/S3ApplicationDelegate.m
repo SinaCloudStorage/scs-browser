@@ -146,9 +146,11 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)theApplication hasVisibleWindows:(BOOL)flag
 {
+    /*
     for (NSWindowController *c in [_controllers allValues]) {
         [c showWindow:self];
     }
+     */
     
     return YES;
 }
