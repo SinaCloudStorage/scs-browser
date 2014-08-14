@@ -114,7 +114,15 @@
     accessKeyID = [(NSTextField *)[[self.window contentView] viewWithTag:110] stringValue];
     secretAccessKeyID = [(NSTextField *)[[self.window contentView] viewWithTag:111] stringValue];
     
-    if (accessKeyID == nil || secretAccessKeyID == nil) {
+    if (accessKeyID == nil || [accessKeyID length]<1 || secretAccessKeyID == nil || [secretAccessKeyID length] != 40) {
+        
+        NSAlert *alert = [NSAlert alertWithMessageText:@"请输入正确的 Access Key 与 Secret Key"
+                                         defaultButton:@"Ok"
+                                       alternateButton:nil
+                                           otherButton:nil
+                             informativeTextWithFormat:@"\n注册SCS成功后，可在网站控制台获取：\n\nhttp://open.sinastorage.com/?c=console"];
+        
+        [alert runModal];
         return;
     }
     
@@ -243,6 +251,19 @@
             }
             
         }else if (requestState == ASIS3RequestError) {
+            
+            if ([request responseHeaders] &&
+                [[request responseHeaders] objectForKey:@"x-error-code"] &&
+                [[[request responseHeaders] objectForKey:@"x-error-code"] isEqualToString:@"InvalidArgument"]) {
+                
+                NSAlert *alert = [NSAlert alertWithMessageText:@"请输入正确的 Access Key 与 Secret Key"
+                                                 defaultButton:@"Ok"
+                                               alternateButton:nil
+                                                   otherButton:nil
+                                     informativeTextWithFormat:@"\n注册SCS成功后，可在网站控制台获取：\n\nhttp://open.sinastorage.com/?c=console"];
+                
+                [alert runModal];
+            }
             
             NSLog(@"%@", [request error]);
         }
