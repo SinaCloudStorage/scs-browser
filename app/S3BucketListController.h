@@ -27,6 +27,8 @@
     
     NSString *_bucketOwnerId;
     NSString *_bucketOwnerDisplayName;
+    
+    NSString *_bucketACL;
 }
 
 - (IBAction)refresh:(id)sender;
@@ -51,5 +53,8 @@
 
 - (NSArray *)buckets;
 - (void)setBuckets:(NSArray *)aBuckets;
+
+- (NSString *)bucketACL;
+- (void)setBucketACL:(NSString *)anBucketACL;
 
 @end

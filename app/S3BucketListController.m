@@ -23,6 +23,9 @@
 #define SHEET_CANCEL 0
 #define SHEET_OK 1
 
+#define DEFAULT_BUCKET_PRIVACY @"defaultBucketPrivacy"
+#define ACL_PRIVATE @"private"
+
 enum {
     USStandardLocation = 0,
     USWestLocation = 1,
@@ -322,6 +325,7 @@ enum {
                 
         ASIS3BucketRequest *addRequest = [ASIS3BucketRequest PUTRequestWithBucket:_name];
         [addRequest setShowKind:ASIS3RequestAddBucket];
+        [addRequest setAccessPolicy:[self bucketACL]];
         [addRequest setShowStatus:RequestUserInfoStatusPending];
         [_operations addObject:addRequest];
         [self addOperations];
@@ -331,6 +335,14 @@ enum {
 - (IBAction)add:(id)sender
 {
     [self setName:@"Untitled"];
+    
+    
+    NSString* defaultPrivacy = [[NSUserDefaults standardUserDefaults] stringForKey:DEFAULT_BUCKET_PRIVACY];
+    if (defaultPrivacy==nil) {
+        defaultPrivacy = ACL_PRIVATE;
+    }
+    [self setBucketACL:defaultPrivacy];
+    
     [NSApp beginSheet:addSheet modalForWindow:[self window] modalDelegate:self didEndSelector:@selector(didEndSheet:returnCode:contextInfo:) contextInfo:nil];
 }
 
@@ -424,6 +436,17 @@ enum {
 - (void)setBuckets:(NSArray *)aBuckets
 {
     _buckets = aBuckets;
+}
+
+- (NSString *)bucketACL
+{
+    return _bucketACL;
+}
+
+- (void)setBucketACL:(NSString *)anBucketACL
+{
+    _bucketACL = anBucketACL;
+    [[NSUserDefaults standardUserDefaults] setObject:anBucketACL forKey:DEFAULT_BUCKET_PRIVACY];
 }
 
 #pragma mark -
