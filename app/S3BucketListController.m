@@ -17,6 +17,7 @@
 #import "S3AddBucketOperation.h"
 #import "S3DeleteBucketOperation.h"
 #import "S3OperationQueue.h"
+#import "S3AclInfoPanelController.h"
 
 #import "ASIS3Request+showValue.h"
 
@@ -34,6 +35,8 @@ enum {
 
 
 @interface S3BucketListController () <NSToolbarDelegate>
+
+@property (nonatomic) S3AclInfoPanelController* aclInfoPanel;
 
 @end
 
@@ -70,7 +73,7 @@ enum {
     return @[NSToolbarSeparatorItemIdentifier,
         NSToolbarSpaceItemIdentifier,
         NSToolbarFlexibleSpaceItemIdentifier,
-        @"Show", @"Refresh", @"Remove", @"Add"];
+        @"Show", @"Refresh", @"ACL", @"Remove", @"Add"];
 }
 
 - (BOOL)validateToolbarItem:(NSToolbarItem *)theItem
@@ -82,7 +85,7 @@ enum {
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar
 {
-    return @[@"Add", @"Remove", NSToolbarFlexibleSpaceItemIdentifier, @"Refresh", @"Show"];
+    return @[@"Add", @"Remove", @"ACL", NSToolbarFlexibleSpaceItemIdentifier, @"Refresh", @"Show"];
 }
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag
@@ -120,6 +123,14 @@ enum {
         [item setImage: [NSImage imageNamed: @"show.png"]];
         [item setTarget:self];
         [item setAction:@selector(showUserWindow:)];
+    }
+    else if ([itemIdentifier isEqualToString: @"ACL"])
+    {
+        [item setLabel: NSLocalizedString(@"ACL", nil)];
+        [item setPaletteLabel: [item label]];
+        [item setImage: [NSImage imageNamed: @"acl.png"]];
+        [item setTarget:self];
+        [item setAction:@selector(showACL:)];
     }
     
     return item;
@@ -186,6 +197,37 @@ enum {
         if (requestState == ASIS3RequestDone) {
             
             [self refresh:self];
+            
+        }else if (requestState == ASIS3RequestError) {
+            
+            NSLog(@"%@", [request error]);
+        }
+    }
+    
+    if ([requestKind isEqualToString:ASIS3RequestGetACLBucket]) {
+        
+        [self willChangeValueForKey:@"hasActiveRequest"];
+        [self hasActiveRequest];
+        [self didChangeValueForKey:@"hasActiveRequest"];
+        
+        [self updateRequest:request forState:requestState];
+        
+        if (requestState == ASIS3RequestDone) {
+            
+            self.aclInfoPanel = [[S3AclInfoPanelController alloc] initWithWindowNibName:@"S3AclInfoPanelController"];
+            self.aclInfoPanel.name = [(ASIS3BucketRequest *)request bucket];
+            self.aclInfoPanel.isBucket = YES;
+            
+            NSError* error;
+            NSDictionary* json = [NSJSONSerialization JSONObjectWithData:[request responseData] options:kNilOptions error:&error];
+            
+            if (!error) {
+                self.aclInfoPanel.ownerID = [json objectForKey:@"Owner"];
+                self.aclInfoPanel.aclDict = [json objectForKey:@"ACL"];
+                [_aclInfoPanel showWindow:self];
+            }else {
+                NSLog(@"%@", error);
+            }
             
         }else if (requestState == ASIS3RequestError) {
             
@@ -309,6 +351,17 @@ enum {
     [request setShowStatus:RequestUserInfoStatusPending];
     
     [_operations addObject:request];
+    [self addOperations];
+}
+
+- (IBAction)showACL:(id)sender {
+    
+    ASIS3Bucket *b = [[_bucketsController selectedObjects] objectAtIndex:0];
+    
+    ASIS3BucketRequest *getACLRequest = [ASIS3BucketRequest GETACLRequestWithBucket:b.name];
+    [getACLRequest setShowKind:ASIS3RequestGetACLBucket];
+    [getACLRequest setShowStatus:RequestUserInfoStatusPending];
+    [_operations addObject:getACLRequest];
     [self addOperations];
 }
 

@@ -28,6 +28,8 @@
 #import "LogObject.h"
 #import "S3OperationController.h"
 
+#import "S3AclInfoPanelController.h"
+
 #define SHEET_CANCEL 0
 #define SHEET_OK 1
 
@@ -43,6 +45,8 @@
 
 @interface S3ObjectListController () <NSToolbarDelegate> {
 }
+
+@property (nonatomic) S3AclInfoPanelController* aclInfoPanel;
 
 @end
 
@@ -109,7 +113,7 @@
     return @[NSToolbarSeparatorItemIdentifier,
         NSToolbarSpaceItemIdentifier,
         NSToolbarFlexibleSpaceItemIdentifier,
-        @"Refresh", @"Upload", @"Download", @"Remove", @"Remove All", @"Rename"];
+        @"Refresh", @"Upload", @"Download", @"ACL", @"Remove", @"Remove All", @"Rename"];
 }
 
 - (BOOL)validateToolbarItem:(NSToolbarItem *)theItem
@@ -174,6 +178,24 @@
         }else {
             return NO;
         }
+        
+    }else if ([[theItem itemIdentifier] isEqualToString: @"ACL"]) {
+        
+        if ([[_objectsController selectedObjects] count] == 1) {
+            
+            ASIS3BucketObject *b;
+            NSEnumerator *e = [[_objectsController selectedObjects] objectEnumerator];
+            
+            while (b = [e nextObject]) {
+                if ([[b key] hasSuffix:@"/"] || [[b key] isEqualToString:@".."]) {
+                    return NO;
+                }
+            }
+            return YES;
+            
+        }else {
+            return NO;
+        }
     }
     return YES;
 }
@@ -181,7 +203,7 @@
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar
 {
     //return @[@"Upload", @"Download", @"Rename", @"Remove", NSToolbarSeparatorItemIdentifier,  @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
-    return @[@"Upload", @"Download", @"Rename", @"Remove", NSToolbarSeparatorItemIdentifier, @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
+    return @[@"Upload", @"Download", @"Rename", @"ACL", @"Remove", NSToolbarSeparatorItemIdentifier, @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
 }
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL) flag
@@ -203,6 +225,14 @@
         [item setImage: [NSImage imageNamed: @"download.png"]];
         [item setTarget:self];
         [item setAction:@selector(download:)];
+    }
+    else if ([itemIdentifier isEqualToString: @"ACL"])
+    {
+        [item setLabel: NSLocalizedString(@"ACL", nil)];
+        [item setPaletteLabel: [item label]];
+        [item setImage: [NSImage imageNamed: @"acl.png"]];
+        [item setTarget:self];
+        [item setAction:@selector(showACL:)];
     }
     else if ([itemIdentifier isEqualToString: @"Remove"])
     {
@@ -549,6 +579,39 @@
             [self cleanOperationTransferSpeedLog];
         }
     }
+    
+    //ACL
+    if ([requestKind isEqualToString:ASIS3RequestGetACLObject]) {
+        
+        [self willChangeValueForKey:@"hasActiveRequest"];
+        [self hasActiveRequest];
+        [self didChangeValueForKey:@"hasActiveRequest"];
+        
+        [self updateRequest:request forState:requestState];
+        
+        if (requestState == ASIS3RequestDone) {
+            
+            self.aclInfoPanel = [[S3AclInfoPanelController alloc] initWithWindowNibName:@"S3AclInfoPanelController"];
+            self.aclInfoPanel.name = [(ASIS3ObjectRequest *)request key];
+            self.aclInfoPanel.isBucket = NO;
+            self.aclInfoPanel.bucketName = self.bucket.name;
+            
+            NSError* error;
+            NSDictionary* json = [NSJSONSerialization JSONObjectWithData:[request responseData] options:kNilOptions error:&error];
+            
+            if (!error) {
+                self.aclInfoPanel.ownerID = [json objectForKey:@"Owner"];
+                self.aclInfoPanel.aclDict = [json objectForKey:@"ACL"];
+                [_aclInfoPanel showWindow:self];
+            }else {
+                NSLog(@"%@", error);
+            }
+            
+        }else if (requestState == ASIS3RequestError) {
+            
+            NSLog(@"%@", [request error]);
+        }
+    }
 }
 
 - (void)cleanOperationTransferSpeedLog {
@@ -675,6 +738,17 @@
 
 #pragma mark -
 #pragma mark Actions
+
+- (IBAction)showACL:(id)sender {
+    
+    ASIS3ObjectRequest *object = [[_objectsController selectedObjects] objectAtIndex:0];
+    
+    ASIS3ObjectRequest *getACLRequest = [ASIS3ObjectRequest GETACLRequestWithBucket:self.bucket.name key:object.key];
+    [getACLRequest setShowKind:ASIS3RequestGetACLObject];
+    [getACLRequest setShowStatus:RequestUserInfoStatusPending];
+    [_operations addObject:getACLRequest];
+    [self addOperations];
+}
 
 - (IBAction)refresh:(id)sender
 {

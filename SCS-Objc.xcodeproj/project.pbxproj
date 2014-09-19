@@ -94,6 +94,8 @@
 		AD0C17511976382D004D4457 /* removeAll.png in Resources */ = {isa = PBXBuildFile; fileRef = AD0C17501976382D004D4457 /* removeAll.png */; };
 		AD0C175D197FA58A004D4457 /* ASIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD0C175A197F6E91004D4457 /* ASIKit.framework */; };
 		AD0C175F197FA62B004D4457 /* ASIKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = AD0C175A197F6E91004D4457 /* ASIKit.framework */; };
+		AD8F2A3719C84202002DF8C8 /* S3AclInfoPanelController.m in Sources */ = {isa = PBXBuildFile; fileRef = AD8F2A3519C84202002DF8C8 /* S3AclInfoPanelController.m */; };
+		AD8F2A3B19C8425A002DF8C8 /* S3AclInfoPanelController.xib in Resources */ = {isa = PBXBuildFile; fileRef = AD8F2A3919C8425A002DF8C8 /* S3AclInfoPanelController.xib */; };
 		AD905D41195C20C4002CAC70 /* info.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D40195C20C4002CAC70 /* info.png */; };
 		AD905D43195C277F002CAC70 /* upload.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D42195C277F002CAC70 /* upload.png */; };
 		AD905D4B195C2FC1002CAC70 /* add.png in Resources */ = {isa = PBXBuildFile; fileRef = AD905D44195C2FC1002CAC70 /* add.png */; };
@@ -106,6 +108,7 @@
 		AD905D5A19651330002CAC70 /* ASIS3Request+showValue.m in Sources */ = {isa = PBXBuildFile; fileRef = AD905D5919651330002CAC70 /* ASIS3Request+showValue.m */; };
 		AD905D5D196A8BC9002CAC70 /* LogObject.m in Sources */ = {isa = PBXBuildFile; fileRef = AD905D5C196A8BC9002CAC70 /* LogObject.m */; };
 		ADED76E31945C209008AC179 /* ASIS3BucketObject+ShowName.m in Sources */ = {isa = PBXBuildFile; fileRef = ADED76E21945C209008AC179 /* ASIS3BucketObject+ShowName.m */; };
+		ADF0AD1519CC09E20039A87A /* acl.png in Resources */ = {isa = PBXBuildFile; fileRef = ADF0AD1419CC09E20039A87A /* acl.png */; };
 		EC7FA5490E793B5700CB4FC0 /* S3ApplicationDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = EC7FA5480E793B5700CB4FC0 /* S3ApplicationDelegate.m */; };
 		ECCA622C0EE4F12A009266B4 /* S3OperationLog.m in Sources */ = {isa = PBXBuildFile; fileRef = ECCA622B0EE4F12A009266B4 /* S3OperationLog.m */; };
 /* End PBXBuildFile section */
@@ -191,6 +194,9 @@
 		AD0C174E196FEBA6004D4457 /* show.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = show.png; path = Resources/show.png; sourceTree = "<group>"; };
 		AD0C17501976382D004D4457 /* removeAll.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = removeAll.png; path = Resources/removeAll.png; sourceTree = "<group>"; };
 		AD0C175A197F6E91004D4457 /* ASIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = ASIKit.framework; sourceTree = "<group>"; };
+		AD8F2A3419C84202002DF8C8 /* S3AclInfoPanelController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = S3AclInfoPanelController.h; sourceTree = "<group>"; };
+		AD8F2A3519C84202002DF8C8 /* S3AclInfoPanelController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = S3AclInfoPanelController.m; sourceTree = "<group>"; };
+		AD8F2A3A19C8425A002DF8C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/S3AclInfoPanelController.xib; sourceTree = "<group>"; };
 		AD905D40195C20C4002CAC70 /* info.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = info.png; path = Resources/info.png; sourceTree = "<group>"; };
 		AD905D42195C277F002CAC70 /* upload.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = upload.png; path = Resources/upload.png; sourceTree = "<group>"; };
 		AD905D44195C2FC1002CAC70 /* add.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = add.png; path = Resources/add.png; sourceTree = "<group>"; };
@@ -206,6 +212,7 @@
 		AD905D5C196A8BC9002CAC70 /* LogObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogObject.m; sourceTree = "<group>"; };
 		ADED76E11945C209008AC179 /* ASIS3BucketObject+ShowName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ASIS3BucketObject+ShowName.h"; sourceTree = "<group>"; };
 		ADED76E21945C209008AC179 /* ASIS3BucketObject+ShowName.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ASIS3BucketObject+ShowName.m"; sourceTree = "<group>"; };
+		ADF0AD1419CC09E20039A87A /* acl.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = acl.png; path = Resources/acl.png; sourceTree = "<group>"; };
 		EC1DB5680E6240850062ADBB /* S3ListBucketOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = S3ListBucketOperation.h; sourceTree = "<group>"; };
 		EC1DB5690E6240850062ADBB /* S3ListBucketOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = S3ListBucketOperation.m; sourceTree = "<group>"; };
 		EC2715960E3CF3A800B17D42 /* S3ConnectionInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = S3ConnectionInfo.m; sourceTree = "<group>"; };
@@ -375,6 +382,7 @@
 			children = (
 				AD905D52195D69FE002CAC70 /* app.icns */,
 				AD905D44195C2FC1002CAC70 /* add.png */,
+				ADF0AD1419CC09E20039A87A /* acl.png */,
 				AD905D45195C2FC1002CAC70 /* delete.png */,
 				AD0C17501976382D004D4457 /* removeAll.png */,
 				AD905D46195C2FC1002CAC70 /* download.png */,
@@ -392,6 +400,7 @@
 				777CB0AA09E5E85C003E37C9 /* Authentication.nib */,
 				778B5E0509E18F30002AF32D /* Buckets.nib */,
 				778B5D2609E170EA002AF32D /* Objects.nib */,
+				AD8F2A3919C8425A002DF8C8 /* S3AclInfoPanelController.xib */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -426,6 +435,8 @@
 				3066A6A90AAB608F003CACDA /* S3ActiveWindowController.m */,
 				777CB09B09E5E4F1003E37C9 /* S3LoginController.h */,
 				777CB09C09E5E4F1003E37C9 /* S3LoginController.m */,
+				AD8F2A3419C84202002DF8C8 /* S3AclInfoPanelController.h */,
+				AD8F2A3519C84202002DF8C8 /* S3AclInfoPanelController.m */,
 				778B5DCC09E1817D002AF32D /* S3BucketListController.h */,
 				778B5DCD09E1817D002AF32D /* S3BucketListController.m */,
 				778B5CBA09E1568A002AF32D /* S3ObjectListController.h */,
@@ -620,6 +631,7 @@
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				en,
+				English,
 			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* S3-Objc */;
 			projectDirPath = "";
@@ -647,6 +659,7 @@
 			files = (
 				8D11072A0486CEB800E47090 /* MainMenu.nib in Resources */,
 				AD0C174F196FEBA6004D4457 /* show.png in Resources */,
+				ADF0AD1519CC09E20039A87A /* acl.png in Resources */,
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				AD905D4C195C2FC1002CAC70 /* delete.png in Resources */,
 				778B5D2809E170EA002AF32D /* Objects.nib in Resources */,
@@ -663,6 +676,7 @@
 				30F424250B45FBD700A8483B /* Credits.rtf in Resources */,
 				AD905D41195C20C4002CAC70 /* info.png in Resources */,
 				AD905D4B195C2FC1002CAC70 /* add.png in Resources */,
+				AD8F2A3B19C8425A002DF8C8 /* S3AclInfoPanelController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -742,6 +756,7 @@
 				ADED76E31945C209008AC179 /* ASIS3BucketObject+ShowName.m in Sources */,
 				77BC334F09E852D90055FD75 /* S3ClickableURLField.m in Sources */,
 				77538C6909EB3DCB0024FB3B /* S3AppKitExtensions.m in Sources */,
+				AD8F2A3719C84202002DF8C8 /* S3AclInfoPanelController.m in Sources */,
 				AD905D5A19651330002CAC70 /* ASIS3Request+showValue.m in Sources */,
 				301E14880A9487B000452AD5 /* S3DragAndDropArrayController.m in Sources */,
 				3066A6AA0AAB608F003CACDA /* S3ActiveWindowController.m in Sources */,
@@ -809,6 +824,14 @@
 				77BC305A09E8009A0055FD75 /* English */,
 			);
 			name = Operations.nib;
+			sourceTree = "<group>";
+		};
+		AD8F2A3919C8425A002DF8C8 /* S3AclInfoPanelController.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AD8F2A3A19C8425A002DF8C8 /* English */,
+			);
+			name = S3AclInfoPanelController.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

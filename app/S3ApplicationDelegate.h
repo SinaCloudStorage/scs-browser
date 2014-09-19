@@ -33,6 +33,10 @@ extern NSString *ASIS3RequestAddObject;
 extern NSString *ASIS3RequestDeleteObject;
 extern NSString *ASIS3RequestCopyObject;
 extern NSString *ASIS3RequestDownloadObject;
+extern NSString *ASIS3RequestGetACLBucket;
+extern NSString *ASIS3RequestPutACLBucket;
+extern NSString *ASIS3RequestGetACLObject;
+extern NSString *ASIS3RequestPutACLObject;
 
 extern NSString *RequestUserInfoStatusPending;
 extern NSString *RequestUserInfoStatusActive;
