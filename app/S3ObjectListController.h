@@ -25,6 +25,18 @@
 	IBOutlet S3DragAndDropArrayController *_objectsController;
 
     IBOutlet NSWindow *renameSheet;
+    IBOutlet NSWindow *preSignSheet;
+    
+    NSString *_preSignBucketName;
+    NSString *_preSignObjectName;
+    NSString *_preSignIP;
+    NSDate  *_preSignDate;
+    NSString *_preSignURL;
+    BOOL _preSignUseCDN;
+    BOOL _preSignBucketFront;
+    BOOL _preSignUseCustomHost;
+    NSString *_preSignCustomHost;
+    
     NSString *_renameName;
     NSMutableArray *_renameOperations;
         
@@ -52,6 +64,7 @@
 - (IBAction)upload:(id)sender;
 - (IBAction)download:(id)sender;
 - (IBAction)remove:(id)sender;
+- (IBAction)preSign:(id)sender;
 
 - (IBAction)doubleClicked:(id)sender;
 
@@ -75,6 +88,33 @@
 
 - (NSString *)renameName;
 - (void)setRenameName:(NSString *)name;
+
+- (NSString *)preSignBucketName;
+- (void)setPreSignBucketName:(NSString *)name;
+
+- (NSString *)preSignObjectName;
+- (void)setPreSignObjectName:(NSString *)name;
+
+- (NSString *)preSignIP;
+- (void)setPreSignIP:(NSString *)ip;
+
+- (NSString *)preSignURL;
+- (void)setPreSignURL:(NSString *)url;
+
+- (NSDate *)preSignDate;
+- (void)setPreSignDate:(NSDate *)date;
+
+- (BOOL)preSignUseCDN;
+- (void)setPreSignUseCDN:(BOOL)useCDN;
+
+- (BOOL)preSignBucketFront;
+- (void)setPreSignBucketFront:(BOOL)bucketFront;
+
+- (BOOL)preSignUseCustomHost;
+- (void)setPreSignUseCustomHost:(BOOL)useCustomHost;
+
+- (NSString *)preSignCustomHost;
+- (void)setPreSignCustomHost:(NSString *)customHost;
 
 - (NSString *)uploadACL;
 - (void)setUploadACL:(NSString *)anUploadACL;

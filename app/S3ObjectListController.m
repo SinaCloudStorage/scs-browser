@@ -113,7 +113,7 @@
     return @[NSToolbarSeparatorItemIdentifier,
         NSToolbarSpaceItemIdentifier,
         NSToolbarFlexibleSpaceItemIdentifier,
-        @"Refresh", @"Upload", @"Download", @"ACL", @"Remove", @"Remove All", @"Rename"];
+        @"Refresh", @"Upload", @"Download", @"ACL", @"Link", @"Remove", @"Remove All", @"Rename"];
 }
 
 - (BOOL)validateToolbarItem:(NSToolbarItem *)theItem
@@ -196,6 +196,23 @@
         }else {
             return NO;
         }
+    }else if ([[theItem itemIdentifier] isEqualToString: @"Link"]) {
+        
+        if ([[_objectsController selectedObjects] count] == 1) {
+            
+            ASIS3BucketObject *b;
+            NSEnumerator *e = [[_objectsController selectedObjects] objectEnumerator];
+            
+            while (b = [e nextObject]) {
+                if ([[b key] hasSuffix:@"/"] || [[b key] isEqualToString:@".."]) {
+                    return NO;
+                }
+            }
+            return YES;
+            
+        }else {
+            return NO;
+        }
     }
     return YES;
 }
@@ -203,7 +220,7 @@
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar
 {
     //return @[@"Upload", @"Download", @"Rename", @"Remove", NSToolbarSeparatorItemIdentifier,  @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
-    return @[@"Upload", @"Download", @"Rename", @"ACL", @"Remove", NSToolbarSeparatorItemIdentifier, @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
+    return @[@"Upload", @"Download", @"Rename", @"ACL", @"Link", @"Remove", NSToolbarSeparatorItemIdentifier, @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
 }
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL) flag
@@ -233,6 +250,14 @@
         [item setImage: [NSImage imageNamed: @"acl.png"]];
         [item setTarget:self];
         [item setAction:@selector(showACL:)];
+    }
+    else if ([itemIdentifier isEqualToString: @"Link"])
+    {
+        [item setLabel: NSLocalizedString(@"Link", nil)];
+        [item setPaletteLabel: [item label]];
+        [item setImage: [NSImage imageNamed: @"presign.png"]];
+        [item setTarget:self];
+        [item setAction:@selector(showPresign:)];
     }
     else if ([itemIdentifier isEqualToString: @"Remove"])
     {
@@ -750,6 +775,42 @@
     [self addOperations];
 }
 
+- (IBAction)showPresign:(id)sender {
+    
+    NSArray *objects = [_objectsController selectedObjects];
+    if ([objects count] == 0 || [objects count] > 1) {
+        return;
+    }
+    
+    ASIS3BucketObject *selectedObject = [[_objectsController selectedObjects] objectAtIndex:0];
+    
+    [self setPreSignBucketName:self.bucket.name];
+    [self setPreSignObjectName:selectedObject.key];
+    [self setPreSignDate:[NSDate date]];
+    [self setPreSignUseCustomHost:NO];
+    
+    [NSApp beginSheet:preSignSheet
+       modalForWindow:[self window]
+        modalDelegate:self
+       didEndSelector:@selector(didEndPresignSheet:returnCode:contextInfo:)
+          contextInfo:(__bridge_retained void*)selectedObject];
+}
+
+- (IBAction)preSign:(id)sender {
+    
+    NSURL *requestURL = [ASIS3ObjectRequest GETPresignedURLWithBucket:[self preSignBucketName]
+                                                                  key:[self preSignObjectName]
+                                                              expires:[self preSignDate]
+                                                                   ip:[self preSignIP]
+                                                               useCDN:[self preSignUseCDN]
+                                                        useCustomHost:[self preSignUseCustomHost]
+                                                          bucketFront:[self preSignBucketFront]];
+    
+    [self setPreSignURL:[requestURL absoluteString]];
+    
+    NSLog(@"%@", requestURL);
+}
+
 - (IBAction)refresh:(id)sender
 {
     
@@ -1070,6 +1131,22 @@
     [self addOperations];
 }
 
+- (void)didEndPresignSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+    [sheet orderOut:self];
+    
+    [self setPreSignBucketName:nil];
+    [self setPreSignObjectName:nil];
+    [self setPreSignIP:nil];
+    [self setPreSignURL:nil];
+    [self setPreSignDate:nil];
+    [self setPreSignUseCDN:NO];
+    [self setPreSignBucketFront:NO];
+    [self setPreSignUseCustomHost:NO];
+    
+    return;
+}
+
 - (IBAction)rename:(id)sender
 {
     NSArray *objects = [_objectsController selectedObjects];
@@ -1167,6 +1244,86 @@
 - (void)setRenameName:(NSString *)name
 {
     _renameName = name;
+}
+
+- (NSString *)preSignBucketName {
+    return _preSignBucketName;
+}
+
+- (void)setPreSignBucketName:(NSString *)name {
+    _preSignBucketName = name;
+}
+
+- (NSString *)preSignObjectName {
+    return _preSignObjectName;
+}
+
+- (void)setPreSignObjectName:(NSString *)name {
+    _preSignObjectName = name;
+}
+
+- (NSString *)preSignIP {
+    return _preSignIP;
+}
+
+- (void)setPreSignIP:(NSString *)ip {
+    _preSignIP = ip;
+}
+
+- (NSString *)preSignURL {
+    return _preSignURL;
+}
+
+- (void)setPreSignURL:(NSString *)url {
+    _preSignURL = url;
+}
+
+- (NSDate *)preSignDate {
+    return _preSignDate;
+}
+
+- (void)setPreSignDate:(NSDate *)date {
+    _preSignDate = date;
+}
+
+- (BOOL)preSignUseCDN {
+    return _preSignUseCDN;
+}
+
+- (void)setPreSignUseCDN:(BOOL)useCDN {
+    _preSignUseCDN = useCDN;
+}
+
+- (BOOL)preSignBucketFront {
+    return _preSignBucketFront;
+}
+
+- (void)setPreSignBucketFront:(BOOL)bucketFront {
+    _preSignBucketFront = bucketFront;
+}
+
+- (BOOL)preSignUseCustomHost {
+    return _preSignUseCustomHost;
+}
+
+- (void)setPreSignUseCustomHost:(BOOL)useCustomHost {
+    _preSignUseCustomHost = useCustomHost;
+    
+    NSTextField *textField = [preSignSheet.contentView viewWithTag:1010];
+    if (!useCustomHost) {
+        [textField setEnabled:NO];
+    }else {
+        [textField setEnabled:YES];
+    }
+}
+
+- (NSString *)preSignCustomHost {
+    return _preSignCustomHost;
+}
+
+- (void)setPreSignCustomHost:(NSString *)customHost {
+    _preSignCustomHost = customHost;
+    [ASIS3ObjectRequest setSharedCustomHost:customHost];
 }
 
 - (NSString *)uploadACL
