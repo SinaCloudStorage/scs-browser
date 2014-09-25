@@ -68,6 +68,7 @@ typedef NS_ENUM (NSUInteger, ASIS3RequestState) {
 
 - (IBAction)openConnection:(id)sender;
 - (IBAction)showOperationConsole:(id)sender;
+- (BOOL)checkUpdate:(id)sender;
 - (S3OperationQueue *)queue;
 - (S3OperationLog *)operationLog;
 

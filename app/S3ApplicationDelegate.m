@@ -24,6 +24,8 @@
 // C-string, as it is only used in Keychain Services
 #define S3_BROWSER_KEYCHAIN_SERVICE "S3 Browser"
 
+#define kUpdateCheckURL @"http://sdk.sinastorage.cn/scs_browser_check_version.json"
+
 /* Notification UserInfo Keys */
 NSString *ASIS3RequestKey = @"ASIS3RequestKey";
 NSString *ASIS3RequestStateKey = @"ASIS3RequestStateKey";
@@ -59,7 +61,9 @@ NSString *RequestUserInfoStatusRequiresRedirect =       @"RequiresRedirect";
 NSString *RequestUserInfoStatusError =                  @"Error";
 
 
-@interface S3ApplicationDelegate () <S3ConnectionInfoDelegate, S3OperationQueueDelegate, S3ConnInfoDelegate>
+@interface S3ApplicationDelegate () <S3ConnectionInfoDelegate, S3OperationQueueDelegate, S3ConnInfoDelegate> {
+    BOOL _updateCancelled;
+}
 @property (nonatomic) S3LoginController* loginController;
 @end
 
@@ -192,7 +196,10 @@ NSString *RequestUserInfoStatusError =                  @"Error";
 
 - (void)finishedLaunching
 {
-    
+    if ([self checkUpdate:self]) {
+        return;
+    };
+
     if ([_controllers objectForKey:@"Console"] == nil) {
         S3OperationController *c = [[S3OperationController alloc] initWithWindowNibName:@"Operations"];
         [_controllers setObject:c forKey:@"Console"];
@@ -210,6 +217,78 @@ NSString *RequestUserInfoStatusError =                  @"Error";
     
     if ([[standardUserDefaults objectForKey:@"autologin"] boolValue] == TRUE) {
         [self tryAutoLogin];
+    }
+}
+
+- (BOOL)checkUpdate:(id)sender {
+    
+    _updateCancelled = NO;
+    
+    ASIHTTPRequest *checkRequest = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:kUpdateCheckURL]];
+    [checkRequest setNumberOfTimesToRetryOnTimeout:3];
+    [checkRequest startSynchronous];
+    
+    NSError *error = [checkRequest error];
+    
+    if (!error) {
+        
+        NSError *_err;
+        
+        NSDictionary *response = [NSJSONSerialization JSONObjectWithData:[checkRequest responseData]
+                                                                     options:NSJSONReadingAllowFragments
+                                                                       error:&_err];
+        
+        if (!_err && [response isKindOfClass:[NSDictionary class]]) {
+            
+            NSString *version = [response objectForKey:@"version_name"];
+            NSString *downloadUrl = [response objectForKey:@"download_url"];
+            NSString *versionCode = [response objectForKey:@"version_code"];
+            NSString *versionInfo = [response objectForKey:@"version_info"];
+            NSString *currentVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+            
+            if (![versionCode isEqualToString:currentVersion]) {
+                
+                NSAlert *alert = [[NSAlert alloc] init];
+                
+                NSString *message = [NSString stringWithFormat:@"发现新版本%@，是否更新？", version];
+                NSString *informativeText = [NSString stringWithFormat:@"更新内容：\n%@", versionInfo];
+                [alert setMessageText:NSLocalizedString(message,nil)];
+                [alert setInformativeText:NSLocalizedString(informativeText,nil)];
+                [alert addButtonWithTitle:NSLocalizedString(@"Cancel",nil)];
+                [alert addButtonWithTitle:NSLocalizedString(@"Update",nil)];
+                if ([alert runModal] == NSAlertFirstButtonReturn) {
+                    
+                    _updateCancelled = YES;
+                    return NO;
+                }
+                
+                [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:downloadUrl]];
+                
+                return YES;
+            }
+        }
+    }
+    
+    return NO;
+}
+
+- (IBAction)update:(id)sender {
+    
+    if (![self checkUpdate:sender]) {
+        
+        if (_updateCancelled) {
+            return;
+        }
+        
+        NSString *currentVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+        NSAlert *alert = [[NSAlert alloc] init];
+        
+        NSString *message = [NSString stringWithFormat:@"当前版本V%@，未检测到新版本。", currentVersion];
+        [alert setMessageText:NSLocalizedString(message,nil)];
+        [alert addButtonWithTitle:NSLocalizedString(@"OK",nil)];
+        if ([alert runModal] == NSAlertFirstButtonReturn) {
+            return;
+        }
     }
 }
 
