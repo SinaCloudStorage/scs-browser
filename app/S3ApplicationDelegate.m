@@ -44,6 +44,7 @@ NSString *ASIS3RequestAddBucket =       @"AddBucket";
 NSString *ASIS3RequestDeleteBucket =    @"DeleteBucket";
 NSString *ASIS3RequestListObject =      @"ListObject";
 NSString *ASIS3RequestAddObject =       @"AddObject";
+NSString *ASIS3RequestAddObjectRelax =  @"AddObjectRelax";
 NSString *ASIS3RequestDeleteObject =    @"DeleteObject";
 NSString *ASIS3RequestCopyObject =      @"CopyObject";
 NSString *ASIS3RequestDownloadObject =  @"DownloadObject";
@@ -51,6 +52,9 @@ NSString *ASIS3RequestGetACLBucket =    @"GetACLBucket";
 NSString *ASIS3RequestPutACLBucket =    @"PutACLBucket";
 NSString *ASIS3RequestGetACLObject =    @"GetACLObject";
 NSString *ASIS3RequestPutACLObject =    @"PutACLObject";
+NSString *ASIS3RequestGetMetaObject =    @"GetMetaObject";
+NSString *ASIS3RequestPutMetaObject =    @"PutMetaObject";
+NSString *ASIS3RequestGetMetaBucket =    @"GetMetaBucket";
 
 NSString *RequestUserInfoStatusPending =                @"Pending";
 NSString *RequestUserInfoStatusActive =                 @"Active";

@@ -30,5 +30,6 @@
 - (IBAction)cancelButtonPressed:(id)sender;
 - (IBAction)saveButtonPressed:(id)sender;
 - (IBAction)addButtonPressed:(id)sender;
+- (IBAction)cancelSheet:(id)sender;
 
 @end

@@ -32,10 +32,10 @@
     NSString *_preSignIP;
     NSDate  *_preSignDate;
     NSString *_preSignURL;
-    BOOL _preSignUseCDN;
+    BOOL _preSignUseHttps;
     BOOL _preSignBucketFront;
-    BOOL _preSignUseCustomHost;
-    NSString *_preSignCustomHost;
+    BOOL _preSignHostBucket;
+    NSString *_preSignHost;
     
     NSString *_renameName;
     NSMutableArray *_renameOperations;
@@ -104,17 +104,17 @@
 - (NSDate *)preSignDate;
 - (void)setPreSignDate:(NSDate *)date;
 
-- (BOOL)preSignUseCDN;
-- (void)setPreSignUseCDN:(BOOL)useCDN;
+- (BOOL)preSignUseHttps;
+- (void)setPreSignUseHttps:(BOOL)useHttps;
 
 - (BOOL)preSignBucketFront;
 - (void)setPreSignBucketFront:(BOOL)bucketFront;
 
-- (BOOL)preSignUseCustomHost;
-- (void)setPreSignUseCustomHost:(BOOL)useCustomHost;
+- (BOOL)preSignHostBucket;
+- (void)setPreSignHostBucket:(BOOL)preSignHostBucket;
 
-- (NSString *)preSignCustomHost;
-- (void)setPreSignCustomHost:(NSString *)customHost;
+- (NSString *)preSignHost;
+- (void)setPreSignHost:(NSString *)preSignHost;
 
 - (NSString *)uploadACL;
 - (void)setUploadACL:(NSString *)anUploadACL;

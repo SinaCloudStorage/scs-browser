@@ -107,6 +107,8 @@
 		AD905D53195D69FE002CAC70 /* app.icns in Resources */ = {isa = PBXBuildFile; fileRef = AD905D52195D69FE002CAC70 /* app.icns */; };
 		AD905D5A19651330002CAC70 /* ASIS3Request+showValue.m in Sources */ = {isa = PBXBuildFile; fileRef = AD905D5919651330002CAC70 /* ASIS3Request+showValue.m */; };
 		AD905D5D196A8BC9002CAC70 /* LogObject.m in Sources */ = {isa = PBXBuildFile; fileRef = AD905D5C196A8BC9002CAC70 /* LogObject.m */; };
+		AD916D921A079C4E0014AC9D /* S3MetaInfoPanelController.m in Sources */ = {isa = PBXBuildFile; fileRef = AD916D901A079C4E0014AC9D /* S3MetaInfoPanelController.m */; };
+		AD916D931A079C4E0014AC9D /* S3MetaInfoPanelController.xib in Resources */ = {isa = PBXBuildFile; fileRef = AD916D911A079C4E0014AC9D /* S3MetaInfoPanelController.xib */; };
 		ADED76E31945C209008AC179 /* ASIS3BucketObject+ShowName.m in Sources */ = {isa = PBXBuildFile; fileRef = ADED76E21945C209008AC179 /* ASIS3BucketObject+ShowName.m */; };
 		ADF0AD1519CC09E20039A87A /* acl.png in Resources */ = {isa = PBXBuildFile; fileRef = ADF0AD1419CC09E20039A87A /* acl.png */; };
 		ADF0AD1919D04E1A0039A87A /* presign.png in Resources */ = {isa = PBXBuildFile; fileRef = ADF0AD1819D04E1A0039A87A /* presign.png */; };
@@ -211,6 +213,9 @@
 		AD905D5919651330002CAC70 /* ASIS3Request+showValue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ASIS3Request+showValue.m"; sourceTree = "<group>"; };
 		AD905D5B196A8BC9002CAC70 /* LogObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LogObject.h; sourceTree = "<group>"; };
 		AD905D5C196A8BC9002CAC70 /* LogObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogObject.m; sourceTree = "<group>"; };
+		AD916D8F1A079C4E0014AC9D /* S3MetaInfoPanelController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = S3MetaInfoPanelController.h; sourceTree = "<group>"; };
+		AD916D901A079C4E0014AC9D /* S3MetaInfoPanelController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = S3MetaInfoPanelController.m; sourceTree = "<group>"; };
+		AD916D911A079C4E0014AC9D /* S3MetaInfoPanelController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = S3MetaInfoPanelController.xib; path = app/S3MetaInfoPanelController.xib; sourceTree = "<group>"; };
 		ADED76E11945C209008AC179 /* ASIS3BucketObject+ShowName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ASIS3BucketObject+ShowName.h"; sourceTree = "<group>"; };
 		ADED76E21945C209008AC179 /* ASIS3BucketObject+ShowName.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ASIS3BucketObject+ShowName.m"; sourceTree = "<group>"; };
 		ADF0AD1419CC09E20039A87A /* acl.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = acl.png; path = Resources/acl.png; sourceTree = "<group>"; };
@@ -404,6 +409,7 @@
 				778B5E0509E18F30002AF32D /* Buckets.nib */,
 				778B5D2609E170EA002AF32D /* Objects.nib */,
 				AD8F2A3919C8425A002DF8C8 /* S3AclInfoPanelController.xib */,
+				AD916D911A079C4E0014AC9D /* S3MetaInfoPanelController.xib */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -440,6 +446,8 @@
 				777CB09C09E5E4F1003E37C9 /* S3LoginController.m */,
 				AD8F2A3419C84202002DF8C8 /* S3AclInfoPanelController.h */,
 				AD8F2A3519C84202002DF8C8 /* S3AclInfoPanelController.m */,
+				AD916D8F1A079C4E0014AC9D /* S3MetaInfoPanelController.h */,
+				AD916D901A079C4E0014AC9D /* S3MetaInfoPanelController.m */,
 				778B5DCC09E1817D002AF32D /* S3BucketListController.h */,
 				778B5DCD09E1817D002AF32D /* S3BucketListController.m */,
 				778B5CBA09E1568A002AF32D /* S3ObjectListController.h */,
@@ -663,6 +671,7 @@
 				8D11072A0486CEB800E47090 /* MainMenu.nib in Resources */,
 				AD0C174F196FEBA6004D4457 /* show.png in Resources */,
 				ADF0AD1519CC09E20039A87A /* acl.png in Resources */,
+				AD916D931A079C4E0014AC9D /* S3MetaInfoPanelController.xib in Resources */,
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				AD905D4C195C2FC1002CAC70 /* delete.png in Resources */,
 				778B5D2809E170EA002AF32D /* Objects.nib in Resources */,
@@ -756,6 +765,7 @@
 				3F181000192225D0005C6F9E /* S3ConnInfo.m in Sources */,
 				778B5DCE09E1817D002AF32D /* S3BucketListController.m in Sources */,
 				777CB09D09E5E4F1003E37C9 /* S3LoginController.m in Sources */,
+				AD916D921A079C4E0014AC9D /* S3MetaInfoPanelController.m in Sources */,
 				77BC305809E800750055FD75 /* S3OperationController.m in Sources */,
 				ADED76E31945C209008AC179 /* ASIS3BucketObject+ShowName.m in Sources */,
 				77BC334F09E852D90055FD75 /* S3ClickableURLField.m in Sources */,

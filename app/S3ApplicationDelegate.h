@@ -30,6 +30,7 @@ extern NSString *ASIS3RequestAddBucket;
 extern NSString *ASIS3RequestDeleteBucket;
 extern NSString *ASIS3RequestListObject;
 extern NSString *ASIS3RequestAddObject;
+extern NSString *ASIS3RequestAddObjectRelax;
 extern NSString *ASIS3RequestDeleteObject;
 extern NSString *ASIS3RequestCopyObject;
 extern NSString *ASIS3RequestDownloadObject;
@@ -37,6 +38,9 @@ extern NSString *ASIS3RequestGetACLBucket;
 extern NSString *ASIS3RequestPutACLBucket;
 extern NSString *ASIS3RequestGetACLObject;
 extern NSString *ASIS3RequestPutACLObject;
+extern NSString *ASIS3RequestGetMetaObject;
+extern NSString *ASIS3RequestPutMetaObject;
+extern NSString *ASIS3RequestGetMetaBucket;
 
 extern NSString *RequestUserInfoStatusPending;
 extern NSString *RequestUserInfoStatusActive;

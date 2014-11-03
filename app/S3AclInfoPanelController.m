@@ -402,14 +402,14 @@
             [self.saveButton setTitle:@"保存中..."];
             
             if (self.isBucket) {
-                ASIS3BucketRequest *putACLRequest = [ASIS3BucketRequest PUTACLRequestWithBucket:self.name aclDict:aclSetDict];
+                ASIS3BucketRequest *putACLRequest = [ASIS3BucketRequest PUTRequestWithBucket:self.name acl:aclSetDict];
                 [putACLRequest setShowKind:ASIS3RequestPutACLBucket];
                 [putACLRequest setShowStatus:RequestUserInfoStatusPending];
                 [putACLRequest setUserInfo:@{@"aclDict":aclSetDict, @"windowName":self.name}];
                 [_operations addObject:putACLRequest];
                 [self addOperations];
             }else {
-                ASIS3ObjectRequest *putACLRequest = [ASIS3ObjectRequest PUTACLRequestWithBucket:_bucketName key:_name aclDict:aclSetDict];
+                ASIS3ObjectRequest *putACLRequest = [ASIS3ObjectRequest PUTRequestWithBucket:_bucketName key:_name acl:aclSetDict];
                 [putACLRequest setShowKind:ASIS3RequestPutACLObject];
                 [putACLRequest setShowStatus:RequestUserInfoStatusPending];
                 [putACLRequest setUserInfo:@{@"aclDict":aclSetDict, @"windowName":self.name}];
@@ -517,6 +517,12 @@
             NSLog(@"%@", [request error]);
         }
     }
+}
+
+
+- (IBAction)cancelSheet:(id)sender
+{
+    [NSApp endSheet:[sender window] returnCode:0];
 }
 
 @end

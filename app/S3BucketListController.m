@@ -18,6 +18,7 @@
 #import "S3DeleteBucketOperation.h"
 #import "S3OperationQueue.h"
 #import "S3AclInfoPanelController.h"
+#import "S3MetaInfoPanelController.h"
 
 #import "ASIS3Request+showValue.h"
 
@@ -36,7 +37,8 @@ enum {
 
 @interface S3BucketListController () <NSToolbarDelegate>
 
-@property (nonatomic) S3AclInfoPanelController* aclInfoPanel;
+@property (nonatomic) S3AclInfoPanelController *aclInfoPanel;
+@property (nonatomic) S3MetaInfoPanelController *metaInfoPanel;
 
 @end
 
@@ -73,19 +75,37 @@ enum {
     return @[NSToolbarSeparatorItemIdentifier,
         NSToolbarSpaceItemIdentifier,
         NSToolbarFlexibleSpaceItemIdentifier,
-        @"Show", @"Refresh", @"ACL", @"Remove", @"Add"];
+        @"Show", @"Refresh", @"MetaInfo", @"ACL", @"Remove", @"Add"];
 }
 
 - (BOOL)validateToolbarItem:(NSToolbarItem *)theItem
 {
-    if ([[theItem itemIdentifier] isEqualToString: @"Remove"])
+    if ([[theItem itemIdentifier] isEqualToString: @"Remove"]) {
+        
         return [_bucketsController canRemove];
+        
+    }else if ([[theItem itemIdentifier] isEqualToString: @"ACL"]) {
+        
+        if ([[_bucketsController selectedObjects] count] == 1) {
+            return YES;
+        }else {
+            return NO;
+        }
+        
+    }else if ([[theItem itemIdentifier] isEqualToString: @"MetaInfo"]) {
+        
+        if ([[_bucketsController selectedObjects] count] == 1) {
+            return YES;
+        }else {
+            return NO;
+        }
+    }
     return YES;
 }
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar
 {
-    return @[@"Add", @"Remove", @"ACL", NSToolbarFlexibleSpaceItemIdentifier, @"Refresh", @"Show"];
+    return @[@"Add", @"Remove", @"ACL", @"MetaInfo", NSToolbarFlexibleSpaceItemIdentifier, @"Refresh", @"Show"];
 }
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag
@@ -131,6 +151,14 @@ enum {
         [item setImage: [NSImage imageNamed: @"acl.png"]];
         [item setTarget:self];
         [item setAction:@selector(showACL:)];
+    }
+    else if ([itemIdentifier isEqualToString: @"MetaInfo"])
+    {
+        [item setLabel: NSLocalizedString(@"MetaInfo", nil)];
+        [item setPaletteLabel: [item label]];
+        [item setImage: [NSImage imageNamed: @"info.png"]];
+        [item setTarget:self];
+        [item setAction:@selector(showInfo:)];
     }
     
     return item;
@@ -214,26 +242,68 @@ enum {
         
         if (requestState == ASIS3RequestDone) {
             
+            NSDictionary *responseDict = [request responseDictionary];
+            
+            //ASIS3Acl *acl = [[ASIS3Acl alloc] initWithDict:[responseDict objectForKey:@"ACL"] owner:[responseDict objectForKey:@"Owner"]];
+            
             self.aclInfoPanel = [[S3AclInfoPanelController alloc] initWithWindowNibName:@"S3AclInfoPanelController"];
             self.aclInfoPanel.name = [(ASIS3BucketRequest *)request bucket];
             self.aclInfoPanel.isBucket = YES;
-            
-            NSError* error;
-            NSDictionary* json = [NSJSONSerialization JSONObjectWithData:[request responseData] options:kNilOptions error:&error];
-            
-            if (!error) {
-                self.aclInfoPanel.ownerID = [json objectForKey:@"Owner"];
-                self.aclInfoPanel.aclDict = [json objectForKey:@"ACL"];
-                [_aclInfoPanel showWindow:self];
-            }else {
-                NSLog(@"%@", error);
-            }
+
+            self.aclInfoPanel.ownerID = [responseDict objectForKey:@"Owner"];
+            self.aclInfoPanel.aclDict = [responseDict objectForKey:@"ACL"];
+        
+            [NSApp beginSheet:[_aclInfoPanel window]
+               modalForWindow:[self window]
+                modalDelegate:self
+               didEndSelector:@selector(didEndAclInfoPanelSheet:returnCode:contextInfo:)
+                  contextInfo:nil];
             
         }else if (requestState == ASIS3RequestError) {
             
             NSLog(@"%@", [request error]);
         }
     }
+    
+    if ([requestKind isEqualToString:ASIS3RequestGetMetaBucket]) {
+        
+        [self willChangeValueForKey:@"hasActiveRequest"];
+        [self hasActiveRequest];
+        [self didChangeValueForKey:@"hasActiveRequest"];
+        
+        [self updateRequest:request forState:requestState];
+        
+        if (requestState == ASIS3RequestDone) {
+            
+            self.metaInfoPanel = [[S3MetaInfoPanelController alloc] initWithWindowNibName:@"S3MetaInfoPanelController"];
+
+            self.metaInfoPanel.name = [(ASIS3BucketRequest *)request bucket];
+            self.metaInfoPanel.isBucket = YES;
+            self.metaInfoPanel.metaDict = [request responseDictionary];
+            
+            [NSApp beginSheet:[_metaInfoPanel window]
+               modalForWindow:[self window]
+                modalDelegate:self
+               didEndSelector:@selector(didEndMetaInfoPanelSheet:returnCode:contextInfo:)
+                  contextInfo:nil];
+            
+        }else if (requestState == ASIS3RequestError) {
+            
+            NSLog(@"%@", [request error]);
+        }
+    }
+}
+
+- (void)didEndAclInfoPanelSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+    [sheet orderOut:self];
+    return;
+}
+
+- (void)didEndMetaInfoPanelSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+    [sheet orderOut:self];
+    return;
 }
 
 #pragma mark -
@@ -246,7 +316,7 @@ enum {
     [theMenu insertItemWithTitle:@"All" action:@selector(showWindowAll) keyEquivalent:@"" atIndex:0];
     [theMenu insertItemWithTitle:@"Console" action:@selector(showWindowForBucket:) keyEquivalent:@"Console" atIndex:1];
     
-    for (NSString *k in [[[NSApp delegate] controllers] allKeys]) {
+    for (NSString *k in [[(S3ApplicationDelegate *)[NSApp delegate] controllers] allKeys]) {
         
         if (![k isEqualToString:@"Buckets"] && ![k isEqualToString:@"Console"]) {
             
@@ -260,7 +330,7 @@ enum {
 }
 
 - (void)showWindowAll {
-    for (NSWindowController *c in [[[NSApp delegate] controllers] allValues]) {
+    for (NSWindowController *c in [[(S3ApplicationDelegate *)[NSApp delegate] controllers] allValues]) {
         [c showWindow:self];
     }
 }
@@ -268,7 +338,7 @@ enum {
 - (void)showWindowForBucket:(id)sender {
     
     NSString *key = [(NSMenuItem *)sender keyEquivalent];
-    NSWindowController *wc = [[[NSApp delegate] controllers] objectForKey:key];
+    NSWindowController *wc = [[(S3ApplicationDelegate *)[NSApp delegate] controllers] objectForKey:key];
     
     if (wc && [wc isKindOfClass:[NSWindowController class]]) {
         
@@ -357,14 +427,25 @@ enum {
 - (IBAction)showACL:(id)sender {
     
     ASIS3Bucket *b = [[_bucketsController selectedObjects] objectAtIndex:0];
-    
-    ASIS3BucketRequest *getACLRequest = [ASIS3BucketRequest GETACLRequestWithBucket:b.name];
+
+    ASIS3BucketRequest *getACLRequest = [ASIS3BucketRequest requestForAclWithBucket:b.name];
     [getACLRequest setShowKind:ASIS3RequestGetACLBucket];
     [getACLRequest setShowStatus:RequestUserInfoStatusPending];
     [_operations addObject:getACLRequest];
     [self addOperations];
 }
 
+- (IBAction)showInfo:(id)sender {
+    
+    ASIS3Bucket *b = [[_bucketsController selectedObjects] objectAtIndex:0];
+    
+    ASIS3BucketRequest *getMetaRequest = [ASIS3BucketRequest requestForMetaWithBucket:b.name];
+    [getMetaRequest setShowKind:ASIS3RequestGetMetaBucket];
+    [getMetaRequest setShowStatus:RequestUserInfoStatusPending];
+    [_operations addObject:getMetaRequest];
+    [self addOperations];
+    
+}
 
 - (void)didEndSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
@@ -406,6 +487,13 @@ enum {
     NSEnumerator* e = [[_bucketsController selectedObjects] objectEnumerator];
     while (b = [e nextObject])
     {
+        
+//        ASIS3BucketRequest *getMetaRequest = [ASIS3BucketRequest requestForMetaWithBucket:b.name];
+//        [getMetaRequest setShowKind:ASIS3RequestGetMetaBucket];
+//        [getMetaRequest setShowStatus:RequestUserInfoStatusPending];
+//        [_operations addObject:getMetaRequest];
+//        [self addOperations];
+        
         S3ObjectListController *c = nil;
         if ((c = [_bucketListControllerCache objectForKey:[b name]])) {
             [c showWindow:self];
@@ -416,7 +504,7 @@ enum {
             [c showWindow:self];            
             [_bucketListControllerCache setObject:c forKey:[b name]];
             
-            [[[NSApp delegate] controllers] setObject:c forKey:[b name]];
+            [[(S3ApplicationDelegate *)[NSApp delegate] controllers] setObject:c forKey:[b name]];
         }
     }
 }

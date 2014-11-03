@@ -29,6 +29,7 @@
 #import "S3OperationController.h"
 
 #import "S3AclInfoPanelController.h"
+#import "S3MetaInfoPanelController.h"
 
 #define SHEET_CANCEL 0
 #define SHEET_OK 1
@@ -46,7 +47,8 @@
 @interface S3ObjectListController () <NSToolbarDelegate> {
 }
 
-@property (nonatomic) S3AclInfoPanelController* aclInfoPanel;
+@property (nonatomic) S3AclInfoPanelController *aclInfoPanel;
+@property (nonatomic) S3MetaInfoPanelController *metaInfoPanel;
 
 @end
 
@@ -113,7 +115,7 @@
     return @[NSToolbarSeparatorItemIdentifier,
         NSToolbarSpaceItemIdentifier,
         NSToolbarFlexibleSpaceItemIdentifier,
-        @"Refresh", @"Upload", @"Download", @"ACL", @"Link", @"Remove", @"Remove All", @"Rename"];
+        @"Refresh", @"Upload", @"Download", @"ACL", @"Link", @"MetaInfo", @"Remove", @"Remove All", @"Rename"];
 }
 
 - (BOOL)validateToolbarItem:(NSToolbarItem *)theItem
@@ -196,6 +198,23 @@
         }else {
             return NO;
         }
+    }else if ([[theItem itemIdentifier] isEqualToString: @"MetaInfo"]) {
+        
+        if ([[_objectsController selectedObjects] count] == 1) {
+            
+            ASIS3BucketObject *b;
+            NSEnumerator *e = [[_objectsController selectedObjects] objectEnumerator];
+            
+            while (b = [e nextObject]) {
+                if ([[b key] hasSuffix:@"/"] || [[b key] isEqualToString:@".."]) {
+                    return NO;
+                }
+            }
+            return YES;
+            
+        }else {
+            return NO;
+        }
     }else if ([[theItem itemIdentifier] isEqualToString: @"Link"]) {
         
         if ([[_objectsController selectedObjects] count] == 1) {
@@ -214,19 +233,30 @@
             return NO;
         }
     }
+    
     return YES;
 }
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar
 {
-    //return @[@"Upload", @"Download", @"Rename", @"Remove", NSToolbarSeparatorItemIdentifier,  @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
-    return @[@"Upload", @"Download", @"Rename", @"ACL", @"Link", @"Remove", NSToolbarSeparatorItemIdentifier, @"Remove All", NSToolbarFlexibleSpaceItemIdentifier, @"Show More", @"Refresh"];
+    return @[@"Upload",
+             @"Download",
+             @"Rename",
+             @"ACL",
+             @"Link",
+             @"MetaInfo",
+             @"Remove",
+             NSToolbarSeparatorItemIdentifier,
+             @"Remove All",
+             NSToolbarFlexibleSpaceItemIdentifier,
+             @"Show More",
+             @"Refresh"];
 }
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL) flag
 {
     NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier: itemIdentifier];
-    
+
     if ([itemIdentifier isEqualToString: @"Upload"])
     {
         [item setLabel: NSLocalizedString(@"Upload", nil)];
@@ -259,6 +289,14 @@
         [item setTarget:self];
         [item setAction:@selector(showPresign:)];
     }
+    else if ([itemIdentifier isEqualToString: @"MetaInfo"])
+    {
+        [item setLabel: NSLocalizedString(@"MetaInfo", nil)];
+        [item setPaletteLabel: [item label]];
+        [item setImage: [NSImage imageNamed: @"info.png"]];
+        [item setTarget:self];
+        [item setAction:@selector(showInfo:)];
+    }
     else if ([itemIdentifier isEqualToString: @"Remove"])
     {
         [item setLabel: NSLocalizedString(@"Remove", nil)];
@@ -282,7 +320,8 @@
         [item setImage: [NSImage imageNamed: @"refresh.png"]];
         [item setTarget:self];
         [item setAction:@selector(refresh:)];
-    } else if ([itemIdentifier isEqualToString:@"Rename"]) {
+    }
+    else if ([itemIdentifier isEqualToString:@"Rename"]) {
         [item setLabel:NSLocalizedString(@"Rename", nil)];
         [item setPaletteLabel: [item label]];
         [item setImage: [NSImage imageNamed: @"rename.png"]];
@@ -621,16 +660,78 @@
             self.aclInfoPanel.isBucket = NO;
             self.aclInfoPanel.bucketName = self.bucket.name;
             
-            NSError* error;
-            NSDictionary* json = [NSJSONSerialization JSONObjectWithData:[request responseData] options:kNilOptions error:&error];
+            NSDictionary *responseDict = [request responseDictionary];
+            self.aclInfoPanel.ownerID = [responseDict objectForKey:@"Owner"];
+            self.aclInfoPanel.aclDict = [responseDict objectForKey:@"ACL"];
             
-            if (!error) {
-                self.aclInfoPanel.ownerID = [json objectForKey:@"Owner"];
-                self.aclInfoPanel.aclDict = [json objectForKey:@"ACL"];
-                [_aclInfoPanel showWindow:self];
-            }else {
-                NSLog(@"%@", error);
-            }
+            [NSApp beginSheet:[_aclInfoPanel window]
+               modalForWindow:[self window]
+                modalDelegate:self
+               didEndSelector:@selector(didEndAclInfoPanelSheet:returnCode:contextInfo:)
+                  contextInfo:nil];
+            
+        }else if (requestState == ASIS3RequestError) {
+            
+            NSLog(@"%@", [request error]);
+        }
+    }
+    
+    if ([requestKind isEqualToString:ASIS3RequestGetMetaObject]) {
+        
+        [self willChangeValueForKey:@"hasActiveRequest"];
+        [self hasActiveRequest];
+        [self didChangeValueForKey:@"hasActiveRequest"];
+        
+        [self updateRequest:request forState:requestState];
+        
+        if (requestState == ASIS3RequestDone) {
+            
+            self.metaInfoPanel = [[S3MetaInfoPanelController alloc] initWithWindowNibName:@"S3MetaInfoPanelController"];
+            self.metaInfoPanel.name = [(ASIS3ObjectRequest *)request key];
+            self.metaInfoPanel.isBucket = NO;
+            self.metaInfoPanel.metaDict = [request responseDictionary];
+            
+            [NSApp beginSheet:[_metaInfoPanel window]
+               modalForWindow:[self window]
+                modalDelegate:self
+               didEndSelector:@selector(didEndMetaInfoPanelSheet:returnCode:contextInfo:)
+                  contextInfo:nil];
+            
+        }else if (requestState == ASIS3RequestError) {
+            
+            NSLog(@"%@", [request error]);
+        }
+    }
+    
+    if ([requestKind isEqualToString:ASIS3RequestPutMetaObject]) {
+        
+        [self willChangeValueForKey:@"hasActiveRequest"];
+        [self hasActiveRequest];
+        [self didChangeValueForKey:@"hasActiveRequest"];
+        
+        [self updateRequest:request forState:requestState];
+        
+        if (requestState == ASIS3RequestDone) {
+            
+            NSLog(@"%@", [request responseHeaders]);
+            
+        }else if (requestState == ASIS3RequestError) {
+            
+            NSLog(@"%@", [request error]);
+        }
+    }
+    
+    if ([requestKind isEqualToString:ASIS3RequestAddObjectRelax]) {
+        
+        [self willChangeValueForKey:@"hasActiveRequest"];
+        [self hasActiveRequest];
+        [self didChangeValueForKey:@"hasActiveRequest"];
+        
+        [self updateRequest:request forState:requestState];
+        
+        if (requestState == ASIS3RequestDone) {
+            
+            
             
         }else if (requestState == ASIS3RequestError) {
             
@@ -642,7 +743,7 @@
 - (void)cleanOperationTransferSpeedLog {
     
     BOOL shouldCleanSpeedLog = YES;
-    NSArray *ops = [[[NSApp delegate] networkQueue] operations];
+    NSArray *ops = [[(S3ApplicationDelegate *)[NSApp delegate] networkQueue] operations];
     for (ASIS3Request *request in ops) {
         if (([[request showKind] isEqualToString:ASIS3RequestAddObject] || [[request showKind] isEqualToString:ASIS3RequestDownloadObject]) &&
             ([[request showStatus] isEqualToString:RequestUserInfoStatusActive] || [[request showSubStatus] isEqualToString:RequestUserInfoStatusPending]))
@@ -653,7 +754,7 @@
     }
     
     if (shouldCleanSpeedLog) {
-        S3OperationController *logController = (S3OperationController *)[[[NSApp delegate] controllers] objectForKey:@"Console"];
+        S3OperationController *logController = (S3OperationController *)[[(S3ApplicationDelegate *)[NSApp delegate] controllers] objectForKey:@"Console"];
         NSTextField *textField = [[[logController window] contentView] viewWithTag:110];
         [textField setStringValue:@""];
     }
@@ -764,11 +865,35 @@
 #pragma mark -
 #pragma mark Actions
 
+- (IBAction)showInfo:(id)sender {
+    
+    ASIS3ObjectRequest *object = [[_objectsController selectedObjects] objectAtIndex:0];
+    
+    ASIS3ObjectRequest *getMetaRequest = [ASIS3ObjectRequest requestForMetaWithBucket:self.bucket.name key:object.key];
+    [getMetaRequest setShowKind:ASIS3RequestGetMetaObject];
+    [getMetaRequest setShowStatus:RequestUserInfoStatusPending];
+    [_operations addObject:getMetaRequest];
+    [self addOperations];
+
+}
+
+- (void)didEndAclInfoPanelSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+    [sheet orderOut:self];
+    return;
+}
+
+- (void)didEndMetaInfoPanelSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+    [sheet orderOut:self];
+    return;
+}
+
 - (IBAction)showACL:(id)sender {
     
     ASIS3ObjectRequest *object = [[_objectsController selectedObjects] objectAtIndex:0];
     
-    ASIS3ObjectRequest *getACLRequest = [ASIS3ObjectRequest GETACLRequestWithBucket:self.bucket.name key:object.key];
+    ASIS3ObjectRequest *getACLRequest = [ASIS3ObjectRequest requestForAclWithBucket:self.bucket.name key:object.key];
     [getACLRequest setShowKind:ASIS3RequestGetACLObject];
     [getACLRequest setShowStatus:RequestUserInfoStatusPending];
     [_operations addObject:getACLRequest];
@@ -787,7 +912,7 @@
     [self setPreSignBucketName:self.bucket.name];
     [self setPreSignObjectName:selectedObject.key];
     [self setPreSignDate:[NSDate date]];
-    [self setPreSignUseCustomHost:NO];
+    [self setPreSignHostBucket:NO];
     
     [NSApp beginSheet:preSignSheet
        modalForWindow:[self window]
@@ -797,14 +922,16 @@
 }
 
 - (IBAction)preSign:(id)sender {
-    
-    NSURL *requestURL = [ASIS3ObjectRequest GETPresignedURLWithBucket:[self preSignBucketName]
-                                                                  key:[self preSignObjectName]
-                                                              expires:[self preSignDate]
-                                                                   ip:[self preSignIP]
-                                                               useCDN:[self preSignUseCDN]
-                                                        useCustomHost:[self preSignUseCustomHost]
-                                                          bucketFront:[self preSignBucketFront]];
+
+    NSURL *requestURL = [ASIS3Request authenticatedURLWithBucket:[self preSignBucketName]
+                                                             key:[self preSignObjectName]
+                                                         expires:[self preSignDate]
+                                                            host:[self preSignHost]
+                                                      hostBucket:[self preSignHostBucket]
+                                                           https:[self preSignUseHttps]
+                                                              ip:[self preSignIP]
+                                                        urlStyle:[self preSignBucketFront]?ASIS3UrlVhostStyle:ASIS3UrlPathStyle
+                                                     subResource:nil];
     
     [self setPreSignURL:[requestURL absoluteString]];
     
@@ -814,7 +941,7 @@
 - (IBAction)refresh:(id)sender
 {
     
-    NSArray *ops = [[[NSApp delegate] networkRefreshQueue] operations];
+    NSArray *ops = [[(S3ApplicationDelegate *)[NSApp delegate] networkRefreshQueue] operations];
     
     for (ASIS3Request *request in ops) {
         
@@ -952,6 +1079,18 @@
             
         }else {
             [self download:sender];
+            
+//            ASIS3ObjectRequest *getMetaRequest = [ASIS3ObjectRequest requestForMetaWithBucket:self.bucket.name key:b.key];
+//            [getMetaRequest setShowKind:ASIS3RequestGetMetaObject];
+//            [getMetaRequest setShowStatus:RequestUserInfoStatusPending];
+//            [_operations addObject:getMetaRequest];
+//            [self addOperations];
+            
+//            ASIS3ObjectRequest *setMetaRequest = [ASIS3ObjectRequest PUTRequestWithBucket:self.bucket.name key:b.key meta:@{@"hahaha":@"eee"}];
+//            [setMetaRequest setShowKind:ASIS3RequestPutMetaObject];
+//            [setMetaRequest setShowStatus:RequestUserInfoStatusPending];
+//            [_operations addObject:setMetaRequest];
+//            [self addOperations];
         }
     }
 }
@@ -1025,6 +1164,15 @@
                  didPresentSelector:@selector(didPresentErrorWithRecovery:contextInfo:) contextInfo:nil];
         return;        
     }
+    
+    
+//    ASIS3ObjectRequest *re = [ASIS3ObjectRequest PUTRequestForFile:path withBucket:[[self bucket] name] key:key relax:YES];
+//    [re setShowKind:ASIS3RequestAddObjectRelax];
+//    [re setShowStatus:RequestUserInfoStatusPending];
+//    [_operations addObject:re];
+//    
+//    return;
+    
     
     ASIS3ObjectRequest *uploadRequest = [ASIS3ObjectRequest PUTRequestForFile:path withBucket:[[self bucket] name] key:key];
     [uploadRequest addRequestHeader:@"Expect" value:@"100-continue"];
@@ -1140,9 +1288,9 @@
     [self setPreSignIP:nil];
     [self setPreSignURL:nil];
     [self setPreSignDate:nil];
-    [self setPreSignUseCDN:NO];
+    [self setPreSignUseHttps:NO];
     [self setPreSignBucketFront:NO];
-    [self setPreSignUseCustomHost:NO];
+    [self setPreSignHostBucket:NO];
     
     return;
 }
@@ -1175,7 +1323,7 @@
     
     [[(ASIS3Request *)request logObject] update];
     
-    S3OperationController *logController = (S3OperationController *)[[[NSApp delegate] controllers] objectForKey:@"Console"];
+    S3OperationController *logController = (S3OperationController *)[[(S3ApplicationDelegate *)[NSApp delegate] controllers] objectForKey:@"Console"];
     NSTextField *textField = [[[logController window] contentView] viewWithTag:110];
     NSNumber *speedNumber = [NSNumber numberWithUnsignedLong:[ASIS3Request averageBandwidthUsedPerSecond]];
     [textField setStringValue:[NSString stringWithFormat:@"Transfer speed : %@/sec", [speedNumber readableFileSize]]];
@@ -1190,7 +1338,7 @@
     
     [[(ASIS3Request *)request logObject] update];
     
-    S3OperationController *logController = (S3OperationController *)[[[NSApp delegate] controllers] objectForKey:@"Console"];
+    S3OperationController *logController = (S3OperationController *)[[(S3ApplicationDelegate *)[NSApp delegate] controllers] objectForKey:@"Console"];
     NSTextField *textField = [[[logController window] contentView] viewWithTag:110];
     NSNumber *speedNumber = [NSNumber numberWithUnsignedLong:[ASIS3Request averageBandwidthUsedPerSecond]];
     [textField setStringValue:[NSString stringWithFormat:@"Transfer speed : %@/sec", [speedNumber readableFileSize]]];
@@ -1286,12 +1434,12 @@
     _preSignDate = date;
 }
 
-- (BOOL)preSignUseCDN {
-    return _preSignUseCDN;
+- (BOOL)preSignUseHttps {
+    return _preSignUseHttps;
 }
 
-- (void)setPreSignUseCDN:(BOOL)useCDN {
-    _preSignUseCDN = useCDN;
+- (void)setPreSignUseHttps:(BOOL)useHttps {
+    _preSignUseHttps = useHttps;
 }
 
 - (BOOL)preSignBucketFront {
@@ -1302,28 +1450,19 @@
     _preSignBucketFront = bucketFront;
 }
 
-- (BOOL)preSignUseCustomHost {
-    return _preSignUseCustomHost;
+- (BOOL)preSignHostBucket {
+    return _preSignHostBucket;
 }
 
-- (void)setPreSignUseCustomHost:(BOOL)useCustomHost {
-    _preSignUseCustomHost = useCustomHost;
-    
-    NSTextField *textField = [preSignSheet.contentView viewWithTag:1010];
-    if (!useCustomHost) {
-        [textField setEnabled:NO];
-    }else {
-        [textField setEnabled:YES];
-    }
+- (void)setPreSignHostBucket:(BOOL)preSignHostBucket {
+    _preSignHostBucket = preSignHostBucket;
 }
 
-- (NSString *)preSignCustomHost {
-    return _preSignCustomHost;
+- (NSString *)preSignHost {
+    return _preSignHost;
 }
-
-- (void)setPreSignCustomHost:(NSString *)customHost {
-    _preSignCustomHost = customHost;
-    [ASIS3ObjectRequest setSharedCustomHost:customHost];
+- (void)setPreSignHost:(NSString *)preSignHost {
+    _preSignHost = preSignHost;
 }
 
 - (NSString *)uploadACL
@@ -1397,7 +1536,7 @@
 
 - (BOOL)hasActiveRequest {
     
-    for (ASIS3Request *request in [[[NSApp delegate] networkQueue] operations]) {
+    for (ASIS3Request *request in [[(S3ApplicationDelegate *)[NSApp delegate] networkQueue] operations]) {
         
         if (([request isKindOfClass:[ASIS3BucketRequest class]] && [[(ASIS3BucketRequest *)request bucket] isEqualToString:self.bucket.name]) ||
             ([request isKindOfClass:[ASIS3ObjectRequest class]] && [[(ASIS3ObjectRequest *)request bucket] isEqualToString:self.bucket.name])) {
@@ -1406,7 +1545,7 @@
         }
     }
     
-    for (ASIS3Request *request in [[[NSApp delegate] networkRefreshQueue] operations]) {
+    for (ASIS3Request *request in [[(S3ApplicationDelegate *)[NSApp delegate] networkRefreshQueue] operations]) {
         
         if ([request isKindOfClass:[ASIS3BucketRequest class]] && [[(ASIS3BucketRequest *)request bucket] isEqualToString:self.bucket.name]) {
             return YES;

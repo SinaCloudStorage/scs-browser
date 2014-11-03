@@ -37,7 +37,7 @@
 
 - (void)dealloc
 {
-    [[[NSApp delegate] queue] removeQueueListener:self];
+    [[(S3ApplicationDelegate *)[NSApp delegate] queue] removeQueueListener:self];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:ASIS3RequestStateDidChangeNotification object:nil];
 }
 
@@ -51,7 +51,7 @@
     }
 	[[self window] setDefaultButtonCell:[_defaultButton cell]];
 	[[self window] setDelegate:self];
-    [[[NSApp delegate] queue] addQueueListener:self];
+    [[(S3ApplicationDelegate *)[NSApp delegate] queue] addQueueListener:self];
 }
 
 - (void)windowDidLoad
@@ -128,7 +128,7 @@
     
     NSDictionary *authDict = @{@"accessKey": accessKeyID, @"secretAccessKey": secretAccessKeyID};
     
-    [[NSApp delegate] setAuthenticationCredentials:authDict forConnectionInfo:[self connInfo]];
+    [(S3ApplicationDelegate *)[NSApp delegate] setAuthenticationCredentials:authDict forConnectionInfo:[self connInfo]];
     
     
     if ([self connInfo].delegate && [[[self connInfo] delegate] respondsToSelector:@selector(accessKeyForConnInfo:)]) {
@@ -231,7 +231,7 @@
             }
             
             self.bucketListController = [[S3BucketListController alloc] initWithWindowNibName:@"Buckets"];
-            [[[NSApp delegate] controllers] setObject:self.bucketListController forKey:@"Buckets"];
+            [[(S3ApplicationDelegate *)[NSApp delegate] controllers] setObject:self.bucketListController forKey:@"Buckets"];
             
             [self.bucketListController setConnInfo:[self connInfo]];
             [self.bucketListController setBuckets:[(ASIS3ServiceRequest *)request buckets]];

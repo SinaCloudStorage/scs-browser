@@ -34,9 +34,9 @@
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(asiS3RequestStateDidChange:) name:ASIS3RequestStateDidChangeNotification object:nil];
     
-    [[[NSApp delegate] networkQueue] setUploadProgressDelegate:self];
-    [[[NSApp delegate] networkQueue] setDownloadProgressDelegate:self];
-    [[[NSApp delegate] networkQueue] setShowAccurateProgress:YES];
+    [[(S3ApplicationDelegate *)[NSApp delegate] networkQueue] setUploadProgressDelegate:self];
+    [[(S3ApplicationDelegate *)[NSApp delegate] networkQueue] setDownloadProgressDelegate:self];
+    [[(S3ApplicationDelegate *)[NSApp delegate] networkQueue] setShowAccurateProgress:YES];
 }
 
 #pragma mark -
@@ -163,15 +163,15 @@
 
 - (void)commit {
     
-    [[[NSApp delegate] operationLog] logOperations:_logObjects];
+    [[(S3ApplicationDelegate *)[NSApp delegate] operationLog] logOperations:_logObjects];
     
     for (ASIS3Request *o in _operations) {
         if ([self configureRequest:o]) {
             
             if ([[o showKind] isEqualToString:ASIS3RequestListObject]) {
-                [[[NSApp delegate] networkRefreshQueue] addOperation:o];
+                [[(S3ApplicationDelegate *)[NSApp delegate] networkRefreshQueue] addOperation:o];
             }else {
-                [[[NSApp delegate] networkQueue] addOperation:o];
+                [[(S3ApplicationDelegate *)[NSApp delegate] networkQueue] addOperation:o];
             }
         }
     }
@@ -179,13 +179,13 @@
     [_logObjects removeAllObjects];
     [_operations removeAllObjects];
     
-    S3OperationController *controller = [[[NSApp delegate] controllers] objectForKey:@"Console"];
+    S3OperationController *controller = [[(S3ApplicationDelegate *)[NSApp delegate] controllers] objectForKey:@"Console"];
     [controller scrollToEnd];
 }
 
 - (BOOL)hasActiveRequest {
     
-    return ([[[NSApp delegate] networkQueue] requestsCount] > 0) || ([[[NSApp delegate] networkRefreshQueue] requestsCount] > 0);
+    return ([[(S3ApplicationDelegate *)[NSApp delegate] networkQueue] requestsCount] > 0) || ([[(S3ApplicationDelegate *)[NSApp delegate] networkRefreshQueue] requestsCount] > 0);
 }
 
 - (BOOL)configureRequest:(ASIS3Request *)request {
