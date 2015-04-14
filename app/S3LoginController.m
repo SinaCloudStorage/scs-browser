@@ -244,6 +244,10 @@
             
             [self.bucketListController showWindow:self];
             
+            // 解决启动后tableview第一行不显示的问题 by Littlebox222
+            NSRect rect = [[self.bucketListController window] frame];
+            [[self.bucketListController window] setFrame:NSMakeRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height+1) display:YES animate:NO];
+            
             [self close];
             
             if (self && [self window] && ![[self window] isVisible]) {

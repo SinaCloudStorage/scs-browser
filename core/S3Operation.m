@@ -505,8 +505,10 @@ ReadStreamClientCallBack(CFReadStreamRef stream, CFStreamEventType type, void *c
         // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
         
         NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
-                                       [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
-                                       [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
+                                       
+                                       //after iOS 8.0 these two can't use for archive
+//                                       [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
+//                                       [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
                                        [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
                                        kCFNull,kCFStreamSSLPeerName,
                                        nil];

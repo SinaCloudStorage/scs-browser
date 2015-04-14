@@ -105,6 +105,7 @@
             
             _superPrefixs = [NSMutableArray array];
             _tempObjectsArray = [NSMutableArray array];
+            _tempRemoveObjectsArray = [NSMutableArray array];
             _canRefresh = YES;
         }
     }
@@ -453,22 +454,38 @@
             //Delete all list
             if ([[request isListForDeleteAll] boolValue]) {
                 
-                NSArray *objArray = [(ASIS3BucketRequest *)request objects];
+                _isTruncated = [(ASIS3BucketRequest *)request isTruncated];
                 
-                for (int i=0; i<[objArray count]; i++) {
-                    ASIS3BucketObject *o = [objArray objectAtIndex:i];
-                    ASIS3ObjectRequest *deleteRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[(ASIS3BucketRequest *)request bucket] key:[o key]];
-                    [deleteRequest setShowKind:ASIS3RequestDeleteObject];
-                    [deleteRequest setShowStatus:RequestUserInfoStatusPending];
-                    
-                    if (i == [objArray count]-1) {
-                        [deleteRequest setShouldRefresh:@YES];
-                    }
-                    
-                    [_operations addObject:deleteRequest];
+                for (ASIS3BucketObject *o in [(ASIS3BucketRequest *)request objects]) {
+                    [_tempRemoveObjectsArray addObject:o];
                 }
-                [self addOperations];
-
+                
+                if (!_isTruncated) {
+                    
+                    for (int i=0; i<[_tempRemoveObjectsArray count]; i++) {
+                        ASIS3BucketObject *o = [_tempRemoveObjectsArray objectAtIndex:i];
+                        ASIS3ObjectRequest *deleteRequest = [ASIS3ObjectRequest DELETERequestWithBucket:[(ASIS3BucketRequest *)request bucket] key:[o key]];
+                        [deleteRequest setShowKind:ASIS3RequestDeleteObject];
+                        [deleteRequest setShowStatus:RequestUserInfoStatusPending];
+                        
+                        if (i == [_tempRemoveObjectsArray count]-1) {
+                            [deleteRequest setShouldRefresh:@YES];
+                        }
+                        
+                        [_operations addObject:deleteRequest];
+                    }
+                    [self addOperations];
+                    
+                }else {
+                    
+                    ASIS3BucketRequest *requestForNextChunk = [(ASIS3BucketRequest *)request requestForNextChunk];
+                    [requestForNextChunk setShowKind:ASIS3RequestListObject];
+                    [requestForNextChunk setShowStatus:RequestUserInfoStatusPending];
+                    [requestForNextChunk setIsListForDeleteAll:@YES];
+                    [_operations addObject:requestForNextChunk];
+                    [self addOperations];
+                }
+                
                 return;
             }
             
@@ -991,6 +1008,8 @@
 //        //[self addToCurrentNetworkQueue:deleteObjectRequest];
 //    }
     
+    [_tempRemoveObjectsArray removeAllObjects];
+    
     ASIS3BucketRequest *listRequest = [ASIS3BucketRequest requestWithBucket:[[self bucket] name]];
     [listRequest setShowKind:ASIS3RequestListObject];
     [listRequest setShowStatus:RequestUserInfoStatusPending];
@@ -1079,18 +1098,6 @@
             
         }else {
             [self download:sender];
-            
-//            ASIS3ObjectRequest *getMetaRequest = [ASIS3ObjectRequest requestForMetaWithBucket:self.bucket.name key:b.key];
-//            [getMetaRequest setShowKind:ASIS3RequestGetMetaObject];
-//            [getMetaRequest setShowStatus:RequestUserInfoStatusPending];
-//            [_operations addObject:getMetaRequest];
-//            [self addOperations];
-            
-//            ASIS3ObjectRequest *setMetaRequest = [ASIS3ObjectRequest PUTRequestWithBucket:self.bucket.name key:b.key meta:@{@"hahaha":@"eee"}];
-//            [setMetaRequest setShowKind:ASIS3RequestPutMetaObject];
-//            [setMetaRequest setShowStatus:RequestUserInfoStatusPending];
-//            [_operations addObject:setMetaRequest];
-//            [self addOperations];
         }
     }
 }
@@ -1164,14 +1171,6 @@
                  didPresentSelector:@selector(didPresentErrorWithRecovery:contextInfo:) contextInfo:nil];
         return;        
     }
-    
-    
-//    ASIS3ObjectRequest *re = [ASIS3ObjectRequest PUTRequestForFile:path withBucket:[[self bucket] name] key:key relax:YES];
-//    [re setShowKind:ASIS3RequestAddObjectRelax];
-//    [re setShowStatus:RequestUserInfoStatusPending];
-//    [_operations addObject:re];
-//    
-//    return;
     
     
     ASIS3ObjectRequest *uploadRequest = [ASIS3ObjectRequest PUTRequestForFile:path withBucket:[[self bucket] name] key:key];

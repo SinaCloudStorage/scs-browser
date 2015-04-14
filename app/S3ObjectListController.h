@@ -54,6 +54,8 @@
     BOOL _isTruncated;
     NSMutableArray *_tempObjectsArray;
     
+    NSMutableArray *_tempRemoveObjectsArray;
+    
     BOOL _canRefresh;
     BOOL _initialize;
 }	

@@ -269,7 +269,7 @@ NSString *S3HeaderPrefixString = @"x-amz";
 {
     if (anObject && [anObject isKindOfClass:[S3ConnectionInfo class]])
     {
-        if ([anObject delegate] == [self delegate] && 
+        if ([(S3ConnectionInfo *)anObject delegate] == [self delegate] &&
             (([anObject userInfo] == nil && [self userInfo] == nil) || 
              [[anObject userInfo] isEqual:[self userInfo]]) &&
             [anObject secureConnection] == [self secureConnection] &&
