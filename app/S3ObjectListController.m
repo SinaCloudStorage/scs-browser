@@ -1024,7 +1024,7 @@
     ASIS3BucketObject *b;
     NSUInteger count = [[_objectsController selectedObjects] count];
 
-    if (count>=10)
+    if (count>=1)
     {
         NSAlert *alert = [[NSAlert alloc] init];
         [alert setMessageText:[NSString stringWithFormat:NSLocalizedString(@"Remove %d objects permanently?",nil), count]];
